@@ -16,7 +16,6 @@ const (
 func dispatcher(s *vacuum.String) {
 	summer, _ := vacuum.CreateString(summer)
 	log.Printf("Summer String created: %s", summer)
-	s.Input(100)
 
 	calculators := []*vacuum.String{}
 
@@ -37,12 +36,12 @@ func dispatcher(s *vacuum.String) {
 		calculator := chooseRandomCalculator()
 		calculator.Input(i)
 	}
+	log.Println("DISPATCH DONE")
 }
 
 func calculator(s *vacuum.String) {
 	for {
 		msg := s.Read()
-		log.Println("calculator!!!")
 		val := msg.(int)
 
 		//for i := 0; i < 10000; i++ {
@@ -55,13 +54,17 @@ func calculator(s *vacuum.String) {
 func summer(s *vacuum.String) {
 	log.Println("summer started!!!")
 	var totalVal uint64 = 0
+	var nextGrade uint64 = 100000
+
 	for {
 		msg := s.Read()
-		log.Println("summer!!!")
 
 		val := msg.(int)
 		totalVal += uint64(val)
-		s.Output(totalVal)
+		if totalVal >= nextGrade {
+			s.Output(totalVal)
+			nextGrade += 100000
+		}
 	}
 }
 

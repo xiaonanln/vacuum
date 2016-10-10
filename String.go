@@ -2,7 +2,6 @@ package vacuum
 
 import (
 	"fmt"
-
 	"log"
 
 	"github.com/xiaonanln/vacuum/uuid"
@@ -33,25 +32,25 @@ func (s *String) String() string {
 }
 
 func (s *String) Input(msg StringMessage) {
-	log.Printf("%s INPUT %T(%v)", s, msg, msg)
+	//log.Printf("%s INPUT %T(%v)", s, msg, msg)
 	s.inputChan <- msg
 }
 
 func (s *String) Read() StringMessage {
-	msg := <-s.inputChan
-	log.Printf("%s READ %T(%v)", s, msg, msg)
+	msg, _ := <-s.inputChan
+	//log.Printf("%s READ %T(%v)", s, msg, msg)
 	return msg
 }
 
 func (s *String) Output(msg StringMessage) {
 	outputString := getString(s.outputSid)
-	log.Printf("get output string: %s", outputString)
+	//log.Printf("get output string: %s", outputString)
 
 	if outputString != nil {
 		outputString.Input(msg)
 	} else {
 		// output string not set, just write to output
-		fmt.Printf("%s OUTPUT %T(%v)\n", s, msg, msg)
+		log.Printf("%s OUTPUT %T(%v)", s, msg, msg)
 	}
 }
 
