@@ -1,0 +1,34 @@
+<component name="libraryTable">
+  <library name="GOPATH &lt;vacuum&gt;">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../../../golang.org" />
+      <root url="file://$PROJECT_DIR$/../../../9fans.net" />
+      <root url="file://$PROJECT_DIR$/../../../dota-h5" />
+      <root url="file://$PROJECT_DIR$/../../../sourcegraph.com" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/.vscode" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/client" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/cmd" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/libs" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/lngs" />
+      <root url="file://$PROJECT_DIR$/../../../gopkg.in" />
+      <root url="file://$PROJECT_DIR$/../.." />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../../../golang.org" />
+      <root url="file://$PROJECT_DIR$/../../../9fans.net" />
+      <root url="file://$PROJECT_DIR$/../../../dota-h5" />
+      <root url="file://$PROJECT_DIR$/../../../sourcegraph.com" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/.vscode" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/client" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/cmd" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/libs" />
+      <root url="file://$USER_HOME$/Desktop/LNGS/src/lngs" />
+      <root url="file://$PROJECT_DIR$/../../../gopkg.in" />
+      <root url="file://$PROJECT_DIR$/../.." />
+    </SOURCES>
+    <excluded>
+      <root url="file://$PROJECT_DIR$" />
+    </excluded>
+  </library>
+</component>
