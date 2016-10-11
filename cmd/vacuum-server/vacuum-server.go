@@ -6,14 +6,17 @@ import (
 
 	"log"
 
+	"sync"
+
 	"github.com/xiaonanln/vacuum"
+	"github.com/xiaonanln/vacuum/cmd/vacuum-server/internal/telnet_server"
 )
 
 const (
-	CALCULATOR_COUNT = 100
+	CALCULATOR_COUNT = 3
 )
 
-func dispatcher(s *vacuum.String) {
+func dispatcher(_ *vacuum.String) {
 	summer, _ := vacuum.CreateString(summer)
 	log.Printf("Summer String created: %s", summer)
 
@@ -71,11 +74,8 @@ func summer(s *vacuum.String) {
 func main() {
 	s, _ := vacuum.CreateString(dispatcher)
 	log.Printf("dispatcher created: %s", s)
-	for {
-		mainloop()
-	}
-}
-
-func mainloop() {
-	time.Sleep(time.Second)
+	wait := &sync.WaitGroup{}
+	wait.Add(1)
+	go telnet_server.ServeTelnetServer(wait) // new goroutine for telnet server
+	wait.Wait()
 }
