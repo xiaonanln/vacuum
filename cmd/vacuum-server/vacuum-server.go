@@ -16,6 +16,9 @@ const (
 	CALCULATOR_COUNT = 3
 )
 
+func init() {
+}
+
 func dispatcher(_ *vacuum.String) {
 	summer, _ := vacuum.CreateString(summer)
 	log.Printf("Summer String created: %s", summer)
