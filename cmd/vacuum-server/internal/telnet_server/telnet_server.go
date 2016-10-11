@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/xiaonanln/vacuum/netutils"
+	"github.com/xiaonanln/vacuum/netutil"
 )
 
 func debug(format string, a ...interface{}) {
@@ -37,7 +37,7 @@ func serveTelnetServer() error {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			if netutils.IsTemporaryNetworkError(err) {
+			if netutil.IsTemporaryNetError(err) {
 				continue
 			} else {
 				return err
