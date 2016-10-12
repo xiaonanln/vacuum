@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="GOPATH &lt;vacuum&gt;">
+  <library name="GOPATH &lt;teststring&gt;">
     <CLASSES>
       <root url="file://$PROJECT_DIR$/../../../golang.org" />
       <root url="file://$PROJECT_DIR$/../../../9fans.net" />
@@ -29,6 +29,7 @@
     </SOURCES>
     <excluded>
       <root url="file://$PROJECT_DIR$" />
+      <root url="file://$PROJECT_DIR$/../teststring" />
     </excluded>
   </library>
 </component>
