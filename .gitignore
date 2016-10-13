@@ -22,3 +22,9 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+*~
+cmd/vacuum-server/vacuum-server
+*.so
+*.d
+*.nm
