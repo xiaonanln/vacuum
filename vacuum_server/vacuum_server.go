@@ -1,15 +1,20 @@
 package vacuum_server
 
-import (
-	"sync"
+import "time"
 
-	"github.com/xiaonanln/vacuum/cmd/dispatcher/telnet_server"
+const (
+	DISPATCHER_ADDR = ":"
+)
+
+var (
+	dispatcherClient *DispatcherClient
 )
 
 func RunServer() {
-	wait := &sync.WaitGroup{}
-	wait.Add(1)
+	go manageDispatcherClient()
 
-	go telnet_server.ServeTelnetServer(wait) // new goroutine for telnet server
-	wait.Wait()
+	dispatcherClient = newDispatcherClient()
+	for {
+		time.Sleep(time.Second)
+	}
 }

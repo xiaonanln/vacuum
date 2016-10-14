@@ -14,23 +14,27 @@ const (
 	CALCULATOR_COUNT = 3
 )
 
+var (
+	summerSID = ""
+)
+
 func init() {
 }
 
-func dispatcher(_ *vacuum.String) {
-	summer, _ := vacuum.CreateString(summer)
+func dispatcher(s *vacuum.String) {
+	summer, _ := vacuum.CreateString("summer")
 	log.Printf("Summer String created: %s", summer)
+	summerSID = summer
 
-	calculators := []*vacuum.String{}
+	calculators := []string{}
 
 	for i := 0; i < CALCULATOR_COUNT; i++ {
-		calculator, _ := vacuum.CreateString(calculator)
+		calculator, _ := vacuum.CreateString("calculator")
 		log.Printf("Calculator String created: %s", calculator)
 		calculators = append(calculators, calculator)
-		calculator.Connect(summer.ID)
 	}
 
-	chooseRandomCalculator := func() *vacuum.String {
+	chooseRandomCalculator := func() string {
 		i := rand.Intn(len(calculators))
 		return calculators[i]
 	}
@@ -38,12 +42,14 @@ func dispatcher(_ *vacuum.String) {
 	for i := 0; i < 10000; i++ {
 		time.Sleep(10 * time.Millisecond)
 		calculator := chooseRandomCalculator()
-		calculator.Input(i)
+		s.Send(calculator, i)
 	}
 	log.Println("DISPATCH DONE")
 }
 
 func calculator(s *vacuum.String) {
+	s.Connect(summerSID)
+
 	for {
 		msg := s.Read()
 		val := msg.(int)
@@ -73,7 +79,11 @@ func summer(s *vacuum.String) {
 }
 
 func main() {
-	s, _ := vacuum.CreateString(dispatcher)
+	vacuum.RegisterString("dispatcher", dispatcher)
+	vacuum.RegisterString("summer", summer)
+	vacuum.RegisterString("calculator", calculator)
+
+	s, _ := vacuum.CreateString("dispatcher")
 	log.Printf("dispatcher created: %s", s)
 	vacuum_server.RunServer()
 }

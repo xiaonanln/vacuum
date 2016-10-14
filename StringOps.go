@@ -1,9 +1,10 @@
 package vacuum
 
-func CreateString(routine StringRoutine) (*String, error) {
+func CreateString(name string) (string, error) {
+	routine := getStringRoutine(name)
 	s := newString(routine)
 	putString(s)
 
 	s.run()
-	return s, nil
+	return s.ID, nil
 }

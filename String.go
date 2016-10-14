@@ -43,17 +43,19 @@ func (s *String) Read() StringMessage {
 }
 
 func (s *String) Output(msg StringMessage) {
-	outputString := getString(s.outputSid)
-	//log.Printf("get output string: %s", outputString)
-
-	if outputString != nil {
-		outputString.Input(msg)
-	} else {
-		// output string not set, just write to output
-		log.Printf("%s OUTPUT %T(%v)", s, msg, msg)
-	}
+	s.Send(s.outputSid, msg)
 }
 
 func (s *String) Connect(sid string) {
 	s.outputSid = sid
+}
+
+func (s *String) Send(sid string, msg StringMessage) {
+	targetString := getString(sid)
+	if targetString != nil {
+		targetString.Input(msg)
+	} else {
+		// output string not set, just write to output
+		log.Printf("%s OUTPUT %T(%v)", s, msg, msg)
+	}
 }
