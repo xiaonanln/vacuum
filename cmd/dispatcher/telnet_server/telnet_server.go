@@ -9,7 +9,11 @@ import (
 	"github.com/xiaonanln/vacuum/netutil"
 )
 
-func debug(format string, a ...interface{}) {
+const (
+	TELNET_SERVER_LISTEN_ATTR = ":7582"
+)
+
+func debuglog(format string, a ...interface{}) {
 	s := fmt.Sprintf(format, a...)
 	log.Printf("TelnetServer: %s", s)
 }
@@ -17,7 +21,7 @@ func debug(format string, a ...interface{}) {
 func ServeTelnetServer(wait *sync.WaitGroup) {
 	for {
 		err := serveTelnetServer()
-		debug("error: %s", err.Error())
+		debuglog("error: %s", err.Error())
 	}
 	wait.Done()
 }
@@ -25,10 +29,11 @@ func ServeTelnetServer(wait *sync.WaitGroup) {
 func serveTelnetServer() error {
 	defer func() {
 		if err := recover(); err != nil {
-			debug("panic: %v", err)
+			debuglog("panic: %v", err)
 		}
 	}()
-	ln, err := net.Listen("tcp", ":7582")
+	ln, err := net.Listen("tcp", TELNET_SERVER_LISTEN_ATTR)
+	debuglog("Listening on %s ...", TELNET_SERVER_LISTEN_ATTR)
 
 	if err != nil {
 		return err

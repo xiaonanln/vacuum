@@ -3,7 +3,7 @@ package vacuum_server
 import (
 	"sync"
 
-	"github.com/xiaonanln/vacuum/vacuum_server/telnet_server"
+	"github.com/xiaonanln/vacuum/cmd/dispatcher/telnet_server"
 )
 
 func RunServer() {
