@@ -9,7 +9,6 @@ import (
 type MessagePackMsgPacker struct{}
 
 func (mp MessagePackMsgPacker) PackMsg(msg interface{}, buf []byte) ([]byte, error) {
-	//return msgpack.Marshal(msg)
 	buffer := bytes.NewBuffer(buf)
 
 	encoder := msgpack.NewEncoder(buffer)

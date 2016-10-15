@@ -1,7 +1,7 @@
 package msgbufpool
 
 const (
-	MSGBUF_SIZE   = 64 * 1024
+	MSGBUF_SIZE   = 1 * 1024 * 1024
 	MAX_POOL_SIZE = 100
 )
 
