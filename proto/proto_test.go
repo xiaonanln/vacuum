@@ -27,6 +27,7 @@ func BenchmarkGobMsgPacker(b *testing.B) {
 }
 
 func benchmarkMsgPacker(b *testing.B, packer MsgPacker) {
+	b.Logf("Testing MsgPacker %T ...", packer)
 	msg := testMsg{
 		ID:        "abc",
 		F1:        0.123124234,
