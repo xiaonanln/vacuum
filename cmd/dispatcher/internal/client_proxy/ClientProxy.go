@@ -5,16 +5,16 @@ import (
 
 	"log"
 
-	"github.com/xiaonanln/vacuum/netutil"
+	"github.com/xiaonanln/vacuum/proto"
 )
 
 type ClientProxy struct {
-	netutil.BinaryConnection
+	proto.MessageConnection
 }
 
 func NewClientProxy(conn net.Conn) *ClientProxy {
 	return &ClientProxy{
-		BinaryConnection: netutil.NewBinaryConnection(conn),
+		MessageConnection: proto.NewMessageConnection(conn),
 	}
 }
 
