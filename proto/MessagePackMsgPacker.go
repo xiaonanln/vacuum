@@ -8,7 +8,7 @@ import (
 
 type MessagePackMsgPacker struct{}
 
-func (mp *MessagePackMsgPacker) PackMsg(msg interface{}, buf []byte) ([]byte, error) {
+func (mp MessagePackMsgPacker) PackMsg(msg interface{}, buf []byte) ([]byte, error) {
 	//return msgpack.Marshal(msg)
 	buffer := bytes.NewBuffer(buf)
 
@@ -21,7 +21,7 @@ func (mp *MessagePackMsgPacker) PackMsg(msg interface{}, buf []byte) ([]byte, er
 	return buf, nil
 }
 
-func (mp *MessagePackMsgPacker) UnpackMsg(data []byte, msg interface{}) error {
+func (mp MessagePackMsgPacker) UnpackMsg(data []byte, msg interface{}) error {
 	err := msgpack.Unmarshal(data, msg)
 	return err
 }

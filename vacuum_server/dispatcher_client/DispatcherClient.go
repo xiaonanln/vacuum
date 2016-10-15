@@ -4,6 +4,7 @@ import (
 	"net"
 
 	"github.com/xiaonanln/vacuum/netutil"
+	"github.com/xiaonanln/vacuum/proto"
 )
 
 type DispatcherClient struct {
@@ -17,5 +18,6 @@ func newDispatcherClient(conn net.Conn) *DispatcherClient {
 }
 
 func (dc *DispatcherClient) RegisterVacuumServer() {
-
+	req := proto.RegisterVacuumServerReq{}
+	dc.send(proto.REGISTER_VACUUM_SERVER_REQ, &req)
 }

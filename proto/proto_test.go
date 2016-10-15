@@ -44,7 +44,7 @@ func benchmarkMsgPacker(b *testing.B, packer MsgPacker) {
 		buf, _ = packer.PackMsg(msg, buf)
 
 		//log.Printf("MsgPack: %v => %s(%d), error %v", msg, string(buf), len(buf), err)
-		var restoreMsg RegisterVacuumServerMsg
+		var restoreMsg testMsg
 		_ = packer.UnpackMsg(buf, &restoreMsg)
 		//log.Printf("MsgPack: %s => %v, error %v", string(buf), msg, err)
 		if msg.ID != restoreMsg.ID {

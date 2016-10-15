@@ -4,6 +4,8 @@ const (
 	REGISTER_VACUUM_SERVER_REQ = 1
 )
 
-type RegisterVacuumServerMsg struct {
+type msgtype_t uint16
+
+type RegisterVacuumServerReq struct {
 	ID string
 }

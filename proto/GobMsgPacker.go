@@ -7,7 +7,7 @@ import (
 
 type GobMsgPacker struct{}
 
-func (mp *GobMsgPacker) PackMsg(msg interface{}, buf []byte) ([]byte, error) {
+func (mp GobMsgPacker) PackMsg(msg interface{}, buf []byte) ([]byte, error) {
 	//return msgpack.Marshal(msg)
 	buffer := bytes.NewBuffer(buf)
 
@@ -20,7 +20,7 @@ func (mp *GobMsgPacker) PackMsg(msg interface{}, buf []byte) ([]byte, error) {
 	return buf, nil
 }
 
-func (mp *GobMsgPacker) UnpackMsg(data []byte, msg interface{}) error {
+func (mp GobMsgPacker) UnpackMsg(data []byte, msg interface{}) error {
 	decoder := gob.NewDecoder(bytes.NewBuffer(data))
 	err := decoder.Decode(msg)
 	return err
