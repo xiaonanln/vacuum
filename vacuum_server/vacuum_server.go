@@ -1,19 +1,19 @@
 package vacuum_server
 
-import "time"
+import (
+	"time"
+
+	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
+)
 
 const (
 	DISPATCHER_ADDR = ":"
 )
 
-var (
-	dispatcherClient *DispatcherClient
-)
+var ()
 
 func RunServer() {
-	go manageDispatcherClient()
-
-	dispatcherClient = newDispatcherClient()
+	dispatcher_client.RegisterVacuumServer()
 	for {
 		time.Sleep(time.Second)
 	}

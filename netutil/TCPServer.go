@@ -49,6 +49,7 @@ func serveTCPImpl(listenAddr string, delegate TCPServerDelegate) error {
 			}
 		}
 
+		log.Printf("Connection from: %s", conn.RemoteAddr())
 		go delegate.ServeTCPConnection(conn)
 	}
 	return nil

@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"log"
 
+	"net"
+
+	"github.com/xiaonanln/vacuum/cmd/dispatcher/internal/client_proxy"
 	"github.com/xiaonanln/vacuum/cmd/dispatcher/internal/telnet_server"
+	"github.com/xiaonanln/vacuum/netutil"
 )
 
 const (
@@ -18,40 +22,17 @@ func debuglog(format string, a ...interface{}) {
 	log.Printf("dispatcher: %s", s)
 }
 
+type DispatcherDelegate struct{}
+
 func main() {
 	wait := &sync.WaitGroup{}
 	wait.Add(1)
 	go telnet_server.ServeTelnetServer(wait)
 
-	//serveDispatcher()
+	netutil.ServeTCP(DISPATCHER_SERVER_LISTEN_ATTR, &DispatcherDelegate{})
 	wait.Wait()
 }
 
-//func serveDispatcher() {
-//	defer func() {
-//		if err := recover(); err != nil {
-//			debuglog("panic: %v", err)
-//		}
-//	}()
-//
-//	ln, err := net.Listen("tcp", DISPATCHER_SERVER_LISTEN_ATTR)
-//	debuglog("Listening on %s ...", DISPATCHER_SERVER_LISTEN_ATTR)
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	for {
-//		conn, err := ln.Accept()
-//		if err != nil {
-//			if netutil.IsTemporaryNetError(err) {
-//				continue
-//			} else {
-//				return err
-//			}
-//		}
-//
-//		go handleTelnetConnection(conn)
-//	}
-//	return nil
-//}
+func (dd *DispatcherDelegate) ServeTCPConnection(conn net.Conn) {
+	client_proxy.NewClientProxy(conn).Serve()
+}

@@ -1,6 +1,7 @@
 package netutil
 
 import (
+	"fmt"
 	"net"
 	"runtime"
 )
@@ -85,4 +86,10 @@ func ReadLine(conn net.Conn) (string, error) {
 			}
 		}
 	}
+}
+
+func ConnectTCP(host string, port int) (net.Conn, error) {
+	addr := fmt.Sprintf("%s:%d", host, port)
+	conn, err := net.Dial("tcp", addr)
+	return conn, err
 }
