@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 )
 
-var ()
-
 type JSONMsgPacker struct {
 }
 

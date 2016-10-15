@@ -1,10 +1,6 @@
 package proto
 
-import (
-	"bytes"
-
-	"gopkg.in/vmihailenco/msgpack.v2"
-)
+import "bytes"
 
 type MessagePackMsgPacker struct{}
 
