@@ -33,14 +33,15 @@ func connectDispatchClient() (*DispatcherClient, error) {
 	return newDispatcherClient(conn), nil
 }
 
-func RegisterVacuumServer() {
+func RegisterVacuumServer(serverID int) {
 	maintainDispatcherClient()
-	dispatcherClient.RegisterVacuumServer()
+	dispatcherClient.RegisterVacuumServer(serverID)
 }
 
 func SendStringMessage(sid string, msg vacuum.StringMessage) {
-	var err error
 	maintainDispatcherClient()
+
+	var err error
 	err = dispatcherClient.SendStringMessage(sid, msg)
 	if err != nil {
 		log.Printf("SendStringMessage: send string message failed with error %s, dispatcher lost ..", err.Error())

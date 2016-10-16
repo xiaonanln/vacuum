@@ -85,5 +85,5 @@ func main() {
 
 	s, _ := vacuum.CreateString("dispatcher")
 	log.Printf("dispatcher created: %s", s)
-	vacuum_server.RunServer()
+	vacuum_server.RunServer(1)
 }

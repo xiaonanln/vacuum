@@ -16,7 +16,7 @@ func newDispatcherClient(conn net.Conn) *DispatcherClient {
 	}
 }
 
-func (dc *DispatcherClient) RegisterVacuumServer() error {
+func (dc *DispatcherClient) RegisterVacuumServer(serverID int) error {
 	req := proto.RegisterVacuumServerReq{}
 	return dc.SendMsg(proto.REGISTER_VACUUM_SERVER_REQ, &req)
 }

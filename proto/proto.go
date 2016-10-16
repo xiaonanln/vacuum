@@ -9,7 +9,7 @@ const (
 type MsgType_t uint16
 
 type RegisterVacuumServerReq struct {
-	ID string
+	ServerID int `msgpack:"ID"`
 }
 
 type SendStringMessageReq struct {
