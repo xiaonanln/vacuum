@@ -5,6 +5,7 @@ import (
 
 	"log"
 
+	"github.com/xiaonanln/vacuum/msgbufpool"
 	"github.com/xiaonanln/vacuum/proto"
 )
 
@@ -40,5 +41,24 @@ func (cp *ClientProxy) Serve() {
 		log.Printf("dispatcher: received client msg: %v", msgPacketInfo)
 
 		msgType := msgPacketInfo.MsgType
+		if msgType == proto.SEND_STRING_MESSAGE_REQ {
+			cp.handleSendStringMessageReq(msgPacketInfo.Payload)
+		} else if msgType == proto.REGISTER_VACUUM_SERVER_REQ {
+			cp.handleRegisterVacuumServerReq(msgPacketInfo.Payload)
+		}
+
+		msgbufpool.PutMsgBuf(msgPacketInfo.Msgbuf)
 	}
+}
+
+func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
+	var req proto.SendStringMessageReq
+	msgPacker.UnpackMsg(data, &req)
+	log.Printf("%s.handleSendStringMessageReq %T %v", cp, req, req)
+}
+
+func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) {
+	var req proto.RegisterVacuumServerReq
+	msgPacker.UnpackMsg(data, &req)
+	log.Println("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
 }

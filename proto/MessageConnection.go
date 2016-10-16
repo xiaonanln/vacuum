@@ -27,7 +27,7 @@ var (
 
 func init() {
 	if MAX_MESSAGE_SIZE > msgbufpool.MSGBUF_SIZE {
-		log.Panicf("MAX_MESSAGE_SIZE must be less than msgbufpool.MSGBUF_SIZE!")
+		log.Panicln("MAX_MESSAGE_SIZE must be less than msgbufpool.MSGBUF_SIZE!")
 	}
 }
 
@@ -64,8 +64,9 @@ func (mc MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 
 	var pktSize uint32 = uint32(payloadLen + MESSAGE_PREPAYLOAD_SIZE)
 	NETWORK_ENDIAN.PutUint32((msgbuf)[:MESSAGE_SIZE_FIELD_SIZE], pktSize)
-	log.Printf("Send message: size=%v, type=%v: %v", pktSize, mt, msg)
-	return mc.SendAll((msgbuf)[:pktSize])
+	err = mc.SendAll((msgbuf)[:pktSize])
+	log.Printf("Send message: size=%v, type=%v: %v, error=%v", pktSize, mt, msg, err)
+	return err
 }
 
 func (mc MessageConnection) RecvMsgPacket(pinfo *MsgPacketInfo) error {

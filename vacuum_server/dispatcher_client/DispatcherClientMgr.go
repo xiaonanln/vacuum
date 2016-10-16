@@ -39,6 +39,12 @@ func RegisterVacuumServer() {
 }
 
 func SendStringMessage(sid string, msg vacuum.StringMessage) {
+	var err error
 	maintainDispatcherClient()
-	dispatcherClient.SendStringMessage(sid, msg)
+	err = dispatcherClient.SendStringMessage(sid, msg)
+	if err != nil {
+		log.Printf("SendStringMessage: send string message failed with error %s, dispatcher lost ..", err.Error())
+		dispatcherClient.Close()
+		dispatcherClient = nil
+	}
 }

@@ -16,15 +16,15 @@ func newDispatcherClient(conn net.Conn) *DispatcherClient {
 	}
 }
 
-func (dc *DispatcherClient) RegisterVacuumServer() {
+func (dc *DispatcherClient) RegisterVacuumServer() error {
 	req := proto.RegisterVacuumServerReq{}
-	dc.SendMsg(proto.REGISTER_VACUUM_SERVER_REQ, &req)
+	return dc.SendMsg(proto.REGISTER_VACUUM_SERVER_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendStringMessage(sid string, msg interface{}) {
+func (dc *DispatcherClient) SendStringMessage(sid string, msg interface{}) error {
 	req := proto.SendStringMessageReq{
 		SID: sid,
 		Msg: msg,
 	}
-	dc.SendMsg(proto.SEND_STRING_MESSAGE_REQ, &req)
+	return dc.SendMsg(proto.SEND_STRING_MESSAGE_REQ, &req)
 }

@@ -10,8 +10,6 @@ const (
 	DISPATCHER_ADDR = ":"
 )
 
-var ()
-
 func RunServer() {
 	dispatcher_client.RegisterVacuumServer()
 	for {
