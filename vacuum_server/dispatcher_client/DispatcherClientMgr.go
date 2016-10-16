@@ -5,7 +5,7 @@ import (
 
 	"time"
 
-	"github.com/xiaonanln/vacuum"
+	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/netutil"
 )
 
@@ -38,7 +38,7 @@ func RegisterVacuumServer(serverID int) {
 	dispatcherClient.RegisterVacuumServer(serverID)
 }
 
-func SendStringMessage(sid string, msg vacuum.StringMessage) {
+func SendStringMessage(sid string, msg common.StringMessage) {
 	maintainDispatcherClient()
 
 	var err error
@@ -48,4 +48,9 @@ func SendStringMessage(sid string, msg vacuum.StringMessage) {
 		dispatcherClient.Close()
 		dispatcherClient = nil
 	}
+}
+
+func CreateString(name string) error {
+	maintainDispatcherClient()
+	return dispatcherClient.CreateString(name)
 }

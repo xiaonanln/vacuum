@@ -4,8 +4,12 @@ import (
 	"fmt"
 	"log"
 
+	. "github.com/xiaonanln/vacuum/common"
+
 	"github.com/xiaonanln/vacuum/uuid"
 )
+
+type StringRoutine func(*String)
 
 type String struct {
 	ID        string
@@ -23,17 +27,8 @@ func newString(routine StringRoutine) *String {
 	}
 }
 
-func (s *String) run() {
-	go s.routine(s)
-}
-
 func (s *String) String() string {
 	return fmt.Sprintf("String<%s>@%v", s.ID, s.routine)
-}
-
-func (s *String) Input(msg StringMessage) {
-	//log.Printf("%s INPUT %T(%v)", s, msg, msg)
-	s.inputChan <- msg
 }
 
 func (s *String) Read() StringMessage {
@@ -53,7 +48,7 @@ func (s *String) Connect(sid string) {
 func (s *String) Send(sid string, msg StringMessage) {
 	targetString := getString(sid)
 	if targetString != nil {
-		targetString.Input(msg)
+		targetString.inputChan <- msg
 	} else {
 		// output string not set, just write to output
 		log.Printf("%s OUTPUT %T(%v)", s, msg, msg)

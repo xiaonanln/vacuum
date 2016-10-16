@@ -28,3 +28,10 @@ func (dc *DispatcherClient) SendStringMessage(sid string, msg interface{}) error
 	}
 	return dc.SendMsg(proto.SEND_STRING_MESSAGE_REQ, &req)
 }
+
+func (dc *DispatcherClient) CreateString(name string) error {
+	req := proto.CreateStringReq{
+		Name: name,
+	}
+	return dc.SendMsg(proto.CREATE_STRING_REQ, &req)
+}
