@@ -16,5 +16,6 @@ func RunServer() {
 	dispatcher_client.RegisterVacuumServer()
 	for {
 		time.Sleep(time.Second)
+		dispatcher_client.SendStringMessage("abc", []int{1, 2, 3, 4, 5})
 	}
 }

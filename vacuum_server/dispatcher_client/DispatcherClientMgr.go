@@ -38,6 +38,7 @@ func RegisterVacuumServer() {
 	dispatcherClient.RegisterVacuumServer()
 }
 
-func Send(sid string, msg vacuum.StringMessage) {
+func SendStringMessage(sid string, msg vacuum.StringMessage) {
 	maintainDispatcherClient()
+	dispatcherClient.SendStringMessage(sid, msg)
 }

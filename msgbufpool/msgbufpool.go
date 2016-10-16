@@ -5,7 +5,7 @@ const (
 	MAX_POOL_SIZE = 100
 )
 
-type msgbuf_t [MSGBUF_SIZE]byte
+type Msgbuf_t [MSGBUF_SIZE]byte
 
 type msgbufpoolPerfData struct {
 	getHit   uint64
@@ -15,7 +15,7 @@ type msgbufpoolPerfData struct {
 }
 
 var (
-	pool     = make([]*msgbuf_t, 0, MAX_POOL_SIZE)
+	pool     = make([]*Msgbuf_t, 0, MAX_POOL_SIZE)
 	perfData msgbufpoolPerfData
 )
 
@@ -23,7 +23,7 @@ func init() {
 
 }
 
-func GetMsgBuf() *msgbuf_t {
+func GetMsgBuf() *Msgbuf_t {
 	if len(pool) > 0 {
 		perfData.getHit += 1
 		last := len(pool) - 1
@@ -32,11 +32,11 @@ func GetMsgBuf() *msgbuf_t {
 		return msgbuf
 	} else {
 		perfData.getMiss += 1
-		return &msgbuf_t{} // allocate new one
+		return &Msgbuf_t{} // allocate new one
 	}
 }
 
-func PutMsgBuf(mb *msgbuf_t) {
+func PutMsgBuf(mb *Msgbuf_t) {
 	if len(pool) < MAX_POOL_SIZE {
 		perfData.freeHit += 1
 		pool = append(pool, mb)
