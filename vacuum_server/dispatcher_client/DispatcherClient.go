@@ -6,9 +6,18 @@ import (
 	"github.com/xiaonanln/vacuum/proto"
 )
 
+type DispatcherRespHandler interface {
+	HandleDispatcherResp_CreateString(name string)
+	HandleDispatcherResp_DeclareService(sid string, serviceName string)
+}
+
 type DispatcherClient struct {
 	proto.MessageConnection
 }
+
+var (
+	dispatcherRespHandler DispatcherRespHandler
+)
 
 func newDispatcherClient(conn net.Conn) *DispatcherClient {
 	return &DispatcherClient{
@@ -31,9 +40,17 @@ func (dc *DispatcherClient) SendStringMessage(sid string, msg interface{}) error
 	return dc.SendMsg(proto.SEND_STRING_MESSAGE_REQ, &req)
 }
 
-func (dc *DispatcherClient) CreateString(name string) error {
+func (dc *DispatcherClient) SendCreateStringReq(name string) error {
 	req := proto.CreateStringReq{
 		Name: name,
 	}
 	return dc.SendMsg(proto.CREATE_STRING_REQ, &req)
+}
+
+func (dc *DispatcherClient) SendDeclareServiceReq(sid string, serviceName string) error {
+	req := proto.DeclareServiceReq{
+		StringID:    sid,
+		ServiceName: serviceName,
+	}
+	return dc.SendMsg(proto.DECLARE_SERVICE_REQ, &req)
 }

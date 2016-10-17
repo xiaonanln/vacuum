@@ -46,8 +46,10 @@ func (cp *ClientProxy) Serve() {
 			cp.handleCreateStringReq(msgPacketInfo.Payload)
 		} else if msgType == proto.REGISTER_VACUUM_SERVER_REQ {
 			cp.handleRegisterVacuumServerReq(msgPacketInfo.Payload)
+		} else if msgType == proto.DECLARE_SERVICE_REQ {
+			cp.handleDeclareServiceReq(msgPacketInfo.Payload)
 		} else {
-			log.Printf("ERROR: unknown dispatcher request type=%v", msgType)
+			log.Panicf("ERROR: unknown dispatcher request type=%v", msgType)
 		}
 
 		msgbufpool.PutMsgBuf(msgPacketInfo.Msgbuf)
@@ -80,4 +82,21 @@ func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) {
 	proto.MSG_PACKER.UnpackMsg(data, &req)
 	log.Printf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
 	registerClientProxyInfo(cp, req.ServerID)
+}
+
+func (cp *ClientProxy) handleDeclareServiceReq(data []byte) {
+	var req proto.DeclareServiceReq
+	proto.MSG_PACKER.UnpackMsg(data, &req)
+	log.Printf("%s.handleDeclareServiceReq %T %v", cp, req, req)
+
+	// the the declare of service to all clients
+	resp := proto.DeclareServiceResp{
+		StringID:    req.StringID,
+		ServiceName: req.ServiceName,
+	}
+	clientProxyMgrLock.RLock()
+	for _, clientProxy := range clientProxes {
+		clientProxy.SendMsg(proto.DECLARE_SERVICE_RESP, &resp)
+	}
+	clientProxyMgrLock.RUnlock()
 }

@@ -54,3 +54,10 @@ func (s *String) Send(sid string, msg StringMessage) {
 		log.Printf("%s OUTPUT %T(%v)", s, msg, msg)
 	}
 }
+
+func (s *String) DeclareService(name string) {
+	DeclareService(s.ID, name)
+}
+
+func (s *String) SendToService(serviceName string, msg interface{}) {
+}

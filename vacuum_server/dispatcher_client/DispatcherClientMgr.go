@@ -65,8 +65,9 @@ func connectDispatchClient() (*DispatcherClient, error) {
 	return newDispatcherClient(conn), nil
 }
 
-func Initialize(_serverID int) {
+func Initialize(_serverID int, h DispatcherRespHandler) {
 	serverID = _serverID
+	dispatcherRespHandler = h
 	go netutil.ServeForever(serveDispatcherClient)
 	assureConnectedDispatcherClient()
 }
@@ -82,9 +83,14 @@ func SendStringMessage(sid string, msg common.StringMessage) {
 	}
 }
 
-func CreateString(name string) error {
+func SendCreateStringReq(name string) error {
 	dispatcherClient := assureConnectedDispatcherClient()
-	return dispatcherClient.CreateString(name)
+	return dispatcherClient.SendCreateStringReq(name)
+}
+
+func SendDeclareServiceReq(sid string, serviceName string) error {
+	dispatcherClient := assureConnectedDispatcherClient()
+	return dispatcherClient.SendDeclareServiceReq(sid, serviceName)
 }
 
 // serve the dispatcher client, receive RESPs from dispatcher and process
@@ -108,11 +114,14 @@ func serveDispatcherClient() {
 
 		log.Printf("serveDispatcherClient: received dispatcher resp: %v", msgPackInfo)
 
-		// handle the packet ...
+		// handle the packet ... on this vacuum server
 		msgtype := msgPackInfo.MsgType
 		if msgtype == proto.CREATE_STRING_RESP {
-			// create string on this vacuum server
+			// create real string instance
 			err = handleCreateStringResp(dispatcherClient, msgPackInfo.Payload)
+		} else if msgtype == proto.DECLARE_SERVICE_RESP {
+			// declare service
+			err = handleDeclareServiceResp(dispatcherClient, msgPackInfo.Payload)
 		} else {
 			log.Panicf("serveDispatcherClient: invalid msg type: %v", msgtype)
 		}
@@ -129,6 +138,17 @@ func handleCreateStringResp(dispatcherClient *DispatcherClient, payload []byte) 
 		return err
 	}
 
-	//vacuum.createString(resp.Name)
+	dispatcherRespHandler.HandleDispatcherResp_CreateString(resp.Name)
+	return nil
+}
+
+func handleDeclareServiceResp(dispatcherClient *DispatcherClient, payload []byte) error {
+	var resp proto.DeclareServiceResp
+	err := proto.MSG_PACKER.UnpackMsg(payload, &resp)
+	if err != nil {
+		return err
+	}
+
+	dispatcherRespHandler.HandleDispatcherResp_DeclareService(resp.StringID, resp.ServiceName)
 	return nil
 }

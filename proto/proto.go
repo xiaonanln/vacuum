@@ -6,12 +6,14 @@ const (
 	SEND_STRING_MESSAGE_REQ    = iota
 	CREATE_STRING_REQ          = iota
 	CREATE_STRING_RESP         = iota
+	DECLARE_SERVICE_REQ        = iota
+	DECLARE_SERVICE_RESP       = iota
 )
 
 type MsgType_t uint16
 
 type RegisterVacuumServerReq struct {
-	ServerID int `msgpack:"ID"`
+	ServerID int `msgpack:"SID"`
 }
 
 type SendStringMessageReq struct {
@@ -25,4 +27,14 @@ type CreateStringReq struct {
 
 type CreateStringResp struct {
 	Name string `msgpack:"N"`
+}
+
+type DeclareServiceReq struct {
+	StringID    string `msgpack:"ID"`
+	ServiceName string `msgpack:"SN"`
+}
+
+type DeclareServiceResp struct {
+	StringID    string `msgpack:"ID"`
+	ServiceName string `msgpack:"SN"`
 }
