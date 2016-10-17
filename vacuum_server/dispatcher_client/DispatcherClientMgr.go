@@ -5,30 +5,50 @@ import (
 
 	"time"
 
+	"sync/atomic"
+
+	"unsafe"
+
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/netutil"
 )
 
 var (
-	dispatcherClient *DispatcherClient
-	serverID         = 0
+	_dispatcherClient *DispatcherClient
+	serverID          = 0
 )
 
-func maintainDispatcherClient() {
-	var err error
+func getDispatcherClient() *DispatcherClient {
+	addr := (*uintptr)(unsafe.Pointer(&_dispatcherClient))
+	return (*DispatcherClient)(unsafe.Pointer(atomic.LoadUintptr(addr)))
+}
 
+func setDispatcherClient(dc *DispatcherClient) {
+	addr := (*uintptr)(unsafe.Pointer(&_dispatcherClient))
+	atomic.StoreUintptr(addr, uintptr(unsafe.Pointer(dc)))
+}
+
+func maintainDispatcherClient() *DispatcherClient {
+	var err error
+	dispatcherClient := getDispatcherClient()
+	log.Println("dispatcherClient", dispatcherClient)
 	for dispatcherClient == nil {
 		dispatcherClient, err = connectDispatchClient()
 		if err != nil {
 			log.Printf("Connect to dispatcher failed: %s", err.Error())
 			time.Sleep(time.Second)
+			continue
 		}
+
 		if serverID == 0 {
 			log.Panicf("invalid serverID: %v", serverID)
 		}
 
 		dispatcherClient.RegisterVacuumServer(serverID)
+		setDispatcherClient(dispatcherClient)
 	}
+
+	return dispatcherClient
 }
 
 func connectDispatchClient() (*DispatcherClient, error) {
@@ -45,18 +65,17 @@ func RegisterVacuumServer(_serverID int) {
 }
 
 func SendStringMessage(sid string, msg common.StringMessage) {
-	maintainDispatcherClient()
-
 	var err error
+	dispatcherClient := maintainDispatcherClient()
 	err = dispatcherClient.SendStringMessage(sid, msg)
 	if err != nil {
 		log.Printf("SendStringMessage: send string message failed with error %s, dispatcher lost ..", err.Error())
 		dispatcherClient.Close()
-		dispatcherClient = nil
+		setDispatcherClient(nil)
 	}
 }
 
 func CreateString(name string) error {
-	maintainDispatcherClient()
+	dispatcherClient := maintainDispatcherClient()
 	return dispatcherClient.CreateString(name)
 }
