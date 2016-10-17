@@ -3,6 +3,7 @@ package vacuum_server
 import (
 	"time"
 
+	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 )
 
@@ -12,10 +13,11 @@ const (
 
 func init() {
 	// initializing the vacuum server
-	dispatcher_client.RegisterVacuumServer(1)
+	config.LoadConfig()
+	dispatcher_client.Initialize(1)
 }
 
-func RunServer(serverID int) {
+func RunServer() {
 	for {
 		time.Sleep(time.Second)
 	}

@@ -28,7 +28,7 @@ func setDispatcherClient(dc *DispatcherClient) {
 	atomic.StoreUintptr(addr, uintptr(unsafe.Pointer(dc)))
 }
 
-func maintainDispatcherClient() *DispatcherClient {
+func assureConnectedDispatcherClient() *DispatcherClient {
 	var err error
 	dispatcherClient := getDispatcherClient()
 	log.Println("dispatcherClient", dispatcherClient)
@@ -59,14 +59,15 @@ func connectDispatchClient() (*DispatcherClient, error) {
 	return newDispatcherClient(conn), nil
 }
 
-func RegisterVacuumServer(_serverID int) {
+func Initialize(_serverID int) {
 	serverID = _serverID
-	maintainDispatcherClient()
+	go netutil.ServeForever(serveDispatcherClient)
+	assureConnectedDispatcherClient()
 }
 
 func SendStringMessage(sid string, msg common.StringMessage) {
 	var err error
-	dispatcherClient := maintainDispatcherClient()
+	dispatcherClient := assureConnectedDispatcherClient()
 	err = dispatcherClient.SendStringMessage(sid, msg)
 	if err != nil {
 		log.Printf("SendStringMessage: send string message failed with error %s, dispatcher lost ..", err.Error())
@@ -76,6 +77,18 @@ func SendStringMessage(sid string, msg common.StringMessage) {
 }
 
 func CreateString(name string) error {
-	dispatcherClient := maintainDispatcherClient()
+	dispatcherClient := assureConnectedDispatcherClient()
 	return dispatcherClient.CreateString(name)
+}
+
+// serve the dispatcher client, receive RESPs from dispatcher and process
+func serveDispatcherClient() {
+	log.Printf("Start serving dispatcher client ...")
+	for {
+		dispatcherclient := getDispatcherClient()
+		if dispatcherclient == nil {
+			time.Sleep(time.Second)
+			continue
+		}
+	}
 }

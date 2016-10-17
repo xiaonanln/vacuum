@@ -11,9 +11,7 @@ const (
 	CALCULATOR_COUNT = 3
 )
 
-var (
-	summerSID = ""
-)
+var ()
 
 func init() {
 }
@@ -33,5 +31,5 @@ func main() {
 	vacuum.CreateString("Sender")
 	vacuum.CreateString("Receiver")
 
-	vacuum_server.RunServer(1)
+	vacuum_server.RunServer()
 }

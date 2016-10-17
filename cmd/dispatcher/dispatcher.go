@@ -10,6 +10,7 @@ import (
 
 	"github.com/xiaonanln/vacuum/cmd/dispatcher/internal/client_proxy"
 	"github.com/xiaonanln/vacuum/cmd/dispatcher/internal/telnet_server"
+	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/netutil"
 )
 
@@ -25,6 +26,8 @@ func debuglog(format string, a ...interface{}) {
 type DispatcherDelegate struct{}
 
 func main() {
+	config.LoadConfig()
+
 	wait := &sync.WaitGroup{}
 	wait.Add(1)
 	go telnet_server.ServeTelnetServer(wait)
