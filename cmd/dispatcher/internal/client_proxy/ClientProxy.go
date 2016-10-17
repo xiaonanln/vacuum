@@ -9,10 +9,6 @@ import (
 	"github.com/xiaonanln/vacuum/proto"
 )
 
-var (
-	msgPacker = proto.MessagePackMsgPacker{}
-)
-
 type ClientProxy struct {
 	proto.MessageConnection
 	ServerID int
@@ -60,13 +56,13 @@ func (cp *ClientProxy) Serve() {
 
 func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
 	var req proto.SendStringMessageReq
-	msgPacker.UnpackMsg(data, &req)
+	proto.MSG_PACKER.UnpackMsg(data, &req)
 	log.Printf("%s.handleSendStringMessageReq %T %v", cp, req, req)
 }
 
 func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 	var req proto.CreateStringReq
-	msgPacker.UnpackMsg(data, &req)
+	proto.MSG_PACKER.UnpackMsg(data, &req)
 
 	// choose one server for create string
 	chooseServer := getRandomClientProxy()
@@ -81,7 +77,7 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 
 func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) {
 	var req proto.RegisterVacuumServerReq
-	msgPacker.UnpackMsg(data, &req)
+	proto.MSG_PACKER.UnpackMsg(data, &req)
 	log.Printf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
 	registerClientProxyInfo(cp, req.ServerID)
 }

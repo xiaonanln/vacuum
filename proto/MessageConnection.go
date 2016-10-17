@@ -22,7 +22,6 @@ const (
 
 var (
 	NETWORK_ENDIAN = binary.LittleEndian
-	msgPacker      = MessagePackMsgPacker{}
 )
 
 func init() {
@@ -51,7 +50,7 @@ func (mc MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 	NETWORK_ENDIAN.PutUint16((msgbuf)[MESSAGE_SIZE_FIELD_SIZE:MESSAGE_SIZE_FIELD_SIZE+MESSAGE_TYPE_FIELD_SIZE], uint16(mt))
 	payloadBuf := (msgbuf)[MESSAGE_PREPAYLOAD_SIZE:MESSAGE_PREPAYLOAD_SIZE]
 	payloadCap := cap(payloadBuf)
-	payloadBuf, err := msgPacker.PackMsg(msg, payloadBuf)
+	payloadBuf, err := MSG_PACKER.PackMsg(msg, payloadBuf)
 	if err != nil {
 		return err
 	}

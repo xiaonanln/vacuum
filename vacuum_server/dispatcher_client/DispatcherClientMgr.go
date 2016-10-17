@@ -10,7 +10,13 @@ import (
 	"unsafe"
 
 	"github.com/xiaonanln/vacuum/common"
+	"github.com/xiaonanln/vacuum/msgbufpool"
 	"github.com/xiaonanln/vacuum/netutil"
+	"github.com/xiaonanln/vacuum/proto"
+)
+
+const (
+	LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR = 3 * time.Second
 )
 
 var (
@@ -36,7 +42,7 @@ func assureConnectedDispatcherClient() *DispatcherClient {
 		dispatcherClient, err = connectDispatchClient()
 		if err != nil {
 			log.Printf("Connect to dispatcher failed: %s", err.Error())
-			time.Sleep(time.Second)
+			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
 			continue
 		}
 
@@ -83,12 +89,46 @@ func CreateString(name string) error {
 
 // serve the dispatcher client, receive RESPs from dispatcher and process
 func serveDispatcherClient() {
-	log.Printf("Start serving dispatcher client ...")
+	var err error
+	log.Printf("serveDispatcherClient: start serving dispatcher client ...")
 	for {
-		dispatcherclient := getDispatcherClient()
-		if dispatcherclient == nil {
-			time.Sleep(time.Second)
+		dispatcherClient := getDispatcherClient()
+		if dispatcherClient == nil {
+			log.Printf("serveDispatcherClient: dispatcher client is nil")
+			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
 			continue
 		}
+		var msgPackInfo proto.MsgPacketInfo
+		err = dispatcherClient.RecvMsgPacket(&msgPackInfo)
+		if err != nil {
+			log.Printf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
+			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
+			continue
+		}
+
+		log.Printf("serveDispatcherClient: received dispatcher resp: %v", msgPackInfo)
+
+		// handle the packet ...
+		msgtype := msgPackInfo.MsgType
+		if msgtype == proto.CREATE_STRING_RESP {
+			// create string on this vacuum server
+			err = handleCreateStringResp(dispatcherClient, msgPackInfo.Payload)
+		} else {
+			log.Panicf("serveDispatcherClient: invalid msg type: %v", msgtype)
+		}
+
+		// reclaim the msgbuf
+		msgbufpool.PutMsgBuf(msgPackInfo.Msgbuf)
 	}
+}
+
+func handleCreateStringResp(dispatcherClient *DispatcherClient, payload []byte) error {
+	var resp proto.CreateStringResp
+	err := proto.MSG_PACKER.UnpackMsg(payload, &resp)
+	if err != nil {
+		return err
+	}
+
+	//vacuum.createString(resp.Name)
+	return nil
 }
