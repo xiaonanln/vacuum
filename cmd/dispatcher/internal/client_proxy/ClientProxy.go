@@ -15,16 +15,19 @@ var (
 
 type ClientProxy struct {
 	proto.MessageConnection
+	ServerID int
 }
 
 func NewClientProxy(conn net.Conn) *ClientProxy {
 	return &ClientProxy{
 		MessageConnection: proto.NewMessageConnection(conn),
+		ServerID:          0, // to be registered
 	}
 }
 
 func (cp *ClientProxy) Serve() {
 	defer cp.Close()
+	defer onClientProxyClose(cp)
 
 	var err error
 
@@ -53,7 +56,6 @@ func (cp *ClientProxy) Serve() {
 
 		msgbufpool.PutMsgBuf(msgPacketInfo.Msgbuf)
 	}
-
 }
 
 func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
@@ -65,14 +67,21 @@ func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
 func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 	var req proto.CreateStringReq
 	msgPacker.UnpackMsg(data, &req)
-	log.Printf("%s.handleCreateStringReq %T %v", cp, req, req)
 
 	// choose one server for create string
+	chooseServer := getRandomClientProxy()
+	log.Printf("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
 
+	resp := proto.CreateStringResp{
+		Name: req.Name,
+	}
+
+	chooseServer.SendMsg(proto.CREATE_STRING_RESP, &resp)
 }
 
 func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) {
 	var req proto.RegisterVacuumServerReq
 	msgPacker.UnpackMsg(data, &req)
-	log.Println("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
+	log.Printf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
+	registerClientProxyInfo(cp, req.ServerID)
 }

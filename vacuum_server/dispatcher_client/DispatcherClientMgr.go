@@ -11,6 +11,7 @@ import (
 
 var (
 	dispatcherClient *DispatcherClient
+	serverID         = 0
 )
 
 func maintainDispatcherClient() {
@@ -22,6 +23,11 @@ func maintainDispatcherClient() {
 			log.Printf("Connect to dispatcher failed: %s", err.Error())
 			time.Sleep(time.Second)
 		}
+		if serverID == 0 {
+			log.Panicf("invalid serverID: %v", serverID)
+		}
+
+		dispatcherClient.RegisterVacuumServer(serverID)
 	}
 }
 
@@ -33,9 +39,9 @@ func connectDispatchClient() (*DispatcherClient, error) {
 	return newDispatcherClient(conn), nil
 }
 
-func RegisterVacuumServer(serverID int) {
+func RegisterVacuumServer(_serverID int) {
+	serverID = _serverID
 	maintainDispatcherClient()
-	dispatcherClient.RegisterVacuumServer(serverID)
 }
 
 func SendStringMessage(sid string, msg common.StringMessage) {
