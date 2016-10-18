@@ -35,6 +35,9 @@ func getStringRoutine(name string) StringRoutine {
 }
 
 func declareService(stringID string, serviceName string) {
+	lock.Lock()
+	defer lock.Unlock()
+
 	declaredServices[stringID] = serviceName
 
 	stringIDs, ok := stringIDsByService[serviceName]
@@ -43,8 +46,17 @@ func declareService(stringID string, serviceName string) {
 		stringIDsByService[serviceName] = stringIDs
 	}
 	stringIDs[stringID] = true
+	log.Println(declaredServices, stringIDsByService)
 }
 
-func isServiceReady(serviceName string) {
+func GetServiceProviderCount(serviceName string) int {
+	lock.RLock()
+	defer lock.RUnlock()
 
+	strs, ok := stringIDsByService[serviceName]
+	if ok {
+		return len(strs)
+	} else {
+		return 0
+	}
 }
