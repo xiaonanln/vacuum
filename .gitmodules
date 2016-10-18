@@ -1,3 +1,0 @@
-[submodule "vendor/gcfg"]
-	path = vendor/gcfg
-	url = https://github.com/go-gcfg/gcfg
