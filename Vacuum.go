@@ -2,14 +2,17 @@ package vacuum
 
 import (
 	"log"
+	"math/rand"
 	"sync"
+
+	. "github.com/xiaonanln/vacuum/common"
 )
 
 var (
 	strings                  = map[string]*String{}
 	registeredStringRoutines = map[string]StringRoutine{}
-	declaredServices         = map[string]string{}
-	stringIDsByService       = map[string]map[string]bool{}
+	stringIDListByService    = map[string][]string{}
+	stringIDsByService       = map[string]StringSet{}
 	lock                     sync.RWMutex
 )
 
@@ -38,15 +41,29 @@ func declareService(stringID string, serviceName string) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	declaredServices[stringID] = serviceName
-
 	stringIDs, ok := stringIDsByService[serviceName]
-	if !ok {
-		stringIDs = map[string]bool{}
-		stringIDsByService[serviceName] = stringIDs
+	if ok { // add stringID to service
+		stringIDs.Add(stringID)
+		stringIDListByService[serviceName] = append(stringIDListByService[serviceName], stringID) // maintain the stringID list
+
+	} else { // found new service
+		stringIDsByService[serviceName] = StringSet{}
+		stringIDsByService[serviceName].Add(stringID)
+
+		stringIDListByService[serviceName] = []string{stringID}
 	}
-	stringIDs[stringID] = true
-	log.Println(declaredServices, stringIDsByService)
+}
+
+func chooseServiceString(serviceName string) string {
+	lock.RLock()
+	defer lock.RUnlock()
+
+	stringIDs, ok := stringIDListByService[serviceName]
+	if ok {
+		return stringIDs[rand.Intn(len(stringIDs))]
+	} else {
+		return ""
+	}
 }
 
 func GetServiceProviderCount(serviceName string) int {

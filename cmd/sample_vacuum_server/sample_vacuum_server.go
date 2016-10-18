@@ -44,6 +44,7 @@ func Sender(s *vacuum.String) {
 	log.Printf("Now, all receivers are ready!!!")
 	// wait until there are any senders
 	for i := 0; i < 10; i++ {
+		log.Println("Send", i)
 		s.SendToService("Receiver", i)
 	}
 }
@@ -54,7 +55,7 @@ func Receiver(s *vacuum.String) {
 
 	for {
 		msg := s.Read()
-		log.Println(msg)
+		log.Println("Receive", msg)
 	}
 }
 

@@ -47,7 +47,8 @@ func (s *String) Connect(sid string) {
 
 func (s *String) Send(sid string, msg StringMessage) {
 	targetString := getString(sid)
-	if targetString != nil {
+
+	if targetString != nil { // found the target string on this vacuum server
 		targetString.inputChan <- msg
 	} else {
 		// output string not set, just write to output
@@ -59,5 +60,7 @@ func (s *String) DeclareService(name string) {
 	DeclareService(s.ID, name)
 }
 
-func (s *String) SendToService(serviceName string, msg interface{}) {
+func (s *String) SendToService(serviceName string, msg StringMessage) {
+	stringID := chooseServiceString(serviceName)
+	s.Send(stringID, msg)
 }
