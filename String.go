@@ -2,11 +2,9 @@ package vacuum
 
 import (
 	"fmt"
-	"log"
 
 	. "github.com/xiaonanln/vacuum/common"
-
-	"github.com/xiaonanln/vacuum/uuid"
+	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 )
 
 type StringRoutine func(*String)
@@ -18,9 +16,9 @@ type String struct {
 	outputSid string
 }
 
-func newString(routine StringRoutine) *String {
+func newString(stringID string, routine StringRoutine) *String {
 	return &String{
-		ID:        uuid.GenUUID(),
+		ID:        stringID,
 		routine:   routine,
 		inputChan: make(chan StringMessage),
 		outputSid: "",
@@ -46,14 +44,15 @@ func (s *String) Connect(sid string) {
 }
 
 func (s *String) Send(sid string, msg StringMessage) {
-	targetString := getString(sid)
+	dispatcher_client.SendStringMessage(sid, msg)
 
-	if targetString != nil { // found the target string on this vacuum server
-		targetString.inputChan <- msg
-	} else {
-		// output string not set, just write to output
-		log.Printf("%s OUTPUT %T(%v)", s, msg, msg)
-	}
+	//targetString := getString(sid)
+	//
+	//if targetString == nil { // string is not local, send msg to dispatcher
+	//	dispatcher_client.SendStringMessage(sid, msg)
+	//} else { // found the target string on this vacuum server
+	//	targetString.inputChan <- msg
+	//}
 }
 
 func (s *String) DeclareService(name string) {

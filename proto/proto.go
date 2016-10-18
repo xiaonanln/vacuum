@@ -4,6 +4,7 @@ const (
 	INVALID_MSG_TYPE           = 0
 	REGISTER_VACUUM_SERVER_REQ = iota
 	SEND_STRING_MESSAGE_REQ    = iota
+	SEND_STRING_MESSAGE_RESP   = iota
 	CREATE_STRING_REQ          = iota
 	CREATE_STRING_RESP         = iota
 	DECLARE_SERVICE_REQ        = iota
@@ -17,16 +18,23 @@ type RegisterVacuumServerReq struct {
 }
 
 type SendStringMessageReq struct {
-	SID string
-	Msg interface{}
+	StringID string      `msgpack:"ID"`
+	Msg      interface{} `msgpack:"M"`
+}
+
+type SendStringMessageResp struct {
+	StringID string      `msgpack:"ID"`
+	Msg      interface{} `msgpack:"M"`
 }
 
 type CreateStringReq struct {
-	Name string `msgpack:"N"`
+	Name     string `msgpack:"N"`
+	StringID string `msgpack:"ID"`
 }
 
 type CreateStringResp struct {
-	Name string `msgpack:"N"`
+	Name     string `msgpack:"N"`
+	StringID string `msgpack:"ID"`
 }
 
 type DeclareServiceReq struct {

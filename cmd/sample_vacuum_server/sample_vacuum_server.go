@@ -15,8 +15,8 @@ const (
 	SENDER_COUNT     = 1
 )
 
-func Dispatcher(s *vacuum.String) {
-	log.Printf("Dispatcher %v running ...", s)
+func Main(s *vacuum.String) {
+	log.Printf("Main %v running ...", s)
 	s.DeclareService("Dispatcher") // declare the dispatcher service
 
 	for i := 0; i < SENDER_COUNT; i++ {
@@ -60,11 +60,9 @@ func Receiver(s *vacuum.String) {
 }
 
 func main() {
-	vacuum.RegisterString("Dispatcher", Dispatcher)
+	vacuum.RegisterString("Main", Main) // main string is a special string for system to boot up
 	vacuum.RegisterString("Sender", Sender)
 	vacuum.RegisterString("Receiver", Receiver)
-
-	vacuum.CreateString("Dispatcher")
 
 	vacuum_server.RunServer()
 }

@@ -59,7 +59,18 @@ func (cp *ClientProxy) Serve() {
 func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
 	var req proto.SendStringMessageReq
 	proto.MSG_PACKER.UnpackMsg(data, &req)
-	log.Printf("%s.handleSendStringMessageReq %T %v", cp, req, req)
+
+	targetStringID := req.StringID
+	resp := proto.SendStringMessageResp{
+		StringID: targetStringID,
+		Msg:      req.Msg,
+	}
+
+	serverID := getStringLocation(targetStringID)
+	chooseServer := getClientProxy(serverID)
+
+	log.Printf("%s.handleSendStringMessageReq %T %v, target serve r%", cp, req, req)
+	chooseServer.SendMsg(proto.SEND_STRING_MESSAGE_RESP, &resp)
 }
 
 func (cp *ClientProxy) handleCreateStringReq(data []byte) {
@@ -67,11 +78,16 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 	proto.MSG_PACKER.UnpackMsg(data, &req)
 
 	// choose one server for create string
-	chooseServer := getRandomClientProxy()
-	log.Printf("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
 
+	chooseServer := getRandomClientProxy()
+	// save the stringID with the serverID
+	stringID := req.StringID
+	setStringLocation(stringID, chooseServer.ServerID)
+
+	log.Printf("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
 	resp := proto.CreateStringResp{
-		Name: req.Name,
+		Name:     req.Name,
+		StringID: stringID,
 	}
 
 	chooseServer.SendMsg(proto.CREATE_STRING_RESP, &resp)
@@ -94,9 +110,9 @@ func (cp *ClientProxy) handleDeclareServiceReq(data []byte) {
 		StringID:    req.StringID,
 		ServiceName: req.ServiceName,
 	}
-	clientProxyMgrLock.RLock()
+	clientProxiesLock.RLock()
 	for _, clientProxy := range clientProxes {
 		clientProxy.SendMsg(proto.DECLARE_SERVICE_RESP, &resp)
 	}
-	clientProxyMgrLock.RUnlock()
+	clientProxiesLock.RUnlock()
 }

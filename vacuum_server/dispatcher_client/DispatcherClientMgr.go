@@ -9,6 +9,10 @@ import (
 
 	"unsafe"
 
+	"errors"
+
+	"runtime/debug"
+
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/msgbufpool"
 	"github.com/xiaonanln/vacuum/netutil"
@@ -20,8 +24,9 @@ const (
 )
 
 var (
-	_dispatcherClient *DispatcherClient
-	serverID          = 0
+	_dispatcherClient         *DispatcherClient
+	serverID                  = 0
+	errDispatcherNotConnected = errors.New("dispatcher not connected")
 )
 
 func getDispatcherClient() *DispatcherClient {
@@ -37,7 +42,7 @@ func setDispatcherClient(dc *DispatcherClient) {
 func assureConnectedDispatcherClient() *DispatcherClient {
 	var err error
 	dispatcherClient := getDispatcherClient()
-	log.Println("dispatcherClient", dispatcherClient)
+	log.Println("assureConnectedDispatcherClient: dispatcherClient", dispatcherClient)
 	for dispatcherClient == nil {
 		dispatcherClient, err = connectDispatchClient()
 		if err != nil {
@@ -68,28 +73,38 @@ func connectDispatchClient() (*DispatcherClient, error) {
 func Initialize(_serverID int, h DispatcherRespHandler) {
 	serverID = _serverID
 	dispatcherRespHandler = h
-	go netutil.ServeForever(serveDispatcherClient)
+
 	assureConnectedDispatcherClient()
+	go netutil.ServeForever(serveDispatcherClient)
 }
 
-func SendStringMessage(sid string, msg common.StringMessage) {
-	var err error
-	dispatcherClient := assureConnectedDispatcherClient()
-	err = dispatcherClient.SendStringMessage(sid, msg)
-	if err != nil {
-		log.Printf("SendStringMessage: send string message failed with error %s, dispatcher lost ..", err.Error())
-		dispatcherClient.Close()
-		setDispatcherClient(nil)
+func SendStringMessage(sid string, msg common.StringMessage) error {
+	dispatcherClient := getDispatcherClient()
+	if dispatcherClient == nil {
+		debug.PrintStack()
+		log.Printf("dispatcher client is nil")
+		return errDispatcherNotConnected
 	}
+	return dispatcherClient.SendStringMessage(sid, msg)
 }
 
-func SendCreateStringReq(name string) error {
-	dispatcherClient := assureConnectedDispatcherClient()
-	return dispatcherClient.SendCreateStringReq(name)
+func SendCreateStringReq(name string, stringID string) error {
+	dispatcherClient := getDispatcherClient()
+	if dispatcherClient == nil {
+		debug.PrintStack()
+		log.Printf("dispatcher client is nil")
+		return errDispatcherNotConnected
+	}
+	return dispatcherClient.SendCreateStringReq(name, stringID)
 }
 
 func SendDeclareServiceReq(sid string, serviceName string) error {
-	dispatcherClient := assureConnectedDispatcherClient()
+	dispatcherClient := getDispatcherClient()
+	if dispatcherClient == nil {
+		debug.PrintStack()
+		log.Printf("dispatcher client is nil")
+		return errDispatcherNotConnected
+	}
 	return dispatcherClient.SendDeclareServiceReq(sid, serviceName)
 }
 
@@ -98,25 +113,25 @@ func serveDispatcherClient() {
 	var err error
 	log.Printf("serveDispatcherClient: start serving dispatcher client ...")
 	for {
-		dispatcherClient := getDispatcherClient()
-		if dispatcherClient == nil {
-			log.Printf("serveDispatcherClient: dispatcher client is nil")
-			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
-			continue
-		}
+		dispatcherClient := assureConnectedDispatcherClient()
+
 		var msgPackInfo proto.MsgPacketInfo
 		err = dispatcherClient.RecvMsgPacket(&msgPackInfo)
 		if err != nil {
 			log.Printf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
+			dispatcherClient.Close()
+			setDispatcherClient(nil)
 			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
 			continue
 		}
 
 		log.Printf("serveDispatcherClient: received dispatcher resp: %v", msgPackInfo)
-
 		// handle the packet ... on this vacuum server
 		msgtype := msgPackInfo.MsgType
-		if msgtype == proto.CREATE_STRING_RESP {
+		if msgtype == proto.SEND_STRING_MESSAGE_RESP {
+			// receive string message.
+			err = handleSendStringMessageResp(dispatcherClient, msgPackInfo.Payload)
+		} else if msgtype == proto.CREATE_STRING_RESP {
 			// create real string instance
 			err = handleCreateStringResp(dispatcherClient, msgPackInfo.Payload)
 		} else if msgtype == proto.DECLARE_SERVICE_RESP {
@@ -131,18 +146,29 @@ func serveDispatcherClient() {
 	}
 }
 
-func handleCreateStringResp(dispatcherClient *DispatcherClient, payload []byte) error {
+func handleSendStringMessageResp(_ *DispatcherClient, payload []byte) error {
+	var resp proto.SendStringMessageResp
+	err := proto.MSG_PACKER.UnpackMsg(payload, &resp)
+	if err != nil {
+		return err
+	}
+
+	dispatcherRespHandler.HandleDispatcherResp_SendStringMessage(resp.StringID, resp.Msg)
+	return nil
+}
+
+func handleCreateStringResp(_ *DispatcherClient, payload []byte) error {
 	var resp proto.CreateStringResp
 	err := proto.MSG_PACKER.UnpackMsg(payload, &resp)
 	if err != nil {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_CreateString(resp.Name)
+	dispatcherRespHandler.HandleDispatcherResp_CreateString(resp.Name, resp.StringID)
 	return nil
 }
 
-func handleDeclareServiceResp(dispatcherClient *DispatcherClient, payload []byte) error {
+func handleDeclareServiceResp(_ *DispatcherClient, payload []byte) error {
 	var resp proto.DeclareServiceResp
 	err := proto.MSG_PACKER.UnpackMsg(payload, &resp)
 	if err != nil {

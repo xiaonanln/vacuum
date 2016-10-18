@@ -3,12 +3,14 @@ package dispatcher_client
 import (
 	"net"
 
+	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/proto"
 )
 
 type DispatcherRespHandler interface {
-	HandleDispatcherResp_CreateString(name string)
+	HandleDispatcherResp_CreateString(name string, stringID string)
 	HandleDispatcherResp_DeclareService(sid string, serviceName string)
+	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
 }
 
 type DispatcherClient struct {
@@ -34,15 +36,16 @@ func (dc *DispatcherClient) RegisterVacuumServer(serverID int) error {
 
 func (dc *DispatcherClient) SendStringMessage(sid string, msg interface{}) error {
 	req := proto.SendStringMessageReq{
-		SID: sid,
-		Msg: msg,
+		StringID: sid,
+		Msg:      msg,
 	}
 	return dc.SendMsg(proto.SEND_STRING_MESSAGE_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendCreateStringReq(name string) error {
+func (dc *DispatcherClient) SendCreateStringReq(name string, stringID string) error {
 	req := proto.CreateStringReq{
-		Name: name,
+		Name:     name,
+		StringID: stringID,
 	}
 	return dc.SendMsg(proto.CREATE_STRING_REQ, &req)
 }
