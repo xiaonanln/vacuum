@@ -9,6 +9,8 @@ import (
 
 	"log"
 
+	"runtime/debug"
+
 	"github.com/xiaonanln/vacuum/netutil"
 )
 
@@ -61,6 +63,14 @@ func (tc *TelnetConsole) readLine() (string, error) {
 }
 
 func (tc *TelnetConsole) handleCommand(cmd string) {
+	defer func() {
+		err := recover() // catch all errors during handling command
+		if err != nil {
+			log.Printf("TelnetConsole.handleCommand failed: cmd=%s, err=%s", cmd, err)
+			debug.PrintStack()
+		}
+	}()
+
 	if cmd == "quit" || cmd == "exit" {
 		tc.handleQuit()
 	} else {

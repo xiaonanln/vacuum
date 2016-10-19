@@ -4,6 +4,7 @@ import (
 	"net"
 
 	"log"
+	"runtime/debug"
 	"time"
 )
 
@@ -26,7 +27,8 @@ func ServeTCP(listenAddr string, delegate TCPServerDelegate) {
 func serveTCPImpl(listenAddr string, delegate TCPServerDelegate) error {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("panic: %v", err)
+			log.Printf("serveTCPImpl: paniced with error %s", err)
+			debug.PrintStack()
 		}
 	}()
 

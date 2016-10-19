@@ -113,8 +113,10 @@ func ServeForever(f interface{}, args ...interface{}) {
 func runServe(f reflect.Value, args []reflect.Value) {
 	defer func() {
 		err := recover()
-		debug.PrintStack()
-		log.Printf("ServeForever: func %v quited with error %v", f, err)
+		if err != nil {
+			log.Printf("ServeForever: func %v quited with error %v", f, err)
+			debug.PrintStack()
+		}
 	}()
 
 	rets := f.Call(args)

@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	PRIME_TESTER_COUNT = 10
+	PRIME_TESTER_COUNT = 100
 	MIN_NUMBER         = 1000000
-	MAX_NUMBER         = MIN_NUMBER + 1000
+	MAX_NUMBER         = MIN_NUMBER + 1000000
 )
 
 var (
