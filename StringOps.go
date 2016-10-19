@@ -17,6 +17,13 @@ func CreateString(name string) string {
 	return stringID
 }
 
+func CreateStringLocally(name string) string {
+	stringID := uuid.GenUUID()
+	OnCreateString(name, stringID)
+	dispatcher_client.SendCreateStringLocallyReq(name, stringID)
+	return stringID
+}
+
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string) {
 	routine := getStringRoutine(name)

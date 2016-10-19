@@ -16,5 +16,16 @@ func WaitServiceReady(serviceName string, n int) {
 }
 
 func (s *String) ReadInt() int {
-	return s.Read().(int)
+	msg := s.Read()
+	n1, ok := msg.(uint64)
+	if ok {
+		return int(n1)
+	}
+
+	n2, ok := msg.(int64)
+	if ok {
+		return int(n2)
+	}
+
+	return msg.(int)
 }

@@ -50,6 +50,14 @@ func (dc *DispatcherClient) SendCreateStringReq(name string, stringID string) er
 	return dc.SendMsg(proto.CREATE_STRING_REQ, &req)
 }
 
+func (dc *DispatcherClient) SendCreateStringLocallyReq(name string, stringID string) error {
+	req := proto.CreateStringLocallyReq{
+		Name:     name,
+		StringID: stringID,
+	}
+	return dc.SendMsg(proto.CREATE_STRING_LOCALLY_REQ, &req)
+}
+
 func (dc *DispatcherClient) SendDeclareServiceReq(sid string, serviceName string) error {
 	req := proto.DeclareServiceReq{
 		StringID:    sid,

@@ -3,12 +3,14 @@ package vacuum
 import (
 	"fmt"
 
+	"log"
+
 	. "github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 )
 
 const (
-	STRING_MESSAGE_BUFFER_SIZE = 100000
+	STRING_MESSAGE_BUFFER_SIZE = 0
 )
 
 type StringRoutine func(*String)
@@ -45,17 +47,20 @@ func (s *String) Output(msg StringMessage) {
 	s.Send(s.outputSid, msg)
 }
 
-func (s *String) Connect(sid string) {
-	s.outputSid = sid
+func (s *String) Connect(stringID string) {
+	s.outputSid = stringID
 }
 
-func (s *String) Send(sid string, msg StringMessage) {
+func (s *String) Send(stringID string, msg StringMessage) {
 	//dispatcher_client.SendStringMessage(sid, msg) // debug code
+	if stringID == "" {
+		log.Panicf("%s.Send: stringID is empty", s)
+	}
 
-	targetString := getString(sid)
+	targetString := getString(stringID)
 
 	if targetString == nil { // string is not local, send msg to dispatcher
-		dispatcher_client.SendStringMessage(sid, msg)
+		dispatcher_client.SendStringMessage(stringID, msg)
 	} else { // found the target string on this vacuum server
 		targetString.inputChan <- msg
 	}

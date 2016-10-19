@@ -9,6 +9,7 @@ const (
 	CREATE_STRING_RESP         = iota
 	DECLARE_SERVICE_REQ        = iota
 	DECLARE_SERVICE_RESP       = iota
+	CREATE_STRING_LOCALLY_REQ  = iota
 )
 
 type MsgType_t uint16
@@ -33,6 +34,11 @@ type CreateStringReq struct {
 }
 
 type CreateStringResp struct {
+	Name     string `msgpack:"N"`
+	StringID string `msgpack:"ID"`
+}
+
+type CreateStringLocallyReq struct {
 	Name     string `msgpack:"N"`
 	StringID string `msgpack:"ID"`
 }

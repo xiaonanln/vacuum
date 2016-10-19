@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	PRIME_TESTER_COUNT = 4
+	PRIME_TESTER_COUNT = 10
 	MIN_NUMBER         = 1000000
-	MAX_NUMBER         = MIN_NUMBER + 1000000
+	MAX_NUMBER         = MIN_NUMBER + 1000
 )
 
 var (
@@ -38,24 +38,38 @@ var (
 //	log.Printf("Direct calculation takes %v", t1.Sub(t0))
 //}
 
+func isPrimaryServer() bool {
+	return vacuum_server.ServerID() == 1
+}
+
 func Main(s *vacuum.String) {
-	numberGeneratorID = vacuum.CreateString("NumberGenerator")
-	primeOutputerID = vacuum.CreateString("PrimeOutputer")
-	log.Printf("NumBenerator: %s, PrimeOutputer: %s", numberGeneratorID, primeOutputerID)
+	if isPrimaryServer() {
+		log.Printf("THIS IS THE PRIMARY SERVER")
+		numberGeneratorID = vacuum.CreateString("NumberGenerator")
+		primeOutputerID = vacuum.CreateString("PrimeOutputer")
+		log.Printf("NumBenerator: %s, PrimeOutputer: %s", numberGeneratorID, primeOutputerID)
 
-	//vacuum.WaitServiceReady("NumberGenerator", 1)
-	for i := 0; i < PRIME_TESTER_COUNT; i++ {
-		vacuum.CreateString("PrimeTester")
+		for i := 0; i < PRIME_TESTER_COUNT; i++ {
+			vacuum.CreateString("PrimeTester")
+		}
+	} else {
+		log.Printf("THIS IS SERVER %d", vacuum_server.ServerID())
 	}
-	vacuum.WaitServiceReady("PrimeTester", PRIME_TESTER_COUNT)
 
-	s.Send(numberGeneratorID, MIN_NUMBER)
-	s.Send(numberGeneratorID, MAX_NUMBER)
+	vacuum.WaitServiceReady("NumberGenerator", 1) // all servers need to wait for NumberGenerator
+	vacuum.WaitServiceReady("PrimeTester", PRIME_TESTER_COUNT)
+	vacuum.WaitServiceReady("PrimeOutputer", 1)
+
+	if isPrimaryServer() {
+		s.Send(numberGeneratorID, MIN_NUMBER)
+		s.Send(numberGeneratorID, MAX_NUMBER)
+	}
 
 }
 
 func NumberGenerator(s *vacuum.String) {
-	//s.DeclareService("NumberGenerator")
+	s.DeclareService("NumberGenerator")
+
 	minNum := s.ReadInt()
 	maxNum := s.ReadInt()
 	log.Printf("NumberGenerator: %d ~ %d", minNum, maxNum)
@@ -75,14 +89,16 @@ func PrimeTester(s *vacuum.String) {
 			endTime = time.Now()
 			log.Printf("Distributed strings takes: %v", (endTime.Sub(startTime)))
 		}
-		if isPrime(n) {
-			s.Send(primeOutputerID, n)
-		}
 
+		if isPrime(n) {
+			s.SendToService("PrimeOutputer", n)
+		}
 	}
 }
 
 func PrimeOutputer(s *vacuum.String) {
+	s.DeclareService("PrimeOutputer")
+
 	for {
 		num := s.ReadInt()
 		fmt.Println(num)

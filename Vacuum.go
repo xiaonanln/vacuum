@@ -9,19 +9,27 @@ import (
 )
 
 var (
-	strings                  = map[string]*String{}
+	stringsLock sync.RWMutex
+	strings     = map[string]*String{}
+
 	registeredStringRoutines = map[string]StringRoutine{}
-	stringIDListByService    = map[string][]string{}
-	stringIDsByService       = map[string]StringSet{}
-	lock                     sync.RWMutex
+
+	stringIDsByServiceLock sync.RWMutex
+	stringIDListByService  = map[string][]string{}
+	stringIDsByService     = map[string]StringSet{}
 )
 
 func putString(s *String) {
+	stringsLock.Lock()
 	strings[s.ID] = s
+	stringsLock.Unlock()
 }
 
-func getString(sid string) *String {
-	return strings[sid]
+func getString(sid string) (s *String) {
+	stringsLock.RLock()
+	s = strings[sid]
+	stringsLock.RUnlock()
+	return
 }
 
 func RegisterString(name string, routine StringRoutine) {
@@ -38,8 +46,8 @@ func getStringRoutine(name string) StringRoutine {
 }
 
 func declareService(stringID string, serviceName string) {
-	lock.Lock()
-	defer lock.Unlock()
+	stringIDsByServiceLock.Lock()
+	defer stringIDsByServiceLock.Unlock()
 
 	stringIDs, ok := stringIDsByService[serviceName]
 	if ok { // add stringID to service
@@ -55,20 +63,21 @@ func declareService(stringID string, serviceName string) {
 }
 
 func chooseServiceString(serviceName string) string {
-	lock.RLock()
-	defer lock.RUnlock()
+	stringIDsByServiceLock.RLock()
+	defer stringIDsByServiceLock.RUnlock()
 
 	stringIDs, ok := stringIDListByService[serviceName]
 	if ok {
 		return stringIDs[rand.Intn(len(stringIDs))]
 	} else {
+		log.Panicf("chooseServiceString: get service string failed: %s", serviceName)
 		return ""
 	}
 }
 
 func GetServiceProviderCount(serviceName string) int {
-	lock.RLock()
-	defer lock.RUnlock()
+	stringIDsByServiceLock.RLock()
+	defer stringIDsByServiceLock.RUnlock()
 
 	strs, ok := stringIDsByService[serviceName]
 	if ok {

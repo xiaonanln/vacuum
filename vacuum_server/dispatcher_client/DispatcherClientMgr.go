@@ -78,14 +78,14 @@ func Initialize(_serverID int, h DispatcherRespHandler) {
 	go netutil.ServeForever(serveDispatcherClient)
 }
 
-func SendStringMessage(sid string, msg common.StringMessage) error {
+func SendStringMessage(stringID string, msg common.StringMessage) error {
 	dispatcherClient := getDispatcherClient()
 	if dispatcherClient == nil {
 		debug.PrintStack()
 		log.Printf("dispatcher client is nil")
 		return errDispatcherNotConnected
 	}
-	return dispatcherClient.SendStringMessage(sid, msg)
+	return dispatcherClient.SendStringMessage(stringID, msg)
 }
 
 func SendCreateStringReq(name string, stringID string) error {
@@ -96,6 +96,16 @@ func SendCreateStringReq(name string, stringID string) error {
 		return errDispatcherNotConnected
 	}
 	return dispatcherClient.SendCreateStringReq(name, stringID)
+}
+
+func SendCreateStringLocallyReq(name string, stringID string) error {
+	dispatcherClient := getDispatcherClient()
+	if dispatcherClient == nil {
+		debug.PrintStack()
+		log.Printf("dispatcher client is nil")
+		return errDispatcherNotConnected
+	}
+	return dispatcherClient.SendCreateStringLocallyReq(name, stringID)
 }
 
 func SendDeclareServiceReq(sid string, serviceName string) error {

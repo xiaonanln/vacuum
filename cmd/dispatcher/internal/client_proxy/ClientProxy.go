@@ -5,6 +5,10 @@ import (
 
 	"log"
 
+	"fmt"
+
+	"runtime/debug"
+
 	"github.com/xiaonanln/vacuum/msgbufpool"
 	"github.com/xiaonanln/vacuum/proto"
 )
@@ -21,9 +25,21 @@ func NewClientProxy(conn net.Conn) *ClientProxy {
 	}
 }
 
+func (cp *ClientProxy) String() string {
+	return fmt.Sprintf("Server<%d>", cp.ServerID)
+}
+
 func (cp *ClientProxy) Serve() {
-	defer cp.Close()
-	defer onClientProxyClose(cp)
+	defer func() {
+		cp.Close()
+		onClientProxyClose(cp)
+
+		err := recover()
+		if err != nil {
+			log.Printf("Client %s paniced with error: %v", cp, err)
+			debug.PrintStack()
+		}
+	}()
 
 	var err error
 
@@ -44,6 +60,8 @@ func (cp *ClientProxy) Serve() {
 			cp.handleSendStringMessageReq(msgPacketInfo.Payload)
 		} else if msgType == proto.CREATE_STRING_REQ {
 			cp.handleCreateStringReq(msgPacketInfo.Payload)
+		} else if msgType == proto.CREATE_STRING_LOCALLY_REQ {
+			cp.handleCreateStringLocallyReq(msgPacketInfo.Payload)
 		} else if msgType == proto.REGISTER_VACUUM_SERVER_REQ {
 			cp.handleRegisterVacuumServerReq(msgPacketInfo.Payload)
 		} else if msgType == proto.DECLARE_SERVICE_REQ {
@@ -69,7 +87,7 @@ func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
 	serverID := getStringLocation(targetStringID)
 	chooseServer := getClientProxy(serverID)
 
-	log.Printf("%s.handleSendStringMessageReq %T %v, target serve r%", cp, req, req)
+	log.Printf("%s.handleSendStringMessageReq %T %v, target server %s", cp, req, req, chooseServer)
 	chooseServer.SendMsg(proto.SEND_STRING_MESSAGE_RESP, &resp)
 }
 
@@ -91,6 +109,17 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 	}
 
 	chooseServer.SendMsg(proto.CREATE_STRING_RESP, &resp)
+}
+
+func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) {
+	var req proto.CreateStringLocallyReq
+	proto.MSG_PACKER.UnpackMsg(data, &req)
+
+	// choose one server for create string
+
+	stringID := req.StringID
+	setStringLocation(stringID, cp.ServerID)
+	log.Printf("%s.handleCreateStringLocallyReq %T %v", cp, req, req)
 }
 
 func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) {
