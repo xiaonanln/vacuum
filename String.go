@@ -7,6 +7,10 @@ import (
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 )
 
+const (
+	STRING_MESSAGE_BUFFER_SIZE = 100000
+)
+
 type StringRoutine func(*String)
 
 type String struct {
@@ -22,7 +26,7 @@ func newString(stringID string, name string, routine StringRoutine) *String {
 		ID:        stringID,
 		Name:      name,
 		routine:   routine,
-		inputChan: make(chan StringMessage),
+		inputChan: make(chan StringMessage, STRING_MESSAGE_BUFFER_SIZE),
 		outputSid: "",
 	}
 }
