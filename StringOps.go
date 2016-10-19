@@ -20,8 +20,9 @@ func CreateString(name string) string {
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string) {
 	routine := getStringRoutine(name)
-	s := newString(stringID, routine)
+	s := newString(stringID, name, routine)
 	putString(s)
+	log.Printf("String created: %s", s)
 	go s.routine(s)
 }
 

@@ -11,14 +11,16 @@ type StringRoutine func(*String)
 
 type String struct {
 	ID        string
+	Name      string
 	routine   StringRoutine
 	inputChan chan StringMessage
 	outputSid string
 }
 
-func newString(stringID string, routine StringRoutine) *String {
+func newString(stringID string, name string, routine StringRoutine) *String {
 	return &String{
 		ID:        stringID,
+		Name:      name,
 		routine:   routine,
 		inputChan: make(chan StringMessage),
 		outputSid: "",
@@ -26,7 +28,7 @@ func newString(stringID string, routine StringRoutine) *String {
 }
 
 func (s *String) String() string {
-	return fmt.Sprintf("String<%s>@%v", s.ID, s.routine)
+	return fmt.Sprintf("String<%s.%s>", s.Name, s.ID)
 }
 
 func (s *String) Read() StringMessage {
@@ -44,15 +46,15 @@ func (s *String) Connect(sid string) {
 }
 
 func (s *String) Send(sid string, msg StringMessage) {
-	dispatcher_client.SendStringMessage(sid, msg)
+	//dispatcher_client.SendStringMessage(sid, msg) // debug code
 
-	//targetString := getString(sid)
-	//
-	//if targetString == nil { // string is not local, send msg to dispatcher
-	//	dispatcher_client.SendStringMessage(sid, msg)
-	//} else { // found the target string on this vacuum server
-	//	targetString.inputChan <- msg
-	//}
+	targetString := getString(sid)
+
+	if targetString == nil { // string is not local, send msg to dispatcher
+		dispatcher_client.SendStringMessage(sid, msg)
+	} else { // found the target string on this vacuum server
+		targetString.inputChan <- msg
+	}
 }
 
 func (s *String) DeclareService(name string) {
