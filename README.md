@@ -1,4 +1,4 @@
-# vacuum
+# VACUUM
 Vacuum - Distributed computing using Strings - written in Go Programming Language
 
 # What is String
