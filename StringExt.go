@@ -18,17 +18,35 @@ func WaitServiceReady(serviceName string, n int) {
 	}).Printf("Service %s is ready now.", serviceName)
 }
 
-func (s *String) ReadInt() int {
-	msg := s.Read()
-	n1, ok := msg.(uint64)
+func interfaceToInt(v interface{}) int {
+	n1, ok := v.(uint64)
 	if ok {
 		return int(n1)
 	}
 
-	n2, ok := msg.(int64)
+	n2, ok := v.(int64)
 	if ok {
 		return int(n2)
 	}
 
-	return msg.(int)
+	return v.(int)
+}
+
+func (s *String) ReadInt() int {
+	return interfaceToInt(s.Read())
+}
+
+func (s *String) ReadIntTuple() []int {
+	v := s.Read()
+	intTuple, ok := v.([]int)
+	if ok {
+		return intTuple
+	}
+
+	tuple := v.([]interface{})
+	ret := make([]int, len(tuple))
+	for i, v := range tuple {
+		ret[i] = interfaceToInt(v)
+	}
+	return ret
 }

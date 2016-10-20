@@ -5,23 +5,14 @@ import (
 
 	"math"
 
-	"fmt"
-
-	"time"
-
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/prime_test/internal/prime"
 	"github.com/xiaonanln/vacuum/vacuum_server"
 )
 
 const (
-	PRIME_TESTER_COUNT = 10
+	PRIME_TESTER_COUNT = 16
 	BATCH_SIZE         = 10000
-)
-
-var (
-	startTime time.Time
-	endTime   time.Time
 )
 
 func isPrimaryServer() bool {
@@ -31,6 +22,9 @@ func isPrimaryServer() bool {
 func Main(s *vacuum.String) {
 	if isPrimaryServer() {
 		log.Printf("THIS IS THE PRIMARY SERVER")
+		vacuum.CreateString("PrimeOutputer")
+		vacuum.WaitServiceReady("PrimeOutputer", 1)
+
 		for i := 0; i < PRIME_TESTER_COUNT; i++ {
 			vacuum.CreateString("PrimeTester")
 		}
@@ -39,8 +33,6 @@ func Main(s *vacuum.String) {
 		vacuum.CreateString("BatchGenerator")
 		vacuum.WaitServiceReady("BatchGenerator", 1) // all servers need to wait for BatchGenerator
 
-		vacuum.CreateString("PrimeOutputer")
-		vacuum.WaitServiceReady("PrimeOutputer", 1)
 	} else {
 		log.Printf("THIS IS SERVER %d", vacuum_server.ServerID())
 		vacuum.WaitServiceReady("PrimeTester", PRIME_TESTER_COUNT)
@@ -66,22 +58,54 @@ func PrimeTester(s *vacuum.String) {
 	s.DeclareService("PrimeTester")
 
 	for {
-		n := s.Read().()
-		if prime.IsPrime(n) {
-			s.SendToService("PrimeOutputer", n)
+		primes := []int{}
+		range_ := s.ReadIntTuple()
+		//log.Printf("PrimeTester: testing %d ~ %d ...", range_[0], range_[1])
+		for n := range_[0]; n <= range_[1]; n++ {
+			if prime.IsPrime(n) {
+				primes = append(primes, n)
+			}
 		}
+		s.SendToService("PrimeOutputer", primes)
 	}
+}
+
+type _SortedOutput [][]int
+
+//
+//func (L _SortedOutput) Len() int {
+//	return len(L)
+//}
+//
+//func (L _SortedOutput) Less(i, j int) bool {
+//	return L[i][0] < L[j][0]
+//}
+
+func (L _SortedOutput) Swap(i, j int) {
+	var tmp []int
+	tmp = L[i]
+	L[i] = L[j]
+	L[j] = tmp
 }
 
 func PrimeOutputer(s *vacuum.String) {
 	s.DeclareService("PrimeOutputer")
-	count := 0
+	//expectNum := 1
+	//sortedOutputs := _SortedOutput{}
+
 	for {
-		num := s.ReadInt()
-		count += 1
-		fmt.Printf("%d ", num)
-		if count%20 == 0 {
-			fmt.Print("\n")
+		nums := s.ReadIntTuple()
+		////log.Printf("PrimeOutputer: Read %v", nums)
+		//sortedOutputs = append(sortedOutputs, nums)
+		//sort.Sort(sortedOutputs)
+		//for len(sortedOutputs) > 0 && expectNum == sortedOutputs[0][0] {
+		//	for _, n := range
+		//	expectNum = sortedOutputs[0][1] + 1
+		//	sortedOutputs = sortedOutputs[1:]
+		//}
+
+		for _, n := range nums {
+			prime.OutputPrime(n)
 		}
 	}
 }
