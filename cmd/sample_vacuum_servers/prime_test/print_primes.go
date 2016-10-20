@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/xiaonanln/vacuum"
+	"github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/prime_test/internal/prime"
 	"github.com/xiaonanln/vacuum/vacuum_server"
 )
 
@@ -26,7 +27,6 @@ var (
 	endTime           time.Time
 )
 
-//
 //func measureDirectCalculation() {
 //	t0 := time.Now()
 //	for n := MIN_NUMBER; n <= MAX_NUMBER; n++ {
@@ -90,7 +90,7 @@ func PrimeTester(s *vacuum.String) {
 			log.Printf("Distributed strings takes: %v", (endTime.Sub(startTime)))
 		}
 
-		if isPrime(n) {
+		if prime.IsPrime(n) {
 			s.SendToService("PrimeOutputer", n)
 		}
 	}
