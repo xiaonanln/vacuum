@@ -19,6 +19,7 @@ const (
 
 var (
 	serverID = 1 // default server ID to be 1
+	logLevel = "debug"
 )
 
 type DispatcherRespHandler struct{}
@@ -26,9 +27,10 @@ type DispatcherRespHandler struct{}
 func init() {
 	// initializing the vacuum server
 	flag.IntVar(&serverID, "sid", 1, "server ID")
+	flag.StringVar(&logLevel, "log", "debug", "log level")
 	flag.Parse()
 
-	setupLog()
+	setupLog(logLevel)
 
 	if serverID <= 0 {
 		log.Panicf("Server ID must be positive, not %d", serverID)

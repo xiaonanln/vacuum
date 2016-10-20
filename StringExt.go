@@ -13,7 +13,9 @@ func WaitServiceReady(serviceName string, n int) {
 		time.Sleep(100 * time.Millisecond)
 		current = GetServiceProviderCount(serviceName)
 	}
-	log.Printf("Service %s is ready now: num=%d", serviceName, current)
+	log.WithFields(log.Fields{
+		"num": current,
+	}).Printf("Service %s is ready now.", serviceName)
 }
 
 func (s *String) ReadInt() int {
