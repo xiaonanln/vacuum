@@ -7,7 +7,7 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 * Strings run on distributed servers and communicate with each other with messages
 
 # Examples
-* Use Vacuum Strings to generate prime numbers that utilities multi-core CPUs.
+* Use Vacuum Strings to generate prime numbers that utilities distributed computers and multi-core CPUs.
   * https://github.com/xiaonanln/vacuum/blob/master/cmd/sample_vacuum_servers/prime_test/print_primes.go
   
 # TODO List
