@@ -15,28 +15,14 @@ import (
 )
 
 const (
-	PRIME_TESTER_COUNT = 100
-	MIN_NUMBER         = 1000000
-	MAX_NUMBER         = MIN_NUMBER + 1000000
+	PRIME_TESTER_COUNT = 10
+	BATCH_SIZE         = 10000
 )
 
 var (
-	numberGeneratorID = ""
-	primeOutputerID   = ""
-	startTime         time.Time
-	endTime           time.Time
+	startTime time.Time
+	endTime   time.Time
 )
-
-//func measureDirectCalculation() {
-//	t0 := time.Now()
-//	for n := MIN_NUMBER; n <= MAX_NUMBER; n++ {
-//		if isPrime(n) {
-//			//fmt.Println(n)
-//		}
-//	}
-//	t1 := time.Now()
-//	log.Printf("Direct calculation takes %v", t1.Sub(t0))
-//}
 
 func isPrimaryServer() bool {
 	return vacuum_server.ServerID() == 1
@@ -45,51 +31,42 @@ func isPrimaryServer() bool {
 func Main(s *vacuum.String) {
 	if isPrimaryServer() {
 		log.Printf("THIS IS THE PRIMARY SERVER")
-		numberGeneratorID = vacuum.CreateString("NumberGenerator")
-		primeOutputerID = vacuum.CreateString("PrimeOutputer")
-		log.Printf("NumBenerator: %s, PrimeOutputer: %s", numberGeneratorID, primeOutputerID)
-
 		for i := 0; i < PRIME_TESTER_COUNT; i++ {
 			vacuum.CreateString("PrimeTester")
 		}
+		vacuum.WaitServiceReady("PrimeTester", PRIME_TESTER_COUNT)
+
+		vacuum.CreateString("BatchGenerator")
+		vacuum.WaitServiceReady("BatchGenerator", 1) // all servers need to wait for BatchGenerator
+
+		vacuum.CreateString("PrimeOutputer")
+		vacuum.WaitServiceReady("PrimeOutputer", 1)
 	} else {
 		log.Printf("THIS IS SERVER %d", vacuum_server.ServerID())
-	}
-
-	vacuum.WaitServiceReady("NumberGenerator", 1) // all servers need to wait for NumberGenerator
-	vacuum.WaitServiceReady("PrimeTester", PRIME_TESTER_COUNT)
-	vacuum.WaitServiceReady("PrimeOutputer", 1)
-
-	if isPrimaryServer() {
-		s.Send(numberGeneratorID, MIN_NUMBER)
-		s.Send(numberGeneratorID, MAX_NUMBER)
+		vacuum.WaitServiceReady("PrimeTester", PRIME_TESTER_COUNT)
+		vacuum.WaitServiceReady("BatchGenerator", 1) // all servers need to wait for BatchGenerator
+		vacuum.WaitServiceReady("PrimeOutputer", 1)
 	}
 
 }
 
-func NumberGenerator(s *vacuum.String) {
-	s.DeclareService("NumberGenerator")
+func BatchGenerator(s *vacuum.String) {
+	s.DeclareService("BatchGenerator")
 
-	minNum := s.ReadInt()
-	maxNum := s.ReadInt()
-	log.Printf("NumberGenerator: %d ~ %d", minNum, maxNum)
-
-	for n := minNum; n <= maxNum; n++ {
-		s.SendToService("PrimeTester", n)
+	n := 1
+	for {
+		s.SendToService("PrimeTester", []int{
+			n, n + BATCH_SIZE - 1,
+		})
+		n += BATCH_SIZE
 	}
 }
 
 func PrimeTester(s *vacuum.String) {
 	s.DeclareService("PrimeTester")
-	for {
-		n := s.ReadInt()
-		if MIN_NUMBER == n {
-			startTime = time.Now()
-		} else if MAX_NUMBER == n {
-			endTime = time.Now()
-			log.Printf("Distributed strings takes: %v", (endTime.Sub(startTime)))
-		}
 
+	for {
+		n := s.Read().()
 		if prime.IsPrime(n) {
 			s.SendToService("PrimeOutputer", n)
 		}
@@ -112,7 +89,7 @@ func PrimeOutputer(s *vacuum.String) {
 func main() {
 	//measureDirectCalculation()
 	vacuum.RegisterString("Main", Main)
-	vacuum.RegisterString("NumberGenerator", NumberGenerator)
+	vacuum.RegisterString("BatchGenerator", BatchGenerator)
 	vacuum.RegisterString("PrimeTester", PrimeTester)
 	vacuum.RegisterString("PrimeOutputer", PrimeOutputer)
 	vacuum_server.RunServer()
