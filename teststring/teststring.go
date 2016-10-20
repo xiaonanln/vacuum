@@ -3,8 +3,9 @@ package teststring
 import "C"
 
 import (
-	"log"
 	"unsafe"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/xiaonanln/vacuum/stringdev"
 )

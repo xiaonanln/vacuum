@@ -5,7 +5,7 @@ import (
 
 	"flag"
 
-	"log"
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
@@ -27,6 +27,8 @@ func init() {
 	// initializing the vacuum server
 	flag.IntVar(&serverID, "sid", 1, "server ID")
 	flag.Parse()
+
+	setupLog()
 
 	if serverID <= 0 {
 		log.Panicf("Server ID must be positive, not %d", serverID)

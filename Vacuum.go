@@ -1,9 +1,10 @@
 package vacuum
 
 import (
-	"log"
 	"math/rand"
 	"sync"
+
+	log "github.com/Sirupsen/logrus"
 
 	. "github.com/xiaonanln/vacuum/common"
 )

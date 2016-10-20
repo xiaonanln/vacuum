@@ -1,7 +1,7 @@
 package dispatcher_client
 
 import (
-	"log"
+	log "github.com/Sirupsen/logrus"
 
 	"time"
 

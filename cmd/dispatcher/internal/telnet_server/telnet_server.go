@@ -2,9 +2,10 @@ package telnet_server
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"sync"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/xiaonanln/vacuum/netutil"
 )

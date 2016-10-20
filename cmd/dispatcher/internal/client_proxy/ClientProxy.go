@@ -3,7 +3,7 @@ package client_proxy
 import (
 	"net"
 
-	"log"
+	log "github.com/Sirupsen/logrus"
 
 	"fmt"
 

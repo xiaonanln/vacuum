@@ -2,11 +2,12 @@ package netutil
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"reflect"
 	"runtime"
 	"runtime/debug"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 var (

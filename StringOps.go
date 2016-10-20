@@ -1,7 +1,7 @@
 package vacuum
 
 import (
-	"log"
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/uuid"

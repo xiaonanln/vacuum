@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	log "github.com/Sirupsen/logrus"
 
 	"math"
 
@@ -98,16 +98,19 @@ func PrimeTester(s *vacuum.String) {
 
 func PrimeOutputer(s *vacuum.String) {
 	s.DeclareService("PrimeOutputer")
-
+	count := 0
 	for {
 		num := s.ReadInt()
-		fmt.Println(num)
+		count += 1
+		fmt.Printf("%d ", num)
+		if count%20 == 0 {
+			fmt.Print("\n")
+		}
 	}
 }
 
 func main() {
 	//measureDirectCalculation()
-
 	vacuum.RegisterString("Main", Main)
 	vacuum.RegisterString("NumberGenerator", NumberGenerator)
 	vacuum.RegisterString("PrimeTester", PrimeTester)

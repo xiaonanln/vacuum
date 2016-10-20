@@ -4,7 +4,8 @@ import (
 	"sync"
 
 	"fmt"
-	"log"
+
+	log "github.com/Sirupsen/logrus"
 
 	"net"
 

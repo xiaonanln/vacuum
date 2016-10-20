@@ -3,9 +3,10 @@ package netutil
 import (
 	"net"
 
-	"log"
 	"runtime/debug"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 const (

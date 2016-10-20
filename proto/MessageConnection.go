@@ -7,7 +7,7 @@ import (
 
 	"fmt"
 
-	"log"
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/xiaonanln/vacuum/msgbufpool"
 	"github.com/xiaonanln/vacuum/netutil"

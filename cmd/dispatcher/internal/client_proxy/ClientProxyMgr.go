@@ -1,9 +1,10 @@
 package client_proxy
 
 import (
-	"log"
 	"math/rand"
 	"sync"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 var (

@@ -1,8 +1,9 @@
 package vacuum
 
 import (
-	"log"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 func WaitServiceReady(serviceName string, n int) {
