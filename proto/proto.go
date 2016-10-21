@@ -4,12 +4,12 @@ const (
 	INVALID_MSG_TYPE           = 0
 	REGISTER_VACUUM_SERVER_REQ = iota
 	STRING_MESSAGE_RELAY       = iota
-	//SEND_STRING_MESSAGE_RESP   = iota
-	CREATE_STRING_REQ         = iota
-	CREATE_STRING_RESP        = iota
-	DECLARE_SERVICE_REQ       = iota
-	DECLARE_SERVICE_RESP      = iota
-	CREATE_STRING_LOCALLY_REQ = iota
+	CREATE_STRING_REQ          = iota
+	CREATE_STRING_RESP         = iota
+	DECLARE_SERVICE_REQ        = iota
+	DECLARE_SERVICE_RESP       = iota
+	CREATE_STRING_LOCALLY_REQ  = iota
+	CLOSE_STRING_RELAY         = iota
 )
 
 type MsgType_t uint16
@@ -46,4 +46,7 @@ type DeclareServiceReq struct {
 type DeclareServiceResp struct {
 	StringID    string `msgpack:"ID"`
 	ServiceName string `msgpack:"SN"`
+}
+
+type CloseStringRelay struct {
 }

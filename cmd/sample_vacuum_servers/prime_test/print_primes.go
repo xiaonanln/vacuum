@@ -1,9 +1,9 @@
 package main
 
 import (
-	log "github.com/Sirupsen/logrus"
-
 	"runtime"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/prime_test/internal/prime"
@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	PRIME_TESTER_COUNT = 4
-	BATCH_SIZE         = 10000
+	PRIME_TESTER_COUNT = 10
+	BATCH_SIZE         = 100000
 )
 
 func isPrimaryServer() bool {
@@ -46,13 +46,14 @@ func BatchGenerator(s *vacuum.String) {
 	s.DeclareService("BatchGenerator")
 
 	n := 1
-	for {
+	for i := 0; i < 10; i++ {
 		s.SendToService("PrimeTester", []int{
 			n, n + BATCH_SIZE - 1,
 		})
 		n += BATCH_SIZE
 		runtime.Gosched()
 	}
+
 }
 
 func PrimeTester(s *vacuum.String) {

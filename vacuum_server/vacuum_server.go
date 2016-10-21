@@ -55,6 +55,10 @@ func (rh DispatcherRespHandler) HandleDispatcherResp_SendStringMessage(stringID 
 	vacuum.OnSendStringMessage(stringID, msg)
 }
 
+func (rh DispatcherRespHandler) HandleDispatcherResp_CloseString(stringID string) {
+	vacuum.OnCloseString(stringID)
+}
+
 func RunServer() {
 	vacuum.CreateStringLocally("Main")
 	for {

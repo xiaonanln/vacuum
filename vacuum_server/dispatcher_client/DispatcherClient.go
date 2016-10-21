@@ -12,6 +12,7 @@ type DispatcherRespHandler interface {
 	HandleDispatcherResp_CreateString(name string, stringID string)
 	HandleDispatcherResp_DeclareService(stringID string, serviceName string)
 	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
+	HandleDispatcherResp_CloseString(stringID string)
 }
 
 type DispatcherClient struct {
@@ -37,11 +38,9 @@ func (dc *DispatcherClient) RegisterVacuumServer(serverID int) error {
 
 func (dc *DispatcherClient) SendStringMessage(stringID string, msg interface{}) error {
 	req := StringMessageRelay{
-		//StringID: stringID,
 		Msg: msg,
 	}
 	return dc.SendRelayMsg(stringID, STRING_MESSAGE_RELAY, &req)
-	//return dc.SendMsg(SEND_STRING_MESSAGE_REQ, &req)
 }
 
 func (dc *DispatcherClient) SendCreateStringReq(name string, stringID string) error {
@@ -68,8 +67,9 @@ func (dc *DispatcherClient) SendDeclareServiceReq(stringID string, serviceName s
 	return dc.SendMsg(DECLARE_SERVICE_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendCloseStringReq(stringID string) error {
-	return nil
+func (dc *DispatcherClient) RelayCloseString(stringID string) error {
+	req := CloseStringRelay{}
+	return dc.SendRelayMsg(stringID, CLOSE_STRING_RELAY, &req)
 }
 
 //
@@ -99,6 +99,8 @@ func (dc *DispatcherClient) HandleRelayMsg(msg *Message, pktSize uint32, targetI
 	payload := msg[RELAY_PREPAYLOAD_SIZE:pktSize]
 	if msgType == STRING_MESSAGE_RELAY {
 		return dc.handleSendStringRelay(targetID, payload)
+	} else if msgType == CLOSE_STRING_RELAY {
+		return dc.handleCloseStringRelay(targetID)
 	} else {
 		log.Panicf("invalid msg type: %v", msgType)
 		return nil
@@ -113,6 +115,11 @@ func (dc *DispatcherClient) handleSendStringRelay(targetID string, payload []byt
 	}
 
 	dispatcherRespHandler.HandleDispatcherResp_SendStringMessage(targetID, pkt.Msg)
+	return nil
+}
+
+func (dc *DispatcherClient) handleCloseStringRelay(targetID string) error {
+	dispatcherRespHandler.HandleDispatcherResp_CloseString(targetID)
 	return nil
 }
 

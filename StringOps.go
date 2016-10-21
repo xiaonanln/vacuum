@@ -56,8 +56,13 @@ func OnSendStringMessage(stringID string, msg common.StringMessage) {
 func Close(stringID string) {
 	s := getString(stringID)
 	if s == nil {
-		dispatcher_client.SendCloseStringReq(stringID)
+		dispatcher_client.RelayCloseString(stringID)
 	} else {
 		s.Close()
 	}
+}
+
+func OnCloseString(stringID string) {
+	s := getString(stringID)
+	s.Close()
 }

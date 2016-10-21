@@ -116,14 +116,14 @@ func SendDeclareServiceReq(stringID string, serviceName string) error {
 	return dispatcherClient.SendDeclareServiceReq(stringID, serviceName)
 }
 
-func SendCloseStringReq(stringID string) error {
+func RelayCloseString(stringID string) error {
 	dispatcherClient := getDispatcherClient()
 	if dispatcherClient == nil {
 		debug.PrintStack()
 		log.Errorf("dispatcher client is nil")
 		return errDispatcherNotConnected
 	}
-	return dispatcherClient.SendCloseStringReq(stringID)
+	return dispatcherClient.RelayCloseString(stringID)
 }
 
 // serve the dispatcher client, receive RESPs from dispatcher and process
