@@ -71,7 +71,7 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetID str
 	serverID := getStringLocation(targetID)
 	chooseServer := getClientProxy(serverID)
 	log.WithFields(log.Fields{"pktSize": pktSize, "targetID": targetID}).Debugf("%s.HandleRelayMsg to %s", cp, chooseServer)
-	return cp.SendAll(msg[:pktSize])
+	return chooseServer.SendAll(msg[:pktSize])
 }
 
 //func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {

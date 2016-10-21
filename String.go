@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	STRING_MESSAGE_BUFFER_SIZE = 0
+	ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER = true // only use true for debug!
+	STRING_MESSAGE_BUFFER_SIZE                    = 10
 )
 
 type StringRoutine func(*String)
@@ -34,7 +35,12 @@ func newString(stringID string, name string, routine StringRoutine) *String {
 }
 
 func (s *String) String() string {
-	return fmt.Sprintf("String<%s.%s>", s.Name, s.ID)
+	if s != nil {
+		return fmt.Sprintf("String<%s.%s>", s.Name, s.ID)
+	} else {
+		return "String<nil>"
+	}
+
 }
 
 func (s *String) Read() StringMessage {
@@ -57,16 +63,19 @@ func (s *String) Send(stringID string, msg StringMessage) {
 		log.Panicf("%s.Send: stringID is empty", s)
 	}
 
-	dispatcher_client.SendStringMessage(stringID, msg)
+	if !ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER {
+		targetString := getString(stringID)
 
-	//
-	//targetString := getString(stringID)
-	//
-	//if targetString == nil { // string is not local, send msg to dispatcher
-	//	dispatcher_client.SendStringMessage(stringID, msg)
-	//} else { // found the target string on this vacuum server
-	//	targetString.inputChan <- msg
-	//}
+		if targetString == nil { // string is not local, send msg to dispatcher
+			dispatcher_client.SendStringMessage(stringID, msg)
+		} else { // found the target string on this vacuum server
+			targetString.inputChan <- msg
+		}
+	} else {
+		// FOR DEBUG ONLY
+		dispatcher_client.SendStringMessage(stringID, msg)
+	}
+
 }
 
 func (s *String) DeclareService(name string) {

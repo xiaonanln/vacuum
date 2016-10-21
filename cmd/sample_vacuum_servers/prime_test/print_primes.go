@@ -58,7 +58,7 @@ func PrimeTester(s *vacuum.String) {
 	for {
 		primes := []int{}
 		range_ := s.ReadIntTuple()
-		//log.Debugf("PrimeTester: testing %d ~ %d ...", range_[0], range_[1])
+		log.Debugf("PrimeTester: testing %d ~ %d ...", range_[0], range_[1])
 		for n := range_[0]; n <= range_[1]; n++ {
 			if prime.IsPrime(n) {
 				primes = append(primes, n)

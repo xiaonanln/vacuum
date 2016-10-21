@@ -29,7 +29,8 @@ func OnCreateString(name string, stringID string) {
 	routine := getStringRoutine(name)
 	s := newString(stringID, name, routine)
 	putString(s)
-	log.Debugf("String created: %s", s)
+	log.Debugf("OnCreateString %s: %s", name, s)
+
 	go s.routine(s)
 }
 
