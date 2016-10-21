@@ -14,9 +14,7 @@ import (
 	"runtime/debug"
 
 	"github.com/xiaonanln/vacuum/common"
-	"github.com/xiaonanln/vacuum/msgbufpool"
 	"github.com/xiaonanln/vacuum/netutil"
-	"github.com/xiaonanln/vacuum/proto"
 )
 
 const (
@@ -135,8 +133,7 @@ func serveDispatcherClient() {
 	for {
 		dispatcherClient := assureConnectedDispatcherClient()
 
-		var msgPackInfo proto.MsgPacketInfo
-		err = dispatcherClient.RecvMsgPacket(&msgPackInfo)
+		err = dispatcherClient.RecvMsg(dispatcherClient)
 		if err != nil {
 			log.Errorf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
 			dispatcherClient.Close()
@@ -144,57 +141,5 @@ func serveDispatcherClient() {
 			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
 			continue
 		}
-
-		log.Debugf("serveDispatcherClient: received dispatcher resp: %v", msgPackInfo)
-		// handle the packet ... on this vacuum server
-		msgtype := msgPackInfo.MsgType
-		if msgtype == proto.SEND_STRING_MESSAGE_RESP {
-			// receive string message.
-			err = handleSendStringMessageResp(dispatcherClient, msgPackInfo.Payload)
-		} else if msgtype == proto.CREATE_STRING_RESP {
-			// create real string instance
-			err = handleCreateStringResp(dispatcherClient, msgPackInfo.Payload)
-		} else if msgtype == proto.DECLARE_SERVICE_RESP {
-			// declare service
-			err = handleDeclareServiceResp(dispatcherClient, msgPackInfo.Payload)
-		} else {
-			log.Panicf("serveDispatcherClient: invalid msg type: %v", msgtype)
-		}
-
-		// reclaim the msgbuf
-		msgbufpool.PutMsgBuf(msgPackInfo.Msgbuf)
 	}
-}
-
-func handleSendStringMessageResp(_ *DispatcherClient, payload []byte) error {
-	var resp proto.SendStringMessageResp
-	err := proto.MSG_PACKER.UnpackMsg(payload, &resp)
-	if err != nil {
-		return err
-	}
-
-	dispatcherRespHandler.HandleDispatcherResp_SendStringMessage(resp.StringID, resp.Msg)
-	return nil
-}
-
-func handleCreateStringResp(_ *DispatcherClient, payload []byte) error {
-	var resp proto.CreateStringResp
-	err := proto.MSG_PACKER.UnpackMsg(payload, &resp)
-	if err != nil {
-		return err
-	}
-
-	dispatcherRespHandler.HandleDispatcherResp_CreateString(resp.Name, resp.StringID)
-	return nil
-}
-
-func handleDeclareServiceResp(_ *DispatcherClient, payload []byte) error {
-	var resp proto.DeclareServiceResp
-	err := proto.MSG_PACKER.UnpackMsg(payload, &resp)
-	if err != nil {
-		return err
-	}
-
-	dispatcherRespHandler.HandleDispatcherResp_DeclareService(resp.StringID, resp.ServiceName)
-	return nil
 }

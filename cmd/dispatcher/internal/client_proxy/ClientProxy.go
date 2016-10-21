@@ -9,18 +9,17 @@ import (
 
 	"runtime/debug"
 
-	"github.com/xiaonanln/vacuum/msgbufpool"
-	"github.com/xiaonanln/vacuum/proto"
+	. "github.com/xiaonanln/vacuum/proto"
 )
 
 type ClientProxy struct {
-	proto.MessageConnection
+	MessageConnection
 	ServerID int
 }
 
 func NewClientProxy(conn net.Conn) *ClientProxy {
 	return &ClientProxy{
-		MessageConnection: proto.NewMessageConnection(conn),
+		MessageConnection: NewMessageConnection(conn),
 		ServerID:          0, // to be registered
 	}
 }
@@ -41,59 +40,60 @@ func (cp *ClientProxy) Serve() {
 		}
 	}()
 
-	var err error
-
 	log.Infof("New dispatcher client: %s", cp)
-	var msgPacketInfo proto.MsgPacketInfo
 	for {
-
-		err = cp.RecvMsgPacket(&msgPacketInfo)
+		err := cp.RecvMsg(cp)
 		if err != nil {
-			// error
-			break
+			panic(err)
 		}
-
-		log.Debugf("dispatcher: received client msg: %v", msgPacketInfo)
-
-		msgType := msgPacketInfo.MsgType
-		if msgType == proto.SEND_STRING_MESSAGE_REQ {
-			cp.handleSendStringMessageReq(msgPacketInfo.Payload)
-		} else if msgType == proto.CREATE_STRING_REQ {
-			cp.handleCreateStringReq(msgPacketInfo.Payload)
-		} else if msgType == proto.CREATE_STRING_LOCALLY_REQ {
-			cp.handleCreateStringLocallyReq(msgPacketInfo.Payload)
-		} else if msgType == proto.REGISTER_VACUUM_SERVER_REQ {
-			cp.handleRegisterVacuumServerReq(msgPacketInfo.Payload)
-		} else if msgType == proto.DECLARE_SERVICE_REQ {
-			cp.handleDeclareServiceReq(msgPacketInfo.Payload)
-		} else {
-			log.Panicf("ERROR: unknown dispatcher request type=%v", msgType)
-		}
-
-		msgbufpool.PutMsgBuf(msgPacketInfo.Msgbuf)
 	}
 }
 
-func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
-	var req proto.SendStringMessageReq
-	proto.MSG_PACKER.UnpackMsg(data, &req)
+func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t) error {
+	payload := msg[PREPAYLOAD_SIZE:pktSize]
 
-	targetStringID := req.StringID
-	resp := proto.SendStringMessageResp{
-		StringID: targetStringID,
-		Msg:      req.Msg,
+	if msgType == CREATE_STRING_REQ {
+		cp.handleCreateStringReq(payload)
+	} else if msgType == CREATE_STRING_LOCALLY_REQ {
+		cp.handleCreateStringLocallyReq(payload)
+	} else if msgType == REGISTER_VACUUM_SERVER_REQ {
+		cp.handleRegisterVacuumServerReq(payload)
+	} else if msgType == DECLARE_SERVICE_REQ {
+		cp.handleDeclareServiceReq(payload)
+	} else {
+		log.Panicf("ERROR: unknown dispatcher request type=%v", msgType)
 	}
+	return nil
+}
 
-	serverID := getStringLocation(targetStringID)
+func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetID string) error {
+	// just relay the msg
+	serverID := getStringLocation(targetID)
 	chooseServer := getClientProxy(serverID)
-
-	log.Debugf("%s.handleSendStringMessageReq %T %v, target server %s", cp, req, req, chooseServer)
-	chooseServer.SendMsg(proto.SEND_STRING_MESSAGE_RESP, &resp)
+	log.WithFields(log.Fields{"pktSize": pktSize, "targetID": targetID}).Debugf("%s.HandleRelayMsg to %s", cp, chooseServer)
+	return cp.SendAll(msg[:pktSize])
 }
+
+//func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
+//	var req SendStringMessageReq
+//	MSG_PACKER.UnpackMsg(data, &req)
+//
+//	targetStringID := req.StringID
+//	resp := SendStringMessageResp{
+//		StringID: targetStringID,
+//		Msg:      req.Msg,
+//	}
+//
+//	serverID := getStringLocation(targetStringID)
+//	chooseServer := getClientProxy(serverID)
+//
+//	log.Debugf("%s.handleSendStringMessageReq %T %v, target server %s", cp, req, req, chooseServer)
+//	chooseServer.SendMsg(SEND_STRING_MESSAGE_RESP, &resp)
+//}
 
 func (cp *ClientProxy) handleCreateStringReq(data []byte) {
-	var req proto.CreateStringReq
-	proto.MSG_PACKER.UnpackMsg(data, &req)
+	var req CreateStringReq
+	MSG_PACKER.UnpackMsg(data, &req)
 
 	// choose one server for create string
 
@@ -103,17 +103,17 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 	setStringLocation(stringID, chooseServer.ServerID)
 
 	log.Debugf("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
-	resp := proto.CreateStringResp{
+	resp := CreateStringResp{
 		Name:     req.Name,
 		StringID: stringID,
 	}
 
-	chooseServer.SendMsg(proto.CREATE_STRING_RESP, &resp)
+	chooseServer.SendMsg(CREATE_STRING_RESP, &resp)
 }
 
 func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) {
-	var req proto.CreateStringLocallyReq
-	proto.MSG_PACKER.UnpackMsg(data, &req)
+	var req CreateStringLocallyReq
+	MSG_PACKER.UnpackMsg(data, &req)
 
 	// choose one server for create string
 
@@ -123,25 +123,25 @@ func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) {
 }
 
 func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) {
-	var req proto.RegisterVacuumServerReq
-	proto.MSG_PACKER.UnpackMsg(data, &req)
+	var req RegisterVacuumServerReq
+	MSG_PACKER.UnpackMsg(data, &req)
 	log.Debugf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
 	registerClientProxyInfo(cp, req.ServerID)
 }
 
 func (cp *ClientProxy) handleDeclareServiceReq(data []byte) {
-	var req proto.DeclareServiceReq
-	proto.MSG_PACKER.UnpackMsg(data, &req)
+	var req DeclareServiceReq
+	MSG_PACKER.UnpackMsg(data, &req)
 	log.Debugf("%s.handleDeclareServiceReq %T %v", cp, req, req)
 
 	// the the declare of service to all clients
-	resp := proto.DeclareServiceResp{
+	resp := DeclareServiceResp{
 		StringID:    req.StringID,
 		ServiceName: req.ServiceName,
 	}
 	clientProxiesLock.RLock()
 	for _, clientProxy := range clientProxes {
-		clientProxy.SendMsg(proto.DECLARE_SERVICE_RESP, &resp)
+		clientProxy.SendMsg(DECLARE_SERVICE_RESP, &resp)
 	}
 	clientProxiesLock.RUnlock()
 }

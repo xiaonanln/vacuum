@@ -3,8 +3,6 @@ package main
 import (
 	log "github.com/Sirupsen/logrus"
 
-	"math"
-
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/prime_test/internal/prime"
 	"github.com/xiaonanln/vacuum/vacuum_server"
@@ -95,7 +93,7 @@ func PrimeOutputer(s *vacuum.String) {
 
 	for {
 		nums := s.ReadIntTuple()
-		////log.Debugf("PrimeOutputer: Read %v", nums)
+		log.Debugf("PrimeOutputer: Read %v", nums)
 		//sortedOutputs = append(sortedOutputs, nums)
 		//sort.Sort(sortedOutputs)
 		//for len(sortedOutputs) > 0 && expectNum == sortedOutputs[0][0] {
@@ -117,20 +115,4 @@ func main() {
 	vacuum.RegisterString("PrimeTester", PrimeTester)
 	vacuum.RegisterString("PrimeOutputer", PrimeOutputer)
 	vacuum_server.RunServer()
-}
-
-func isPrime(n int) bool {
-	if n <= 1 {
-		return false
-	}
-	if n == 2 {
-		return true
-	}
-	sqrt := int(math.Sqrt(float64(n)) + 0.000001)
-	for i := 2; i <= sqrt; i++ {
-		if n%i == 0 {
-			return false
-		}
-	}
-	return true
 }

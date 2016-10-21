@@ -57,13 +57,16 @@ func (s *String) Send(stringID string, msg StringMessage) {
 		log.Panicf("%s.Send: stringID is empty", s)
 	}
 
-	targetString := getString(stringID)
+	dispatcher_client.SendStringMessage(stringID, msg)
 
-	if targetString == nil { // string is not local, send msg to dispatcher
-		dispatcher_client.SendStringMessage(stringID, msg)
-	} else { // found the target string on this vacuum server
-		targetString.inputChan <- msg
-	}
+	//
+	//targetString := getString(stringID)
+	//
+	//if targetString == nil { // string is not local, send msg to dispatcher
+	//	dispatcher_client.SendStringMessage(stringID, msg)
+	//} else { // found the target string on this vacuum server
+	//	targetString.inputChan <- msg
+	//}
 }
 
 func (s *String) DeclareService(name string) {

@@ -28,6 +28,7 @@ type DispatcherDelegate struct{}
 
 func main() {
 	config.LoadConfig()
+	log.SetLevel(log.DebugLevel)
 
 	wait := &sync.WaitGroup{}
 	wait.Add(1)

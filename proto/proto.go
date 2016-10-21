@@ -3,13 +3,13 @@ package proto
 const (
 	INVALID_MSG_TYPE           = 0
 	REGISTER_VACUUM_SERVER_REQ = iota
-	SEND_STRING_MESSAGE_REQ    = iota
-	SEND_STRING_MESSAGE_RESP   = iota
-	CREATE_STRING_REQ          = iota
-	CREATE_STRING_RESP         = iota
-	DECLARE_SERVICE_REQ        = iota
-	DECLARE_SERVICE_RESP       = iota
-	CREATE_STRING_LOCALLY_REQ  = iota
+	STRING_MESSAGE_RELAY       = iota
+	//SEND_STRING_MESSAGE_RESP   = iota
+	CREATE_STRING_REQ         = iota
+	CREATE_STRING_RESP        = iota
+	DECLARE_SERVICE_REQ       = iota
+	DECLARE_SERVICE_RESP      = iota
+	CREATE_STRING_LOCALLY_REQ = iota
 )
 
 type MsgType_t uint16
@@ -18,14 +18,9 @@ type RegisterVacuumServerReq struct {
 	ServerID int `msgpack:"SID"`
 }
 
-type SendStringMessageReq struct {
-	StringID string      `msgpack:"ID"`
-	Msg      interface{} `msgpack:"M"`
-}
-
-type SendStringMessageResp struct {
-	StringID string      `msgpack:"ID"`
-	Msg      interface{} `msgpack:"M"`
+type StringMessageRelay struct {
+	//StringID string      `msgpack:"ID"`
+	Msg interface{} `msgpack:"M"`
 }
 
 type CreateStringReq struct {

@@ -44,8 +44,8 @@ func OnDeclareService(stringID string, serviceName string) {
 }
 
 func OnSendStringMessage(stringID string, msg common.StringMessage) {
-	log.Debugf("vacuum: OnSendStringMessage: %s => %v", stringID, msg)
 	s := getString(stringID)
+	log.WithField("stringID", stringID).Debugf("vacuum: OnSendStringMessage: %s => %v", s, msg)
 	s.inputChan <- msg
 }
 

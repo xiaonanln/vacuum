@@ -1,13 +1,14 @@
 package prime
 
 import (
-	"fmt"
 	"math"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 const (
-	OUTPUT_STEP = 1000000
+	OUTPUT_STEP = 10000
 )
 
 var (
@@ -39,7 +40,7 @@ func OutputPrime(n int) {
 	}
 
 	if n > nextOutputStep {
-		fmt.Printf("OutputPrime %d %d %.1f\n", nextOutputStep, n, float64(n)/time.Now().Sub(startOutputTime).Seconds()/1000)
+		log.Printf("OutputPrime %d %d %.1f\n", nextOutputStep, n, float64(n)/time.Now().Sub(startOutputTime).Seconds()/1000)
 		nextOutputStep += OUTPUT_STEP
 	}
 }
