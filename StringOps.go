@@ -11,12 +11,14 @@ import (
 // OnXxxXxxx functions are called from dispatcher client and there is only
 // one dispatcher client, so there is no concurrency problem in these functions
 
+// CreateString: create a string with specified name
 func CreateString(name string) string {
 	stringID := uuid.GenUUID()
 	dispatcher_client.SendCreateStringReq(name, stringID)
 	return stringID
 }
 
+// Create a String with specified name on the local vacuum server
 func CreateStringLocally(name string) string {
 	stringID := uuid.GenUUID()
 	OnCreateString(name, stringID)

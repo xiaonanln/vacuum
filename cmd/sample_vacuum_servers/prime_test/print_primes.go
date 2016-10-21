@@ -3,13 +3,15 @@ package main
 import (
 	log "github.com/Sirupsen/logrus"
 
+	"runtime"
+
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/prime_test/internal/prime"
 	"github.com/xiaonanln/vacuum/vacuum_server"
 )
 
 const (
-	PRIME_TESTER_COUNT = 16
+	PRIME_TESTER_COUNT = 4
 	BATCH_SIZE         = 10000
 )
 
@@ -20,7 +22,7 @@ func isPrimaryServer() bool {
 func Main(s *vacuum.String) {
 	if isPrimaryServer() {
 		log.Infof("THIS IS THE PRIMARY SERVER")
-		vacuum.CreateString("PrimeOutputer")
+		vacuum.CreateStringLocally("PrimeOutputer")
 		vacuum.WaitServiceReady("PrimeOutputer", 1)
 
 		for i := 0; i < PRIME_TESTER_COUNT; i++ {
@@ -49,6 +51,7 @@ func BatchGenerator(s *vacuum.String) {
 			n, n + BATCH_SIZE - 1,
 		})
 		n += BATCH_SIZE
+		runtime.Gosched()
 	}
 }
 

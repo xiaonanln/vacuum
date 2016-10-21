@@ -11,7 +11,7 @@ import (
 
 const (
 	ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER = true // only use true for debug!
-	STRING_MESSAGE_BUFFER_SIZE                    = 10
+	STRING_MESSAGE_BUFFER_SIZE                    = 1000
 )
 
 type StringRoutine func(*String)
