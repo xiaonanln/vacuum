@@ -16,7 +16,7 @@ const (
 )
 
 func Main(s *vacuum.String) {
-	log.Printf("Main %v running ...", s)
+	log.Debugf("Main %v running ...", s)
 	s.DeclareService("Dispatcher") // declare the dispatcher service
 
 	for i := 0; i < SENDER_COUNT; i++ {
@@ -28,34 +28,34 @@ func Main(s *vacuum.String) {
 }
 
 func Sender(s *vacuum.String) {
-	log.Printf("Sender running ...")
+	log.Debugf("Sender running ...")
 	s.DeclareService("Sender") // declare the dispatcher service
 
 	// wait for receivers to be ready
 	for {
 		receiverCounter := vacuum.GetServiceProviderCount("Receiver")
-		log.Println("receiverCounter", receiverCounter)
+		log.Debugln("receiverCounter", receiverCounter)
 		if receiverCounter >= RECEIVER_COUNT {
 			break
 		} else {
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
-	log.Printf("Now, all receivers are ready!!!")
+	log.Debugf("Now, all receivers are ready!!!")
 	// wait until there are any senders
 	for i := 0; i < 10; i++ {
-		log.Println("Send", i)
+		log.Debugln("Send", i)
 		s.SendToService("Receiver", i)
 	}
 }
 
 func Receiver(s *vacuum.String) {
-	log.Printf("Receiver running ...")
+	log.Debugf("Receiver running ...")
 	s.DeclareService("Receiver") // declare the dispatcher service
 
 	for {
 		msg := s.Read()
-		log.Println("Receive", msg)
+		log.Debugln("Receive", msg)
 	}
 }
 

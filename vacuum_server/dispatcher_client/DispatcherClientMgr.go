@@ -42,11 +42,11 @@ func setDispatcherClient(dc *DispatcherClient) {
 func assureConnectedDispatcherClient() *DispatcherClient {
 	var err error
 	dispatcherClient := getDispatcherClient()
-	log.Println("assureConnectedDispatcherClient: dispatcherClient", dispatcherClient)
+	log.Debugln("assureConnectedDispatcherClient: dispatcherClient", dispatcherClient)
 	for dispatcherClient == nil {
 		dispatcherClient, err = connectDispatchClient()
 		if err != nil {
-			log.Printf("Connect to dispatcher failed: %s", err.Error())
+			log.Errorf("Connect to dispatcher failed: %s", err.Error())
 			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
 			continue
 		}
@@ -82,7 +82,7 @@ func SendStringMessage(stringID string, msg common.StringMessage) error {
 	dispatcherClient := getDispatcherClient()
 	if dispatcherClient == nil {
 		debug.PrintStack()
-		log.Printf("dispatcher client is nil")
+		log.Errorf("dispatcher client is nil")
 		return errDispatcherNotConnected
 	}
 	return dispatcherClient.SendStringMessage(stringID, msg)
@@ -92,7 +92,7 @@ func SendCreateStringReq(name string, stringID string) error {
 	dispatcherClient := getDispatcherClient()
 	if dispatcherClient == nil {
 		debug.PrintStack()
-		log.Printf("dispatcher client is nil")
+		log.Errorf("dispatcher client is nil")
 		return errDispatcherNotConnected
 	}
 	return dispatcherClient.SendCreateStringReq(name, stringID)
@@ -102,40 +102,50 @@ func SendCreateStringLocallyReq(name string, stringID string) error {
 	dispatcherClient := getDispatcherClient()
 	if dispatcherClient == nil {
 		debug.PrintStack()
-		log.Printf("dispatcher client is nil")
+		log.Errorf("dispatcher client is nil")
 		return errDispatcherNotConnected
 	}
 	return dispatcherClient.SendCreateStringLocallyReq(name, stringID)
 }
 
-func SendDeclareServiceReq(sid string, serviceName string) error {
+func SendDeclareServiceReq(stringID string, serviceName string) error {
 	dispatcherClient := getDispatcherClient()
 	if dispatcherClient == nil {
 		debug.PrintStack()
-		log.Printf("dispatcher client is nil")
+		log.Errorf("dispatcher client is nil")
 		return errDispatcherNotConnected
 	}
-	return dispatcherClient.SendDeclareServiceReq(sid, serviceName)
+	return dispatcherClient.SendDeclareServiceReq(stringID, serviceName)
+}
+
+func SendCloseStringReq(stringID string) error {
+	dispatcherClient := getDispatcherClient()
+	if dispatcherClient == nil {
+		debug.PrintStack()
+		log.Errorf("dispatcher client is nil")
+		return errDispatcherNotConnected
+	}
+	return dispatcherClient.SendCloseStringReq(stringID)
 }
 
 // serve the dispatcher client, receive RESPs from dispatcher and process
 func serveDispatcherClient() {
 	var err error
-	log.Printf("serveDispatcherClient: start serving dispatcher client ...")
+	log.Debugf("serveDispatcherClient: start serving dispatcher client ...")
 	for {
 		dispatcherClient := assureConnectedDispatcherClient()
 
 		var msgPackInfo proto.MsgPacketInfo
 		err = dispatcherClient.RecvMsgPacket(&msgPackInfo)
 		if err != nil {
-			log.Printf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
+			log.Errorf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
 			dispatcherClient.Close()
 			setDispatcherClient(nil)
 			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
 			continue
 		}
 
-		log.Printf("serveDispatcherClient: received dispatcher resp: %v", msgPackInfo)
+		log.Debugf("serveDispatcherClient: received dispatcher resp: %v", msgPackInfo)
 		// handle the packet ... on this vacuum server
 		msgtype := msgPackInfo.MsgType
 		if msgtype == proto.SEND_STRING_MESSAGE_RESP {

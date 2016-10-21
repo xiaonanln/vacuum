@@ -36,14 +36,14 @@ func (cp *ClientProxy) Serve() {
 
 		err := recover()
 		if err != nil {
-			log.Printf("Client %s paniced with error: %v", cp, err)
+			log.Errorf("Client %s paniced with error: %v", cp, err)
 			debug.PrintStack()
 		}
 	}()
 
 	var err error
 
-	log.Printf("New dispatcher client: %s", cp)
+	log.Infof("New dispatcher client: %s", cp)
 	var msgPacketInfo proto.MsgPacketInfo
 	for {
 
@@ -53,7 +53,7 @@ func (cp *ClientProxy) Serve() {
 			break
 		}
 
-		log.Printf("dispatcher: received client msg: %v", msgPacketInfo)
+		log.Debugf("dispatcher: received client msg: %v", msgPacketInfo)
 
 		msgType := msgPacketInfo.MsgType
 		if msgType == proto.SEND_STRING_MESSAGE_REQ {
@@ -87,7 +87,7 @@ func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
 	serverID := getStringLocation(targetStringID)
 	chooseServer := getClientProxy(serverID)
 
-	log.Printf("%s.handleSendStringMessageReq %T %v, target server %s", cp, req, req, chooseServer)
+	log.Debugf("%s.handleSendStringMessageReq %T %v, target server %s", cp, req, req, chooseServer)
 	chooseServer.SendMsg(proto.SEND_STRING_MESSAGE_RESP, &resp)
 }
 
@@ -102,7 +102,7 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 	stringID := req.StringID
 	setStringLocation(stringID, chooseServer.ServerID)
 
-	log.Printf("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
+	log.Debugf("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
 	resp := proto.CreateStringResp{
 		Name:     req.Name,
 		StringID: stringID,
@@ -119,20 +119,20 @@ func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) {
 
 	stringID := req.StringID
 	setStringLocation(stringID, cp.ServerID)
-	log.Printf("%s.handleCreateStringLocallyReq %T %v", cp, req, req)
+	log.Debugf("%s.handleCreateStringLocallyReq %T %v", cp, req, req)
 }
 
 func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) {
 	var req proto.RegisterVacuumServerReq
 	proto.MSG_PACKER.UnpackMsg(data, &req)
-	log.Printf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
+	log.Debugf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
 	registerClientProxyInfo(cp, req.ServerID)
 }
 
 func (cp *ClientProxy) handleDeclareServiceReq(data []byte) {
 	var req proto.DeclareServiceReq
 	proto.MSG_PACKER.UnpackMsg(data, &req)
-	log.Printf("%s.handleDeclareServiceReq %T %v", cp, req, req)
+	log.Debugf("%s.handleDeclareServiceReq %T %v", cp, req, req)
 
 	// the the declare of service to all clients
 	resp := proto.DeclareServiceResp{

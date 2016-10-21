@@ -26,9 +26,9 @@ func putString(s *String) {
 	stringsLock.Unlock()
 }
 
-func getString(sid string) (s *String) {
+func getString(stringID string) (s *String) {
 	stringsLock.RLock()
-	s = strings[sid]
+	s = strings[stringID]
 	stringsLock.RUnlock()
 	return
 }
@@ -39,7 +39,7 @@ func RegisterString(name string, routine StringRoutine) {
 	}
 
 	registeredStringRoutines[name] = routine
-	log.Printf("String routine registered: %s", name)
+	log.Infof("String routine registered: %s", name)
 }
 
 func getStringRoutine(name string) StringRoutine {

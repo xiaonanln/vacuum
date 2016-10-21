@@ -8,14 +8,12 @@ import (
 
 func WaitServiceReady(serviceName string, n int) {
 	current := GetServiceProviderCount(serviceName)
-	log.Printf("Waiting %s service to be ready: need %d, current %d", serviceName, n, current)
+	log.WithFields(log.Fields{"need": n, "current": current}).Printf("Waiting %s service to be ready", serviceName)
 	for current < n {
 		time.Sleep(100 * time.Millisecond)
 		current = GetServiceProviderCount(serviceName)
 	}
-	log.WithFields(log.Fields{
-		"num": current,
-	}).Printf("Service %s is ready now.", serviceName)
+	log.WithFields(log.Fields{"num": current}).Printf("Service %s is ready now.", serviceName)
 }
 
 func interfaceToInt(v interface{}) int {

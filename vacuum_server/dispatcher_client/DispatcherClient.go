@@ -9,7 +9,7 @@ import (
 
 type DispatcherRespHandler interface {
 	HandleDispatcherResp_CreateString(name string, stringID string)
-	HandleDispatcherResp_DeclareService(sid string, serviceName string)
+	HandleDispatcherResp_DeclareService(stringID string, serviceName string)
 	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
 }
 
@@ -34,9 +34,9 @@ func (dc *DispatcherClient) RegisterVacuumServer(serverID int) error {
 	return dc.SendMsg(proto.REGISTER_VACUUM_SERVER_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendStringMessage(sid string, msg interface{}) error {
+func (dc *DispatcherClient) SendStringMessage(stringID string, msg interface{}) error {
 	req := proto.SendStringMessageReq{
-		StringID: sid,
+		StringID: stringID,
 		Msg:      msg,
 	}
 	return dc.SendMsg(proto.SEND_STRING_MESSAGE_REQ, &req)
@@ -58,10 +58,14 @@ func (dc *DispatcherClient) SendCreateStringLocallyReq(name string, stringID str
 	return dc.SendMsg(proto.CREATE_STRING_LOCALLY_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendDeclareServiceReq(sid string, serviceName string) error {
+func (dc *DispatcherClient) SendDeclareServiceReq(stringID string, serviceName string) error {
 	req := proto.DeclareServiceReq{
-		StringID:    sid,
+		StringID:    stringID,
 		ServiceName: serviceName,
 	}
 	return dc.SendMsg(proto.DECLARE_SERVICE_REQ, &req)
+}
+
+func (dc *DispatcherClient) SendCloseStringReq(stringID strign) error {
+
 }

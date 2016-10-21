@@ -21,7 +21,7 @@ const (
 
 func debuglog(format string, a ...interface{}) {
 	s := fmt.Sprintf(format, a...)
-	log.Printf("dispatcher: %s", s)
+	log.Debugf("dispatcher: %s", s)
 }
 
 type DispatcherDelegate struct{}

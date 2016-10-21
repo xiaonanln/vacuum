@@ -29,7 +29,7 @@ func OnCreateString(name string, stringID string) {
 	routine := getStringRoutine(name)
 	s := newString(stringID, name, routine)
 	putString(s)
-	log.Printf("String created: %s", s)
+	log.Debugf("String created: %s", s)
 	go s.routine(s)
 }
 
@@ -39,12 +39,22 @@ func DeclareService(sid string, serviceName string) {
 }
 
 func OnDeclareService(stringID string, serviceName string) {
-	log.Printf("vacuum: OnDeclareService: %s => %s", stringID, serviceName)
+	log.Infof("vacuum: OnDeclareService: %s => %s", stringID, serviceName)
 	declareService(stringID, serviceName)
 }
 
 func OnSendStringMessage(stringID string, msg common.StringMessage) {
-	log.Printf("vacuum: OnSendStringMessage: %s => %v", stringID, msg)
+	log.Debugf("vacuum: OnSendStringMessage: %s => %v", stringID, msg)
 	s := getString(stringID)
 	s.inputChan <- msg
+}
+
+// Close specified string
+func Close(stringID string) {
+	s := getString(stringID)
+	if s == nil {
+		dispatcher_client.SendCloseStringReq(stringID)
+	} else {
+		s.Close()
+	}
 }

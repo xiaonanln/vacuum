@@ -27,7 +27,7 @@ func getRandomClientProxy() (ret *ClientProxy) {
 func getClientProxy(serverID int) (ret *ClientProxy) {
 	clientProxiesLock.RLock()
 	ret = clientProxes[serverID]
-	log.Println("getClientProxy", clientProxes, serverID, "=>", ret)
+	log.Debugln("getClientProxy", clientProxes, serverID, "=>", ret)
 	clientProxiesLock.RUnlock()
 	return
 }
@@ -39,7 +39,7 @@ func registerClientProxyInfo(cp *ClientProxy, serverID int) {
 	clientProxiesLock.Lock()
 	clientProxes[serverID] = cp
 	genClientProxyIDs()
-	log.Printf("registerClientProxyInfo: all client proxies: %v", clientProxes)
+	log.Debugf("registerClientProxyInfo: all client proxies: %v", clientProxes)
 	clientProxiesLock.Unlock()
 }
 
@@ -58,7 +58,7 @@ func onClientProxyClose(cp *ClientProxy) {
 		genClientProxyIDs()
 	}
 
-	log.Printf("onClientProxyClose %v: all client proxies: %v", serverID, clientProxes)
+	log.Debugf("onClientProxyClose %v: all client proxies: %v", serverID, clientProxes)
 	clientProxiesLock.Unlock()
 }
 
@@ -72,13 +72,13 @@ func genClientProxyIDs() {
 func setStringLocation(stringID string, serverID int) {
 	stringLocationsLock.Lock()
 	stringLocations[stringID] = serverID
-	log.Printf("setStringLocation %s to %v", stringID, stringLocations)
+	log.Debugf("setStringLocation %s to %v", stringID, stringLocations)
 	stringLocationsLock.Unlock()
 }
 
 func getStringLocation(stringID string) int {
 	stringLocationsLock.RLock()
-	log.Printf("getStringLocation %s from %v", stringID, stringLocations)
+	log.Debugf("getStringLocation %s from %v", stringID, stringLocations)
 	serverID := stringLocations[stringID]
 	stringLocationsLock.RUnlock()
 	return serverID

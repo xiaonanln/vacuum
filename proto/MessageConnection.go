@@ -11,13 +11,17 @@ import (
 
 	"github.com/xiaonanln/vacuum/msgbufpool"
 	"github.com/xiaonanln/vacuum/netutil"
+	"github.com/xiaonanln/vacuum/uuid"
 )
 
 const (
-	MAX_MESSAGE_SIZE        = 1 * 1024 * 1024
-	MESSAGE_SIZE_FIELD_SIZE = 4
-	MESSAGE_TYPE_FIELD_SIZE = 2
-	MESSAGE_PREPAYLOAD_SIZE = MESSAGE_SIZE_FIELD_SIZE + MESSAGE_TYPE_FIELD_SIZE
+	MAX_MESSAGE_SIZE = 1 * 1024 * 1024
+	SIZE_FIELD_SIZE  = 4
+	TYPE_FIELD_SIZE  = 2
+	PREPAYLOAD_SIZE  = SIZE_FIELD_SIZE + TYPE_FIELD_SIZE
+
+	STRING_ID_SIZE        = uuid.UUID_LENGTH
+	RELAY_PREPAYLOAD_SIZE = SIZE_FIELD_SIZE + STRING_ID_SIZE + TYPE_FIELD_SIZE
 )
 
 var (
@@ -44,11 +48,13 @@ type MsgPacketInfo struct {
 	Payload []byte
 }
 
+// Send msg to/from dispatcher
+// Message format: [size*4B][type*2B][payload*NB]
 func (mc MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 	var msgbuf [MAX_MESSAGE_SIZE]byte
 
-	NETWORK_ENDIAN.PutUint16((msgbuf)[MESSAGE_SIZE_FIELD_SIZE:MESSAGE_SIZE_FIELD_SIZE+MESSAGE_TYPE_FIELD_SIZE], uint16(mt))
-	payloadBuf := (msgbuf)[MESSAGE_PREPAYLOAD_SIZE:MESSAGE_PREPAYLOAD_SIZE]
+	NETWORK_ENDIAN.PutUint16((msgbuf)[SIZE_FIELD_SIZE:SIZE_FIELD_SIZE+TYPE_FIELD_SIZE], uint16(mt))
+	payloadBuf := (msgbuf)[PREPAYLOAD_SIZE:PREPAYLOAD_SIZE]
 	payloadCap := cap(payloadBuf)
 	payloadBuf, err := MSG_PACKER.PackMsg(msg, payloadBuf)
 	if err != nil {
@@ -61,10 +67,36 @@ func (mc MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 		return fmt.Errorf("MessageConnection: message paylaod too large(%d): %v", payloadLen, msg)
 	}
 
-	var pktSize uint32 = uint32(payloadLen + MESSAGE_PREPAYLOAD_SIZE)
-	NETWORK_ENDIAN.PutUint32((msgbuf)[:MESSAGE_SIZE_FIELD_SIZE], pktSize)
+	var pktSize uint32 = uint32(payloadLen + PREPAYLOAD_SIZE)
+	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize)
 	err = mc.SendAll((msgbuf)[:pktSize])
-	log.Printf("Send message: size=%v, type=%v: %v, error=%v", pktSize, mt, msg, err)
+	log.Debugf("Send message: size=%v, type=%v: %v, error=%v", pktSize, mt, msg, err)
+	return err
+}
+
+// Send msg to another String through dispatcher
+// Message format: [size*4B][stringID][type*2B][payload*NB]
+func (mc MessageConnection) SendRelayMsg(targetStringID string, mt MsgType_t, msg interface{}) error {
+	var msgbuf [MAX_MESSAGE_SIZE]byte
+	copy(msgbuf[SIZE_FIELD_SIZE:SIZE_FIELD_SIZE+STRING_ID_SIZE], []byte(targetStringID))
+	NETWORK_ENDIAN.PutUint16((msgbuf)[SIZE_FIELD_SIZE:SIZE_FIELD_SIZE+TYPE_FIELD_SIZE], uint16(mt))
+	payloadBuf := (msgbuf)[PREPAYLOAD_SIZE:PREPAYLOAD_SIZE]
+	payloadCap := cap(payloadBuf)
+	payloadBuf, err := MSG_PACKER.PackMsg(msg, payloadBuf)
+	if err != nil {
+		return err
+	}
+
+	payloadLen := len(payloadBuf)
+	if payloadLen > payloadCap {
+		// exceed payload
+		return fmt.Errorf("MessageConnection: message paylaod too large(%d): %v", payloadLen, msg)
+	}
+
+	var pktSize uint32 = uint32(payloadLen + PREPAYLOAD_SIZE)
+	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize)
+	err = mc.SendAll((msgbuf)[:pktSize])
+	log.Debugf("Send message: size=%v, type=%v: %v, error=%v", pktSize, mt, msg, err)
 	return err
 }
 
@@ -83,19 +115,19 @@ func (mc MessageConnection) RecvMsgPacket(pinfo *MsgPacketInfo) error {
 	}
 
 	msgbuf := msgbufpool.GetMsgBuf()
-	err = mc.RecvAll((*msgbuf)[MESSAGE_SIZE_FIELD_SIZE:pktSize])
+	err = mc.RecvAll((*msgbuf)[SIZE_FIELD_SIZE:pktSize])
 	if err != nil {
 		msgbufpool.PutMsgBuf(msgbuf) // put it back on error
 		return nil
 	}
 
 	var msgtype MsgType_t
-	msgtype = MsgType_t(NETWORK_ENDIAN.Uint16((*msgbuf)[MESSAGE_SIZE_FIELD_SIZE : MESSAGE_SIZE_FIELD_SIZE+MESSAGE_TYPE_FIELD_SIZE]))
+	msgtype = MsgType_t(NETWORK_ENDIAN.Uint16((*msgbuf)[SIZE_FIELD_SIZE : SIZE_FIELD_SIZE+TYPE_FIELD_SIZE]))
 	//msgPacker.UnpackMsg((*msgbuf)[MESSAGE_PREPAYLOAD_SIZE:pktSize),
 
 	pinfo.Msgbuf = msgbuf
 	pinfo.MsgType = msgtype
-	pinfo.Payload = (*msgbuf)[MESSAGE_PREPAYLOAD_SIZE:pktSize]
+	pinfo.Payload = (*msgbuf)[PREPAYLOAD_SIZE:pktSize]
 
 	return nil
 }

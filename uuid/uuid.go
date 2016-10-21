@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	SID_LENGTH = 16
+	UUID_LENGTH = 16
 )
 
 // NewObjectId returns a new unique ObjectId.

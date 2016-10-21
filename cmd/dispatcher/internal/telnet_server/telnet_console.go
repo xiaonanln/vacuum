@@ -41,7 +41,7 @@ func (tc *TelnetConsole) run() {
 		}
 		tc.handleCommand(line)
 	}
-	log.Printf("Console %s closed.", tc.conn.RemoteAddr())
+	log.Infof("Console %s closed.", tc.conn.RemoteAddr())
 }
 
 func (tc *TelnetConsole) close() {
@@ -66,7 +66,7 @@ func (tc *TelnetConsole) handleCommand(cmd string) {
 	defer func() {
 		err := recover() // catch all errors during handling command
 		if err != nil {
-			log.Printf("TelnetConsole.handleCommand failed: cmd=%s, err=%s", cmd, err)
+			log.Debugf("TelnetConsole.handleCommand failed: cmd=%s, err=%s", cmd, err)
 			debug.PrintStack()
 		}
 	}()

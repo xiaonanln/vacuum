@@ -39,7 +39,7 @@ func (s *String) String() string {
 
 func (s *String) Read() StringMessage {
 	msg, _ := <-s.inputChan
-	//log.Printf("%s READ %T(%v)", s, msg, msg)
+	//log.Debugf("%s READ %T(%v)", s, msg, msg)
 	return msg
 }
 
@@ -73,4 +73,9 @@ func (s *String) DeclareService(name string) {
 func (s *String) SendToService(serviceName string, msg StringMessage) {
 	stringID := chooseServiceString(serviceName)
 	s.Send(stringID, msg)
+}
+
+// Close the String input
+func (s *String) Close() {
+	close(s.inputChan)
 }

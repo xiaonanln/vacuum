@@ -21,7 +21,7 @@ func isPrimaryServer() bool {
 
 func Main(s *vacuum.String) {
 	if isPrimaryServer() {
-		log.Printf("THIS IS THE PRIMARY SERVER")
+		log.Infof("THIS IS THE PRIMARY SERVER")
 		vacuum.CreateString("PrimeOutputer")
 		vacuum.WaitServiceReady("PrimeOutputer", 1)
 
@@ -34,7 +34,7 @@ func Main(s *vacuum.String) {
 		vacuum.WaitServiceReady("BatchGenerator", 1) // all servers need to wait for BatchGenerator
 
 	} else {
-		log.Printf("THIS IS SERVER %d", vacuum_server.ServerID())
+		log.Infof("THIS IS SERVER %d", vacuum_server.ServerID())
 		vacuum.WaitServiceReady("PrimeTester", PRIME_TESTER_COUNT)
 		vacuum.WaitServiceReady("BatchGenerator", 1) // all servers need to wait for BatchGenerator
 		vacuum.WaitServiceReady("PrimeOutputer", 1)
@@ -60,7 +60,7 @@ func PrimeTester(s *vacuum.String) {
 	for {
 		primes := []int{}
 		range_ := s.ReadIntTuple()
-		//log.Printf("PrimeTester: testing %d ~ %d ...", range_[0], range_[1])
+		//log.Debugf("PrimeTester: testing %d ~ %d ...", range_[0], range_[1])
 		for n := range_[0]; n <= range_[1]; n++ {
 			if prime.IsPrime(n) {
 				primes = append(primes, n)
@@ -95,7 +95,7 @@ func PrimeOutputer(s *vacuum.String) {
 
 	for {
 		nums := s.ReadIntTuple()
-		////log.Printf("PrimeOutputer: Read %v", nums)
+		////log.Debugf("PrimeOutputer: Read %v", nums)
 		//sortedOutputs = append(sortedOutputs, nums)
 		//sort.Sort(sortedOutputs)
 		//for len(sortedOutputs) > 0 && expectNum == sortedOutputs[0][0] {

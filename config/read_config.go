@@ -33,5 +33,5 @@ func LoadConfig() {
 	err = json.Unmarshal(data, &config)
 	checkError(err)
 
-	log.Printf("Load %s: \n%v", CONFIG_FILENAME, config)
+	log.WithField("config", config).Infof("Load config: %s", CONFIG_FILENAME)
 }

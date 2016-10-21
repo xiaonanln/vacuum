@@ -20,7 +20,7 @@ type TCPServerDelegate interface {
 func ServeTCP(listenAddr string, delegate TCPServerDelegate) {
 	for {
 		err := serveTCPImpl(listenAddr, delegate)
-		log.Printf("server@%s failed with error: %v, will restart after %s", listenAddr, err, RESTART_TCP_SERVER_INTERVAL)
+		log.Errorf("server@%s failed with error: %v, will restart after %s", listenAddr, err, RESTART_TCP_SERVER_INTERVAL)
 		time.Sleep(RESTART_TCP_SERVER_INTERVAL)
 	}
 }
@@ -28,13 +28,13 @@ func ServeTCP(listenAddr string, delegate TCPServerDelegate) {
 func serveTCPImpl(listenAddr string, delegate TCPServerDelegate) error {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("serveTCPImpl: paniced with error %s", err)
+			log.Errorf("serveTCPImpl: paniced with error %s", err)
 			debug.PrintStack()
 		}
 	}()
 
 	ln, err := net.Listen("tcp", listenAddr)
-	log.Printf("Listening on %s ...", listenAddr)
+	log.WithFields(log.Fields{"addr": listenAddr}).Info("Listening on TCP ...")
 
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func serveTCPImpl(listenAddr string, delegate TCPServerDelegate) error {
 			}
 		}
 
-		log.Printf("Connection from: %s", conn.RemoteAddr())
+		log.Infof("Connection from: %s", conn.RemoteAddr())
 		go delegate.ServeTCPConnection(conn)
 	}
 	return nil

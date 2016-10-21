@@ -115,11 +115,11 @@ func runServe(f reflect.Value, args []reflect.Value) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Printf("ServeForever: func %v quited with error %v", f, err)
+			log.Errorf("ServeForever: func %v quited with error %v", f, err)
 			debug.PrintStack()
 		}
 	}()
 
 	rets := f.Call(args)
-	log.Printf("ServeForever: func %v returns %v", f, rets)
+	log.Debugf("ServeForever: func %v returns %v", f, rets)
 }

@@ -16,7 +16,7 @@ const (
 
 func debuglog(format string, a ...interface{}) {
 	s := fmt.Sprintf(format, a...)
-	log.Printf("TelnetServer: %s", s)
+	log.Debugf("TelnetServer: %s", s)
 }
 
 type TelnetServerDelegate struct {
