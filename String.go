@@ -5,6 +5,8 @@ import (
 
 	"log"
 
+	"runtime"
+
 	. "github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 )
@@ -59,8 +61,30 @@ func (s *String) Connect(stringID string) {
 
 func (s *String) Send(stringID string, msg StringMessage) {
 	//dispatcher_client.SendStringMessage(sid, msg) // debug code
+	Send(stringID, msg)
+}
+
+func (s *String) DeclareService(name string) {
+	DeclareService(s.ID, name)
+}
+
+func (s *String) SendToService(serviceName string, msg StringMessage) {
+	stringID := chooseServiceString(serviceName)
+	Send(stringID, msg)
+}
+
+//// Close the String input
+//func (s *String) Close() {
+//	close(s.inputChan)
+//}
+
+func (s *String) Yield() {
+	runtime.Gosched()
+}
+
+func Send(stringID string, msg interface{}) {
 	if stringID == "" {
-		log.Panicf("%s.Send: stringID is empty", s)
+		log.Panicf("Send: stringID is empty")
 	}
 
 	if !ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER {
@@ -75,19 +99,4 @@ func (s *String) Send(stringID string, msg StringMessage) {
 		// FOR DEBUG ONLY
 		dispatcher_client.SendStringMessage(stringID, msg)
 	}
-
-}
-
-func (s *String) DeclareService(name string) {
-	DeclareService(s.ID, name)
-}
-
-func (s *String) SendToService(serviceName string, msg StringMessage) {
-	stringID := chooseServiceString(serviceName)
-	s.Send(stringID, msg)
-}
-
-// Close the String input
-func (s *String) Close() {
-	close(s.inputChan)
 }

@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="prime straight" type="GoApplicationRunConfiguration" factoryName="Go Application" singleton="true">
+    <module name="vacuum" />
+    <working_directory value="C:\gopath\src\github.com\xiaonanln\vacuum" />
+    <go_parameters value="-race" />
+    <filePath value="C:\gopath\src\github.com\xiaonanln\vacuum\cmd\sample_vacuum_servers\prime_test\straight.go" />
+    <kind value="FILE" />
+    <method />
+  </configuration>
+</component>

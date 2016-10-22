@@ -1,8 +1,6 @@
 package main
 
 import (
-	"runtime"
-
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/xiaonanln/vacuum"
@@ -46,12 +44,12 @@ func BatchGenerator(s *vacuum.String) {
 	s.DeclareService("BatchGenerator")
 
 	n := 1
-	for i := 0; i < 10; i++ {
+	for {
 		s.SendToService("PrimeTester", []int{
 			n, n + BATCH_SIZE - 1,
 		})
 		n += BATCH_SIZE
-		runtime.Gosched()
+		s.Yield() // yield to other goroutines
 	}
 
 }

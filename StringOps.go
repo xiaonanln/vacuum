@@ -52,17 +52,17 @@ func OnSendStringMessage(stringID string, msg common.StringMessage) {
 	s.inputChan <- msg
 }
 
-// Close specified string
-func Close(stringID string) {
-	s := getString(stringID)
-	if s == nil {
-		dispatcher_client.RelayCloseString(stringID)
-	} else {
-		s.Close()
-	}
-}
-
+//// Close specified string
+//func Close(stringID string) {
+//	s := getString(stringID)
+//	if s == nil {
+//		dispatcher_client.RelayCloseString(stringID)
+//	} else {
+//		s.Close()
+//	}
+//}
+//
 func OnCloseString(stringID string) {
-	s := getString(stringID)
-	s.Close()
+	//s := getString(stringID)
+	//s.Close()
 }
