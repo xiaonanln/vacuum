@@ -69,8 +69,7 @@ func (s *String) DeclareService(name string) {
 }
 
 func (s *String) SendToService(serviceName string, msg StringMessage) {
-	stringID := chooseServiceString(serviceName)
-	Send(stringID, msg)
+	SendToService(serviceName, msg)
 }
 
 //// Close the String input
@@ -99,4 +98,9 @@ func Send(stringID string, msg interface{}) {
 		// FOR DEBUG ONLY
 		dispatcher_client.SendStringMessage(stringID, msg)
 	}
+}
+
+func SendToService(serviceName string, msg StringMessage) {
+	stringID := chooseServiceString(serviceName)
+	Send(stringID, msg)
 }

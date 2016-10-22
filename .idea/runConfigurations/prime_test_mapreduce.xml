@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="prime_test.mapreduce" type="GoApplicationRunConfiguration" factoryName="Go Application" singleton="true">
+    <module name="vacuum" />
+    <working_directory value="C:\gopath\src\github.com\xiaonanln\vacuum" />
+    <go_parameters value="-race" />
+    <parameters value="-log debug" />
+    <filePath value="C:\gopath\src\github.com\xiaonanln\vacuum\cmd\sample_vacuum_servers\prime_test\mapreduce.go" />
+    <kind value="FILE" />
+    <method />
+  </configuration>
+</component>

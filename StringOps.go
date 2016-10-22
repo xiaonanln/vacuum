@@ -29,6 +29,10 @@ func CreateStringLocally(name string) string {
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string) {
 	routine := getStringRoutine(name)
+	if routine == nil {
+		log.Panicf("OnCreateString: routine of String %s is nil", name)
+	}
+
 	s := newString(stringID, name, routine)
 	putString(s)
 	log.Debugf("OnCreateString %s: %s", name, s)
