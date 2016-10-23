@@ -1,9 +1,8 @@
 package main
 
 import (
-	"typeconv"
-
 	"github.com/Sirupsen/logrus"
+	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/prime_test/internal/prime"
 	"github.com/xiaonanln/vacuum/mapreduce"
@@ -18,7 +17,7 @@ func Main(s *vacuum.String) {
 }
 
 func GetPrimesBetween(input interface{}) interface{} {
-	range_ := typeconv.ToIntTuple(input)
+	range_ := typeconv.IntTuple(input)
 	minNum := range_[0]
 	maxNum := range_[1]
 

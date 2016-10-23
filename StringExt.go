@@ -3,9 +3,8 @@ package vacuum
 import (
 	"time"
 
-	"typeconv"
-
 	log "github.com/Sirupsen/logrus"
+	"github.com/xiaonanln/typeconv"
 )
 
 func WaitServiceReady(serviceName string, n int) {
@@ -19,12 +18,12 @@ func WaitServiceReady(serviceName string, n int) {
 }
 
 func (s *String) ReadInt() int64 {
-	return typeconv.ToInt(s.Read())
+	return typeconv.Int(s.Read())
 }
 
 func (s *String) ReadIntTuple() []int64 {
 	v := s.Read()
-	return typeconv.ToIntTuple(v)
+	return typeconv.IntTuple(v)
 }
 
 func (s *String) ReadString() string {

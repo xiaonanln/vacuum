@@ -3,6 +3,7 @@
     <module name="vacuum" />
     <working_directory value="C:\gopath\src\github.com\xiaonanln\vacuum" />
     <go_parameters value="-race" />
+    <parameters value="-log debug" />
     <filePath value="C:\gopath\src\github.com\xiaonanln\vacuum\cmd\sample_vacuum_servers\simple\sample_vacuum_server.go" />
     <kind value="FILE" />
     <method />
