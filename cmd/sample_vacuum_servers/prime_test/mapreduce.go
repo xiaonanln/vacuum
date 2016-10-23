@@ -10,8 +10,10 @@ import (
 )
 
 func Main(s *vacuum.String) {
-	mapreduce.CreateMap("GetPrimesBetween", "")
+	mapreduce.CreateMap("GetPrimesBetween", "PrintAllPrimes")
 	mapreduce.WaitMapper("GetPrimesBetween", 1)
+	mapreduce.CreateReduce("PrintAllPrimes", nil, "")
+	mapreduce.WaitReducer("PrintAllPrimes", 1)
 
 	mapreduce.Send("GetPrimesBetween", []int{1, 10000})
 }
@@ -31,9 +33,20 @@ func GetPrimesBetween(input interface{}) interface{} {
 	return primes
 }
 
+func PrintAllPrimes(accum interface{}, input interface{}) interface{} {
+	primes := typeconv.IntTuple(input)
+
+	for _, n := range primes {
+		logrus.Printf("Prime %d", n)
+	}
+	return accum
+}
+
 func main() {
 	logrus.Debugf("Prime test usign map-reduce...")
 	vacuum.RegisterString("Main", Main)
 	mapreduce.RegisterMapFunc("GetPrimesBetween", GetPrimesBetween)
+	mapreduce.RegisterReduceFunc("PrintAllPrimes", PrintAllPrimes)
+
 	vacuum_server.RunServer()
 }
