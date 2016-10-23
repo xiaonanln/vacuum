@@ -1,9 +1,19 @@
-package tests
+package test
 
 import (
 	"testing"
 
+	"sync"
+
 	"github.com/xiaonanln/vacuum/msgbufpool"
+)
+
+var (
+	syncPool = sync.Pool{
+		New: func() interface{} {
+			return &msgbufpool.Msgbuf_t{}
+		},
+	}
 )
 
 func init() {
@@ -43,4 +53,15 @@ func funcUsingMsgbufpool() *msgbufpool.Msgbuf_t {
 	t := msgbufpool.GetMsgBuf()
 	msgbufpool.PutMsgBuf(t)
 	return t
+}
+
+func BenchmarkGetFromSyncPool(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		funcUsingSyncPool()
+	}
+}
+
+func funcUsingSyncPool() {
+	x := syncPool.Get()
+	syncPool.Put(x)
 }
