@@ -1,9 +1,8 @@
 package main
 
 import (
-	"typeconv"
-
 	"github.com/Sirupsen/logrus"
+	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/prime_test/internal/prime"
 	"github.com/xiaonanln/vacuum/mapreduce"

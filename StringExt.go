@@ -3,9 +3,8 @@ package vacuum
 import (
 	"time"
 
-	"typeconv"
-
 	log "github.com/Sirupsen/logrus"
+	"github.com/xiaonanln/typeconv"
 )
 
 func WaitServiceReady(serviceName string, n int) {
