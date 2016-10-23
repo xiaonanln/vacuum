@@ -18,7 +18,7 @@ func Main(s *vacuum.String) {
 }
 
 func GetPrimesBetween(input interface{}) interface{} {
-	range_ := typeconv.ToIntTuple(input)
+	range_ := typeconv.IntTuple(input)
 	minNum := range_[0]
 	maxNum := range_[1]
 
