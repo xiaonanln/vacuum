@@ -10,6 +10,8 @@ const (
 	DECLARE_SERVICE_RESP       = iota
 	CREATE_STRING_LOCALLY_REQ  = iota
 	CLOSE_STRING_RELAY         = iota
+	STRING_DEL_REQ             = iota
+	STRING_DEL_RESP            = iota
 )
 
 type MsgType_t uint16
@@ -46,6 +48,14 @@ type DeclareServiceReq struct {
 type DeclareServiceResp struct {
 	StringID    string `msgpack:"ID"`
 	ServiceName string `msgpack:"SN"`
+}
+
+type StringDelReq struct {
+	StringID string `msgpack:"ID"`
+}
+
+type StringDelResp struct {
+	StringID string `msgpack:"ID"`
 }
 
 type CloseStringRelay struct {

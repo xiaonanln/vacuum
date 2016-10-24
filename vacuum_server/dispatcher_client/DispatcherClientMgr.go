@@ -11,8 +11,6 @@ import (
 
 	"errors"
 
-	"runtime/debug"
-
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/netutil"
 )
@@ -77,53 +75,37 @@ func Initialize(_serverID int, h DispatcherRespHandler) {
 }
 
 func SendStringMessage(stringID string, msg common.StringMessage) error {
-	dispatcherClient := getDispatcherClient()
-	if dispatcherClient == nil {
-		debug.PrintStack()
-		log.Errorf("dispatcher client is nil")
-		return errDispatcherNotConnected
-	}
-	return dispatcherClient.SendStringMessage(stringID, msg)
+	return getDispatcherClientForSend().SendStringMessage(stringID, msg)
 }
 
 func SendCreateStringReq(name string, stringID string) error {
-	dispatcherClient := getDispatcherClient()
-	if dispatcherClient == nil {
-		debug.PrintStack()
-		log.Errorf("dispatcher client is nil")
-		return errDispatcherNotConnected
-	}
-	return dispatcherClient.SendCreateStringReq(name, stringID)
+	return getDispatcherClientForSend().SendCreateStringReq(name, stringID)
 }
 
 func SendCreateStringLocallyReq(name string, stringID string) error {
-	dispatcherClient := getDispatcherClient()
-	if dispatcherClient == nil {
-		debug.PrintStack()
-		log.Errorf("dispatcher client is nil")
-		return errDispatcherNotConnected
-	}
-	return dispatcherClient.SendCreateStringLocallyReq(name, stringID)
+	return getDispatcherClientForSend().SendCreateStringLocallyReq(name, stringID)
 }
 
 func SendDeclareServiceReq(stringID string, serviceName string) error {
-	dispatcherClient := getDispatcherClient()
-	if dispatcherClient == nil {
-		debug.PrintStack()
-		log.Errorf("dispatcher client is nil")
-		return errDispatcherNotConnected
-	}
-	return dispatcherClient.SendDeclareServiceReq(stringID, serviceName)
+	return getDispatcherClientForSend().SendDeclareServiceReq(stringID, serviceName)
+}
+
+func SendStringDelReq(stringID string) error {
+	return getDispatcherClientForSend().SendStringDelReq(stringID)
 }
 
 func RelayCloseString(stringID string) error {
+	return getDispatcherClientForSend().RelayCloseString(stringID)
+}
+
+func getDispatcherClientForSend() *DispatcherClient {
 	dispatcherClient := getDispatcherClient()
-	if dispatcherClient == nil {
-		debug.PrintStack()
-		log.Errorf("dispatcher client is nil")
-		return errDispatcherNotConnected
-	}
-	return dispatcherClient.RelayCloseString(stringID)
+	//if dispatcherClient == nil {
+	//	debug.PrintStack()
+	//	log.Errorf("dispatcher client is nil")
+	//	return errDispatcherNotConnected
+	//}
+	return dispatcherClient
 }
 
 // serve the dispatcher client, receive RESPs from dispatcher and process

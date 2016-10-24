@@ -42,7 +42,6 @@ func (s *String) String() string {
 	} else {
 		return "String<nil>"
 	}
-
 }
 
 func (s *String) Read() StringMessage {
@@ -103,4 +102,11 @@ func Send(stringID string, msg interface{}) {
 func SendToService(serviceName string, msg StringMessage) {
 	stringID := chooseServiceString(serviceName)
 	Send(stringID, msg)
+}
+
+func BroadcastToService(serviceName string, msg StringMessage) {
+	stringIDs := getAllServiceStringIDs(serviceName)
+	for _, stringID := range stringIDs {
+		Send(stringID, msg)
+	}
 }

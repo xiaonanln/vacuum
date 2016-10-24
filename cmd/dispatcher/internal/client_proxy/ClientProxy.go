@@ -60,6 +60,8 @@ func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t
 		cp.handleRegisterVacuumServerReq(payload)
 	} else if msgType == DECLARE_SERVICE_REQ {
 		cp.handleDeclareServiceReq(payload)
+	} else if msgType == STRING_DEL_REQ {
+		cp.handleStringDelReq(payload)
 	} else {
 		log.Panicf("ERROR: unknown dispatcher request type=%v", msgType)
 	}
@@ -135,13 +137,30 @@ func (cp *ClientProxy) handleDeclareServiceReq(data []byte) {
 	log.Debugf("%s.handleDeclareServiceReq %T %v", cp, req, req)
 
 	// the the declare of service to all clients
-	resp := DeclareServiceResp{
+	sendToAllClientProxies(DECLARE_SERVICE_RESP, &DeclareServiceResp{
 		StringID:    req.StringID,
 		ServiceName: req.ServiceName,
-	}
+	}, nil)
+}
+
+// String quit execution its routine on the vacuum server
+func (cp *ClientProxy) handleStringDelReq(data []byte) {
+	var req StringDelReq
+	MSG_PACKER.UnpackMsg(data, &req)
+	log.Debugf("%s.handleStringDelReq %T %v", cp, req, req)
+
+	stringID := req.StringID
+	sendToAllClientProxies(STRING_DEL_RESP, &StringDelResp{
+		StringID: stringID,
+	}, cp) // don't send to its self
+}
+
+func sendToAllClientProxies(msgType MsgType_t, resp interface{}, exceptClientProxy *ClientProxy) {
 	clientProxiesLock.RLock()
 	for _, clientProxy := range clientProxes {
-		clientProxy.SendMsg(DECLARE_SERVICE_RESP, &resp)
+		if clientProxy != exceptClientProxy {
+			clientProxy.SendMsg(msgType, &resp)
+		}
 	}
 	clientProxiesLock.RUnlock()
 }

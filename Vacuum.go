@@ -16,7 +16,7 @@ var (
 	registeredStringRoutines = map[string]StringRoutine{}
 
 	stringIDsByServiceLock sync.RWMutex
-	stringIDListByService  = map[string][]string{}
+	stringIDListByService  = map[string]StringList{}
 	stringIDsByService     = map[string]StringSet{}
 )
 
@@ -30,6 +30,13 @@ func getString(stringID string) (s *String) {
 	stringsLock.RLock()
 	s = strings[stringID]
 	stringsLock.RUnlock()
+	return
+}
+
+func delString(stringID string) {
+	stringsLock.Lock()
+	delete(strings, stringID)
+	stringsLock.Unlock()
 	return
 }
 
@@ -48,32 +55,67 @@ func getStringRoutine(name string) StringRoutine {
 
 func declareService(stringID string, serviceName string) {
 	stringIDsByServiceLock.Lock()
-	defer stringIDsByServiceLock.Unlock()
 
 	stringIDs, ok := stringIDsByService[serviceName]
 	if ok { // add stringID to service
 		stringIDs.Add(stringID)
-		stringIDListByService[serviceName] = append(stringIDListByService[serviceName], stringID) // maintain the stringID list
+		sl := stringIDListByService[serviceName]
+		sl.Append(stringID)
+		stringIDListByService[serviceName] = sl // maintain the stringID list
 
 	} else { // found new service
 		stringIDsByService[serviceName] = StringSet{}
 		stringIDsByService[serviceName].Add(stringID)
 
-		stringIDListByService[serviceName] = []string{stringID}
+		stringIDListByService[serviceName] = StringList{stringID}
 	}
+
+	stringIDsByServiceLock.Unlock()
 }
 
-func chooseServiceString(serviceName string) string {
+// Undeclare all service of the specified string
+func undeclareServicesOfString(stringID string) {
+	stringIDsByServiceLock.Lock()
+
+	for serviceName, stringIDs := range stringIDsByService {
+		log.Debugf("undeclareServicesOfString: checking service %s, stringIDs %v, contains %v", serviceName, stringIDs, stringIDs.Contains(stringID))
+		if stringIDs.Contains(stringID) {
+			// the string declared this service, remove it
+			log.Debugf("Undeclaring service %s of String %s!", serviceName, stringID)
+			stringIDs.Remove(stringID)
+			sl := stringIDListByService[serviceName]
+			sl.Remove(stringID)
+			stringIDListByService[serviceName] = sl
+		}
+	}
+
+	stringIDsByServiceLock.Unlock()
+}
+
+func chooseServiceString(serviceName string) (stringID string) {
 	stringIDsByServiceLock.RLock()
-	defer stringIDsByServiceLock.RUnlock()
 
 	stringIDs, ok := stringIDListByService[serviceName]
 	if ok {
-		return stringIDs[rand.Intn(len(stringIDs))]
+		stringID = stringIDs[rand.Intn(len(stringIDs))]
 	} else {
 		log.Panicf("chooseServiceString: get service string failed: %s", serviceName)
-		return ""
+		stringID = ""
 	}
+
+	stringIDsByServiceLock.RUnlock()
+	return
+}
+
+func getAllServiceStringIDs(serviceName string) (stringIDs []string) {
+	stringIDsByServiceLock.RLock()
+
+	_stringIDs := stringIDListByService[serviceName]
+	stringIDs = make([]string, len(_stringIDs))
+	copy(stringIDs, _stringIDs)
+
+	stringIDsByServiceLock.RUnlock()
+	return
 }
 
 func GetServiceProviderCount(serviceName string) int {

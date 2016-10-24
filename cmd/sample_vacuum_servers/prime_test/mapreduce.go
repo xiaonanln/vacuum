@@ -9,13 +9,27 @@ import (
 	"github.com/xiaonanln/vacuum/vacuum_server"
 )
 
-func Main(s *vacuum.String) {
-	mapreduce.CreateMap("GetPrimesBetween", "PrintAllPrimes")
-	mapreduce.WaitMapper("GetPrimesBetween", 1)
-	mapreduce.CreateReduce("PrintAllPrimes", nil, "")
-	mapreduce.WaitReducer("PrintAllPrimes", 1)
+const (
+	MAPPER_COUNT = 10
+	BATCH_SIZE   = 10000
+	BATCH_COUNT  = 3
+)
 
-	mapreduce.Send("GetPrimesBetween", []int{1, 10000})
+func Main(s *vacuum.String) {
+	for i := 0; i < MAPPER_COUNT; i++ {
+		mapreduce.CreateMap("GetPrimesBetween", "CollectAllPrimes")
+	}
+	mapreduce.WaitMapperReady("GetPrimesBetween", MAPPER_COUNT)
+
+	mapreduce.CreateReduce("CollectAllPrimes", nil, "")
+	mapreduce.WaitReducerReady("CollectAllPrimes", 1)
+
+	for i := 1; i < BATCH_COUNT; i++ {
+		mapreduce.Send("GetPrimesBetween", []int{(i-1)*BATCH_SIZE + 1, (i) * BATCH_SIZE})
+		s.Yield()
+	}
+	// wait for all mappers to quit
+	mapreduce.Broadcast("GetPrimesBetween", nil)
 }
 
 func GetPrimesBetween(input interface{}) interface{} {
@@ -33,12 +47,19 @@ func GetPrimesBetween(input interface{}) interface{} {
 	return primes
 }
 
-func PrintAllPrimes(accum interface{}, input interface{}) interface{} {
-	primes := typeconv.IntTuple(input)
-
-	for _, n := range primes {
-		logrus.Printf("Prime %d", n)
+func CollectAllPrimes(_accum interface{}, _input interface{}) interface{} {
+	var accum []int64
+	if _accum != nil {
+		accum = typeconv.IntTuple(_accum)
 	}
+
+	input := typeconv.IntTuple(_input)
+
+	for _, n := range input {
+		accum = append(accum, n)
+	}
+
+	logrus.Printf("Primes count: %d", len(accum))
 	return accum
 }
 
@@ -46,7 +67,7 @@ func main() {
 	logrus.Debugf("Prime test usign map-reduce...")
 	vacuum.RegisterString("Main", Main)
 	mapreduce.RegisterMapFunc("GetPrimesBetween", GetPrimesBetween)
-	mapreduce.RegisterReduceFunc("PrintAllPrimes", PrintAllPrimes)
+	mapreduce.RegisterReduceFunc("CollectAllPrimes", CollectAllPrimes)
 
 	vacuum_server.RunServer()
 }

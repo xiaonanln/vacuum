@@ -77,14 +77,16 @@ func reducerRoutine(s *vacuum.String) {
 	reduceFunc := reduceFuncs[funcName]
 	outputServiceName := getServiceName(outputFuncName)
 
+	accum := initial
+
 	for {
 		input := s.Read() // read input, whatever it is
-		output := reduceFunc(initial, input)
+		accum = reduceFunc(accum, input)
 		// send the output to the next Mapper / Reducer
 		if outputServiceName != "" {
-			s.SendToService(outputServiceName, output)
+			s.SendToService(outputServiceName, accum)
 		} else {
-			logrus.Printf("Mapper %s output: %v", funcName, output)
+			logrus.Printf("Mapper %s output: %v", funcName, accum)
 		}
 	}
 }
@@ -111,15 +113,20 @@ func getServiceName(mapperOrReducerName string) string {
 	}
 }
 
-func WaitMapper(mapperName string, n int) {
+func WaitMapperReady(mapperName string, n int) {
 	vacuum.WaitServiceReady(getServiceName(mapperName), n)
 }
 
-func WaitReducer(reducerName string, n int) {
+func WaitReducerReady(reducerName string, n int) {
 	vacuum.WaitServiceReady(getServiceName(reducerName), n)
 }
 
 func Send(name string, val interface{}) {
 	serviceName := getServiceName(name)
 	vacuum.SendToService(serviceName, val)
+}
+
+func Broadcast(name string, val interface{}) {
+	serviceName := getServiceName(name)
+	vacuum.BroadcastToService(serviceName, val)
 }

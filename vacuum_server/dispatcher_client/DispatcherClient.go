@@ -13,6 +13,7 @@ type DispatcherRespHandler interface {
 	HandleDispatcherResp_DeclareService(stringID string, serviceName string)
 	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
 	HandleDispatcherResp_CloseString(stringID string)
+	HandleDispatcherResp_DelString(stringID string)
 }
 
 type DispatcherClient struct {
@@ -67,6 +68,13 @@ func (dc *DispatcherClient) SendDeclareServiceReq(stringID string, serviceName s
 	return dc.SendMsg(DECLARE_SERVICE_REQ, &req)
 }
 
+func (dc *DispatcherClient) SendStringDelReq(stringID string) error {
+	req := StringDelReq{
+		StringID: stringID,
+	}
+	return dc.SendMsg(STRING_DEL_REQ, &req)
+}
+
 func (dc *DispatcherClient) RelayCloseString(stringID string) error {
 	req := CloseStringRelay{}
 	return dc.SendRelayMsg(stringID, CLOSE_STRING_RELAY, &req)
@@ -88,6 +96,8 @@ func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgT
 	} else if msgtype == DECLARE_SERVICE_RESP {
 		// declare service
 		return dc.handleDeclareServiceResp(payload)
+	} else if msgtype == STRING_DEL_RESP {
+		return dc.handleStringDelResp(payload)
 	} else {
 		log.Panicf("serveDispatcherClient: invalid msg type: %v", msgtype)
 		return nil
@@ -142,5 +152,15 @@ func (dc *DispatcherClient) handleDeclareServiceResp(payload []byte) error {
 	}
 
 	dispatcherRespHandler.HandleDispatcherResp_DeclareService(resp.StringID, resp.ServiceName)
+	return nil
+}
+
+func (dc *DispatcherClient) handleStringDelResp(payload []byte) error {
+	var resp StringDelResp
+	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+		return err
+	}
+
+	dispatcherRespHandler.HandleDispatcherResp_DelString(resp.StringID)
 	return nil
 }

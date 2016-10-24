@@ -15,3 +15,5 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 * Handle the termination and join of Strings
 * Write an example of distributed map-reduce calculation
 * Write an server that accept client connections and handle clients with Vacuum Strings
+* Use sync.Pool to replace msgbufpool because sync.Pool is very efficient and is STD library
+* Optimize dispatcher sending same message to all client proxies by create the packet only once

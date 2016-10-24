@@ -37,7 +37,10 @@ func OnCreateString(name string, stringID string) {
 	putString(s)
 	log.Debugf("OnCreateString %s: %s", name, s)
 
-	go s.routine(s)
+	go func() {
+		defer onStringRoutineQuit(name, stringID)
+		s.routine(s)
+	}()
 }
 
 // DeclareService: declare that the specified String provides specified service
@@ -69,4 +72,17 @@ func OnSendStringMessage(stringID string, msg common.StringMessage) {
 func OnCloseString(stringID string) {
 	//s := getString(stringID)
 	//s.Close()
+}
+
+// Called after string quit its routine
+func onStringRoutineQuit(name string, stringID string) {
+	log.Debugf("String %s.%s quited.", name, stringID)
+	delString(stringID) // delete the string on local server
+	undeclareServicesOfString(stringID)
+	dispatcher_client.SendStringDelReq(stringID)
+}
+
+// string del notification from dispatcher
+func OnDelString(stringID string) {
+	undeclareServicesOfString(stringID)
 }

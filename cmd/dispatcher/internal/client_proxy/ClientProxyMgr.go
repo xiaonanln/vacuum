@@ -72,14 +72,14 @@ func genClientProxyIDs() {
 func setStringLocation(stringID string, serverID int) {
 	stringLocationsLock.Lock()
 	stringLocations[stringID] = serverID
-	log.Debugf("setStringLocation %s to %v", stringID, stringLocations)
+	log.Debugf("setStringLocation %s => %v", stringID, serverID)
 	stringLocationsLock.Unlock()
 }
 
 func getStringLocation(stringID string) int {
 	stringLocationsLock.RLock()
-	log.Debugf("getStringLocation %s from %v", stringID, stringLocations)
 	serverID := stringLocations[stringID]
+	log.Debugf("getStringLocation %s => %v", stringID, serverID)
 	stringLocationsLock.RUnlock()
 	return serverID
 }
