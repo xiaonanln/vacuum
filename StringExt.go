@@ -17,6 +17,16 @@ func WaitServiceReady(serviceName string, n int) {
 	log.WithFields(log.Fields{"num": current}).Printf("Service %s is ready now.", serviceName)
 }
 
+func WaitServiceGone(serviceName string) {
+	current := GetServiceProviderCount(serviceName)
+	log.WithFields(log.Fields{"current": current}).Printf("Waiting %s service to be gone", serviceName)
+	for current > 0 {
+		time.Sleep(100 * time.Millisecond)
+		current = GetServiceProviderCount(serviceName)
+	}
+	log.WithFields(log.Fields{"num": current}).Printf("Service %s is gone now.", serviceName)
+}
+
 func (s *String) ReadInt() int64 {
 	return typeconv.Int(s.Read())
 }

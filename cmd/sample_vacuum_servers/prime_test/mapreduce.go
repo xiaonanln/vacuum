@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
@@ -19,10 +21,10 @@ func Main(s *vacuum.String) {
 	for i := 0; i < MAPPER_COUNT; i++ {
 		mapreduce.CreateMap("GetPrimesBetween", "CollectAllPrimes")
 	}
-	mapreduce.WaitMapperReady("GetPrimesBetween", MAPPER_COUNT)
+	mapreduce.WaitReady("GetPrimesBetween", MAPPER_COUNT)
 
 	mapreduce.CreateReduce("CollectAllPrimes", nil, "")
-	mapreduce.WaitReducerReady("CollectAllPrimes", 1)
+	mapreduce.WaitReady("CollectAllPrimes", 1)
 
 	for i := 1; i < BATCH_COUNT; i++ {
 		mapreduce.Send("GetPrimesBetween", []int{(i-1)*BATCH_SIZE + 1, (i) * BATCH_SIZE})
@@ -30,6 +32,10 @@ func Main(s *vacuum.String) {
 	}
 	// wait for all mappers to quit
 	mapreduce.Broadcast("GetPrimesBetween", nil)
+	mapreduce.WaitGone("GetPrimesBetween")       // wait all GetPrimesBetween to finish
+	mapreduce.Broadcast("CollectAllPrimes", nil) // send nil to CollectAllPrimes
+	mapreduce.WaitGone("CollectAllPrimes")
+	os.Exit(0)
 }
 
 func GetPrimesBetween(input interface{}) interface{} {

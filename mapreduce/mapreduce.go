@@ -1,6 +1,8 @@
 package mapreduce
 
 import (
+	"fmt"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/vacuum"
 )
@@ -57,6 +59,11 @@ func mapperRoutine(s *vacuum.String) {
 
 	for {
 		input := s.Read() // read input, whatever it is
+		if input == nil {
+			// nil means end of execution
+			break
+		}
+
 		output := mapFunc(input)
 		// send the output to the next Mapper / Reducer
 		if outputServiceName != "" {
@@ -81,13 +88,18 @@ func reducerRoutine(s *vacuum.String) {
 
 	for {
 		input := s.Read() // read input, whatever it is
+		if input == nil {
+			break
+		}
+
 		accum = reduceFunc(accum, input)
 		// send the output to the next Mapper / Reducer
-		if outputServiceName != "" {
-			s.SendToService(outputServiceName, accum)
-		} else {
-			logrus.Printf("Mapper %s output: %v", funcName, accum)
-		}
+	}
+
+	if outputServiceName != "" {
+		s.SendToService(outputServiceName, accum)
+	} else {
+		fmt.Printf("%s: %v\n", funcName, accum)
 	}
 }
 
@@ -113,12 +125,12 @@ func getServiceName(mapperOrReducerName string) string {
 	}
 }
 
-func WaitMapperReady(mapperName string, n int) {
-	vacuum.WaitServiceReady(getServiceName(mapperName), n)
+func WaitReady(name string, n int) {
+	vacuum.WaitServiceReady(getServiceName(name), n)
 }
 
-func WaitReducerReady(reducerName string, n int) {
-	vacuum.WaitServiceReady(getServiceName(reducerName), n)
+func WaitGone(name string) {
+	vacuum.WaitServiceGone(getServiceName(name))
 }
 
 func Send(name string, val interface{}) {
@@ -129,4 +141,8 @@ func Send(name string, val interface{}) {
 func Broadcast(name string, val interface{}) {
 	serviceName := getServiceName(name)
 	vacuum.BroadcastToService(serviceName, val)
+}
+
+func GetCount(name string) int {
+	return vacuum.GetServiceProviderCount(getServiceName(name))
 }
