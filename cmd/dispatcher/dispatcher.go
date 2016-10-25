@@ -34,7 +34,7 @@ func main() {
 	wait.Add(1)
 	go telnet_server.ServeTelnetServer(wait)
 
-	netutil.ServeTCP(DISPATCHER_SERVER_LISTEN_ATTR, &DispatcherDelegate{})
+	netutil.ServeTCPForever(DISPATCHER_SERVER_LISTEN_ATTR, &DispatcherDelegate{})
 	wait.Wait()
 }
 

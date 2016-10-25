@@ -49,6 +49,10 @@ func RegisterString(name string, routine StringRoutine) {
 	log.Infof("String routine registered: %s", name)
 }
 
+func GetLocalString(stringID string) *String {
+	return getString(stringID)
+}
+
 func getStringRoutine(name string) StringRoutine {
 	return registeredStringRoutines[name]
 }

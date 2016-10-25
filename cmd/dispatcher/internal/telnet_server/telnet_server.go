@@ -23,7 +23,7 @@ type TelnetServerDelegate struct {
 }
 
 func ServeTelnetServer(wait *sync.WaitGroup) {
-	netutil.ServeTCP(TELNET_SERVER_LISTEN_ATTR, &TelnetServerDelegate{})
+	netutil.ServeTCPForever(TELNET_SERVER_LISTEN_ATTR, &TelnetServerDelegate{})
 	wait.Done()
 }
 
