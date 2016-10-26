@@ -13,5 +13,5 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 
 # TODO List
 * Write an server that accept client connections and handle clients with Vacuum Strings
-* Use sync.Pool to replace msgbufpool because sync.Pool is very efficient and is STD library
+* Migrate Strings between vacuum servers
 * Optimize dispatcher sending same message to all client proxies by create the packet only once
