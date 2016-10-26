@@ -62,6 +62,8 @@ func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t
 		cp.handleDeclareServiceReq(payload)
 	} else if msgType == STRING_DEL_REQ {
 		cp.handleStringDelReq(payload)
+	} else if msgType == MIGRATE_STRING_REQ {
+		cp.handleMigrateStringReq(payload)
 	} else {
 		log.Panicf("ERROR: unknown dispatcher request type=%v", msgType)
 	}
@@ -153,6 +155,14 @@ func (cp *ClientProxy) handleStringDelReq(data []byte) {
 	sendToAllClientProxies(STRING_DEL_RESP, &StringDelResp{
 		StringID: stringID,
 	}, cp) // don't send to its self
+}
+
+func (cp *ClientProxy) handleMigrateStringReq(data []byte) {
+	var req MigrateStringReq
+	MSG_PACKER.UnpackMsg(data, &req)
+	log.Debugf("%s.handleMigrateStringReq %T %v", cp, req, req)
+
+	// the string is migrating to specified server
 }
 
 func sendToAllClientProxies(msgType MsgType_t, resp interface{}, exceptClientProxy *ClientProxy) {

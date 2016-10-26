@@ -4,20 +4,20 @@ import (
 	"testing"
 
 	"sync"
-
-	"github.com/xiaonanln/vacuum/msgbufpool"
 )
+
+type Message [1024 * 1024]byte
 
 var (
 	syncPool = sync.Pool{
 		New: func() interface{} {
-			return &msgbufpool.Msgbuf_t{}
+			return &Message{}
 		},
 	}
 )
 
 func init() {
-	msgbufpool.PutMsgBuf(msgbufpool.GetMsgBuf())
+
 }
 
 func BenchmarkNewobject(b *testing.B) {
@@ -32,28 +32,29 @@ func BenchmarkNoNewobject(b *testing.B) {
 	}
 }
 
-func BenchmarkGetMsgBuf(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		funcUsingMsgbufpool()
-	}
-}
+//func BenchmarkGetMsgBuf(b *testing.B) {
+//	for i := 0; i < b.N; i++ {
+//		funcUsingMsgbufpool()
+//	}
+//}
 
-func funcWithNewobject() *msgbufpool.Msgbuf_t {
-	var b msgbufpool.Msgbuf_t
+func funcWithNewobject() *Message {
+	var b Message
 	return &b
 }
 
 func funcWithoutNewobject() int {
-	var b msgbufpool.Msgbuf_t
+	var b Message
 	b[0] = 1
 	return 1
 }
 
-func funcUsingMsgbufpool() *msgbufpool.Msgbuf_t {
-	t := msgbufpool.GetMsgBuf()
-	msgbufpool.PutMsgBuf(t)
-	return t
-}
+//
+//func funcUsingMsgbufpool() *Message {
+//	t := msgbufpool.GetMsgBuf()
+//	msgbufpool.PutMsgBuf(t)
+//	return t
+//}
 
 func BenchmarkGetFromSyncPool(b *testing.B) {
 	for i := 0; i < b.N; i++ {

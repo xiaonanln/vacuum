@@ -98,6 +98,10 @@ func RelayCloseString(stringID string) error {
 	return getDispatcherClientForSend().RelayCloseString(stringID)
 }
 
+func SendMigrateStringReq(stringID string, serverID int) error {
+	return getDispatcherClientForSend().SendMigrateStringReq(stringID, serverID)
+}
+
 func getDispatcherClientForSend() *DispatcherClient {
 	dispatcherClient := getDispatcherClient()
 	//if dispatcherClient == nil {

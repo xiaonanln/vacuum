@@ -75,6 +75,11 @@ func (dc *DispatcherClient) SendStringDelReq(stringID string) error {
 	return dc.SendMsg(STRING_DEL_REQ, &req)
 }
 
+func (dc *DispatcherClient) SendMigrateStringReq(stringID string, serverID int) error {
+	req := MigrateStringReq{}
+	return dc.SendMsg(MIGRATE_STRING_REQ, &req)
+}
+
 func (dc *DispatcherClient) RelayCloseString(stringID string) error {
 	req := CloseStringRelay{}
 	return dc.SendRelayMsg(stringID, CLOSE_STRING_RELAY, &req)

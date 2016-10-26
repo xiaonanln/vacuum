@@ -26,7 +26,7 @@ func checkConnError(err error) {
 
 func handleConn(conn net.Conn) {
 	logrus.Printf("New client connection: %s", conn.RemoteAddr())
-	err := netutil.WriteAll(conn, []byte("Welcome to echo server\n"))
+	err := netutil.WriteAll(conn, []byte("Welcome to echo server\n\r"))
 	checkConnError(err)
 
 	var data [1024]byte

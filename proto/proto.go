@@ -12,6 +12,7 @@ const (
 	CLOSE_STRING_RELAY         = iota
 	STRING_DEL_REQ             = iota
 	STRING_DEL_RESP            = iota
+	MIGRATE_STRING_REQ         = iota
 )
 
 type MsgType_t uint16
@@ -52,6 +53,11 @@ type DeclareServiceResp struct {
 
 type StringDelReq struct {
 	StringID string `msgpack:"ID"`
+}
+
+type MigrateStringReq struct {
+	StringID string `msgpack:"ID"`
+	ServerID int    `msgpack:"SID"`
 }
 
 type StringDelResp struct {

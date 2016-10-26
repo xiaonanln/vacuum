@@ -40,6 +40,14 @@ func delString(stringID string) {
 	return
 }
 
+func popString(stringID string) (s *String) {
+	stringsLock.Lock()
+	s = strings[stringID]
+	delete(strings, stringID)
+	stringsLock.Unlock()
+	return
+}
+
 func RegisterString(name string, routine StringRoutine) {
 	if registeredStringRoutines[name] != nil {
 		log.Panicf("String routine of name %s is already registered", name)
