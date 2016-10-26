@@ -12,6 +12,6 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
   * Using map-reduce: https://github.com/xiaonanln/vacuum/blob/master/cmd/sample_vacuum_servers/prime_test/mapreduce.go
 
 # TODO List
-* Write an distributed echo server that accept client connections and handle clients with Vacuum Strings
+* Write an server that accept client connections and handle clients with Vacuum Strings
 * Use sync.Pool to replace msgbufpool because sync.Pool is very efficient and is STD library
 * Optimize dispatcher sending same message to all client proxies by create the packet only once
