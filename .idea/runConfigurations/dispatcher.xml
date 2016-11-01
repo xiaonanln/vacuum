@@ -3,6 +3,7 @@
     <module name="vacuum" />
     <working_directory value="$PROJECT_DIR$" />
     <go_parameters value="-race" />
+    <parameters value="-c vacuum.conf" />
     <filePath value="cmd\dispatcher\dispatcher.go" />
     <kind value="FILE" />
     <method />

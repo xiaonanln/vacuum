@@ -11,7 +11,12 @@ import (
 
 	"errors"
 
+	"strings"
+
+	"strconv"
+
 	"github.com/xiaonanln/vacuum/common"
+	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/netutil"
 )
 
@@ -59,7 +64,13 @@ func assureConnectedDispatcherClient() *DispatcherClient {
 }
 
 func connectDispatchClient() (*DispatcherClient, error) {
-	conn, err := netutil.ConnectTCP("localhost", 7581)
+	dispatcherPublicIP := config.GetConfig().Dispatcher.PublicIP
+	port, err := strconv.Atoi(strings.Split(config.GetConfig().Dispatcher.Host, ":")[1])
+	if err != nil {
+		panic(err)
+	}
+
+	conn, err := netutil.ConnectTCP(dispatcherPublicIP, port)
 	if err != nil {
 		return nil, err
 	}

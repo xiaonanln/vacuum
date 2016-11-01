@@ -7,11 +7,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
+	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/netutil"
-)
-
-const (
-	TELNET_SERVER_LISTEN_ATTR = ":7582"
 )
 
 func debuglog(format string, a ...interface{}) {
@@ -23,7 +20,7 @@ type TelnetServerDelegate struct {
 }
 
 func ServeTelnetServer(wait *sync.WaitGroup) {
-	netutil.ServeTCPForever(TELNET_SERVER_LISTEN_ATTR, &TelnetServerDelegate{})
+	netutil.ServeTCPForever(config.GetConfig().Dispatcher.ConsoleHost, &TelnetServerDelegate{})
 	wait.Done()
 }
 

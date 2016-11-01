@@ -19,8 +19,9 @@ const (
 )
 
 var (
-	serverID = 1 // default server ID to be 1
-	logLevel = DEFAULT_LOG_LEVEL
+	serverID   = 1 // default server ID to be 1
+	logLevel   = DEFAULT_LOG_LEVEL
+	configFile = ""
 )
 
 type DispatcherRespHandler struct{}
@@ -29,6 +30,7 @@ func init() {
 	// initializing the vacuum server
 	flag.IntVar(&serverID, "sid", 1, "server ID")
 	flag.StringVar(&logLevel, "log", DEFAULT_LOG_LEVEL, "log level")
+	flag.StringVar(&configFile, "c", config.CONFIG_FILENAME, "config file")
 	flag.Parse()
 
 	setupLog(logLevel)
@@ -37,9 +39,9 @@ func init() {
 		log.Panicf("Server ID must be positive, not %d", serverID)
 	}
 
-	log.Debugf(">>> Server ID: %d", serverID)
+	log.Debugf(">>> Server ID: %d, Config file: %s", serverID, configFile)
 
-	config.LoadConfig()
+	config.LoadConfig(configFile)
 	dispatcher_client.Initialize(serverID, DispatcherRespHandler{})
 }
 
