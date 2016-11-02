@@ -12,22 +12,22 @@ import (
 // one dispatcher client, so there is no concurrency problem in these functions
 
 // CreateString: create a string with specified name
-func CreateString(name string) string {
+func CreateString(name string, args ...interface{}) string {
 	stringID := uuid.GenUUID()
-	dispatcher_client.SendCreateStringReq(name, stringID)
+	dispatcher_client.SendCreateStringReq(name, stringID, args)
 	return stringID
 }
 
 // Create a String with specified name on the local vacuum server
-func CreateStringLocally(name string) string {
+func CreateStringLocally(name string, args ...interface{}) string {
 	stringID := uuid.GenUUID()
-	OnCreateString(name, stringID)
+	OnCreateString(name, stringID, args)
 	dispatcher_client.SendCreateStringLocallyReq(name, stringID)
 	return stringID
 }
 
 // OnCreateString: called when dispatcher sends create string resp
-func OnCreateString(name string, stringID string) {
+func OnCreateString(name string, stringID string, args []interface{}) {
 	delegateMaker := getStringDelegateMaker(name)
 	if delegateMaker == nil {
 		log.Panicf("OnCreateString: routine of String %s is nil", name)
@@ -36,18 +36,16 @@ func OnCreateString(name string, stringID string) {
 	delegate := delegateMaker()
 	s := newString(stringID, name, delegate)
 	putString(s)
-	log.Debugf("OnCreateString %s: %s", name, s)
+	log.Debugf("OnCreateString %s: %s, args=%v", name, s, args)
 
 	go func() {
 		defer onStringRoutineQuit(name, stringID)
 
-		s.delegate.Init(s)
+		s.delegate.Init(s, args...)
 		for {
 			msg := s.Read()
 			if msg != nil {
-				if !s.delegate.Loop(s, msg) {
-					break
-				}
+				s.delegate.Loop(s, msg)
 			} else {
 				break
 			}

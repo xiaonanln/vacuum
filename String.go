@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER = false // only use true for debug!
+	ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER = true // only use true for debug!
 	STRING_MESSAGE_BUFFER_SIZE                    = 1000
 )
 
 type StringDelegate interface {
 	Init(s *String, args ...interface{})
 	Fini(s *String)
-	Loop(s *String, msg StringMessage) bool
+	Loop(s *String, msg StringMessage)
 }
 
 type StringDelegateMaker func() StringDelegate

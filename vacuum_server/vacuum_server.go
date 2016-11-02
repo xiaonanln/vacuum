@@ -45,8 +45,8 @@ func init() {
 	dispatcher_client.Initialize(serverID, DispatcherRespHandler{})
 }
 
-func (rh DispatcherRespHandler) HandleDispatcherResp_CreateString(name string, stringID string) {
-	vacuum.OnCreateString(name, stringID)
+func (rh DispatcherRespHandler) HandleDispatcherResp_CreateString(name string, stringID string, args []interface{}) {
+	vacuum.OnCreateString(name, stringID, args)
 }
 
 func (rh DispatcherRespHandler) HandleDispatcherResp_DeclareService(stringID string, serviceName string) {

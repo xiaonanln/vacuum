@@ -27,13 +27,15 @@ type StringMessageRelay struct {
 }
 
 type CreateStringReq struct {
-	Name     string `msgpack:"N"`
-	StringID string `msgpack:"ID"`
+	Name     string        `msgpack:"N"`
+	StringID string        `msgpack:"ID"`
+	Args     []interface{} `msgpack:"A"`
 }
 
 type CreateStringResp struct {
-	Name     string `msgpack:"N"`
-	StringID string `msgpack:"ID"`
+	Name     string        `msgpack:"N"`
+	StringID string        `msgpack:"ID"`
+	Args     []interface{} `msgpack:"A"`
 }
 
 type CreateStringLocallyReq struct {

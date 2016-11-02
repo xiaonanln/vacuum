@@ -89,8 +89,8 @@ func SendStringMessage(stringID string, msg common.StringMessage) error {
 	return getDispatcherClientForSend().SendStringMessage(stringID, msg)
 }
 
-func SendCreateStringReq(name string, stringID string) error {
-	return getDispatcherClientForSend().SendCreateStringReq(name, stringID)
+func SendCreateStringReq(name string, stringID string, args []interface{}) error {
+	return getDispatcherClientForSend().SendCreateStringReq(name, stringID, args)
 }
 
 func SendCreateStringLocallyReq(name string, stringID string) error {

@@ -110,6 +110,7 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 	resp := CreateStringResp{
 		Name:     req.Name,
 		StringID: stringID,
+		Args:     req.Args,
 	}
 
 	chooseServer.SendMsg(CREATE_STRING_RESP, &resp)

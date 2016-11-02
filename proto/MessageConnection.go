@@ -136,7 +136,7 @@ func (mc MessageConnection) RecvMsg(handler MessageHandler) error {
 		pktSize -= RELAY_MASK
 	}
 
-	log.Debugf("RecvMsg: pktsize=%v, isRelayMsg=%v", pktSize, isRelayMsg)
+	//log.Debugf("RecvMsg: pktsize=%v, isRelayMsg=%v", pktSize, isRelayMsg)
 
 	if pktSize > MAX_MESSAGE_SIZE {
 		// pkt size is too large

@@ -50,104 +50,72 @@ func RegisterReduceFunc(name string, f ReduceFunc) {
 }
 
 type Mapper struct {
+	funcName          string
+	mapFunc           MapFunc
+	outputServiceName string
 }
 
 func (m *Mapper) Init(s *vacuum.String, args ...interface{}) {
-
+	m.funcName = args[0].(string)
+	m.outputServiceName = getServiceName(args[1].(string))
+	m.mapFunc = mapFuncs[m.funcName]
+	s.DeclareService(getServiceName(m.funcName))
 }
 
 func (m *Mapper) Fini(s *vacuum.String) {}
 
-func (m *Mapper) Loop(s *vacuum.String, msg common.StringMessage) bool {
-	return false
+func (m *Mapper) Loop(s *vacuum.String, input common.StringMessage) {
+	output := m.mapFunc(input)
+	// send the output to the next Mapper / Reducer
+	if m.outputServiceName != "" {
+		s.SendToService(m.outputServiceName, output)
+	} else {
+		logrus.Printf("Mapper %s output: %v", m.funcName, output)
+	}
 }
 
 func makeMapper() vacuum.StringDelegate {
 	return &Mapper{}
 }
 
-type Reducer struct{}
-
-func (m *Reducer) Init(s *vacuum.String, args ...interface{}) {
-
+type Reducer struct {
+	funcName          string
+	outputServiceName string
+	accum             interface{}
+	reduceFunc        ReduceFunc
 }
 
-func (m *Reducer) Fini(s *vacuum.String) {}
+func (r *Reducer) Init(s *vacuum.String, args ...interface{}) {
+	r.funcName = args[0].(string)
+	r.outputServiceName = getServiceName(args[1].(string))
+	r.accum = args[2]
+	r.reduceFunc = reduceFuncs[r.funcName]
 
-func (m *Reducer) Loop(s *vacuum.String, msg common.StringMessage) bool {
-	return false
+	s.DeclareService(getServiceName(r.funcName))
+}
+
+func (r *Reducer) Fini(s *vacuum.String) {
+	if r.outputServiceName != "" {
+		s.SendToService(r.outputServiceName, r.accum)
+	} else {
+		fmt.Printf("%s: %v\n", r.funcName, r.accum)
+	}
+}
+
+func (r *Reducer) Loop(s *vacuum.String, msg common.StringMessage) {
+	r.accum = r.reduceFunc(r.accum, msg)
 }
 
 func makeReducer() vacuum.StringDelegate {
 	return &Reducer{}
 }
 
-func mapperRoutine(s *vacuum.String) {
-	funcName := s.ReadString()
-	outputFuncName := s.ReadString()
-
-	myServiceName := getServiceName(funcName)
-	s.DeclareService(myServiceName) // declare the service of this map
-	outputServiceName := getServiceName(outputFuncName)
-	mapFunc := mapFuncs[funcName]
-
-	for {
-		input := s.Read() // read input, whatever it is
-		if input == nil {
-			// nil means end of execution
-			break
-		}
-
-		output := mapFunc(input)
-		// send the output to the next Mapper / Reducer
-		if outputServiceName != "" {
-			s.SendToService(outputServiceName, output)
-		} else {
-			logrus.Printf("Mapper %s output: %v", funcName, output)
-		}
-	}
-}
-
-func reducerRoutine(s *vacuum.String) {
-	funcName := s.ReadString()
-	initial := s.Read()
-	outputFuncName := s.ReadString()
-
-	myServiceName := getServiceName(funcName)
-	s.DeclareService(myServiceName) // declare the service of this map
-	reduceFunc := reduceFuncs[funcName]
-	outputServiceName := getServiceName(outputFuncName)
-
-	accum := initial
-
-	for {
-		input := s.Read() // read input, whatever it is
-		if input == nil {
-			break
-		}
-
-		accum = reduceFunc(accum, input)
-		// send the output to the next Mapper / Reducer
-	}
-
-	if outputServiceName != "" {
-		s.SendToService(outputServiceName, accum)
-	} else {
-		fmt.Printf("%s: %v\n", funcName, accum)
-	}
-}
-
 func CreateMap(funcName string, outputFuncName string) {
-	mapperID := vacuum.CreateString(MAPPER_STRING_NAME)
-	vacuum.Send(mapperID, funcName)       // send the mapper name
-	vacuum.Send(mapperID, outputFuncName) // send the name of next func (can be a mapper or reducer)
+	vacuum.CreateString(MAPPER_STRING_NAME, funcName, outputFuncName)
 }
 
 func CreateReduce(funcName string, initial interface{}, outputFuncName string) {
-	reducerID := vacuum.CreateString(REDUCER_STRING_NAME)
-	vacuum.Send(reducerID, funcName)
-	vacuum.Send(reducerID, initial)
-	vacuum.Send(reducerID, outputFuncName)
+	vacuum.CreateString(REDUCER_STRING_NAME, funcName, outputFuncName, initial)
 }
 
 // get the service name for Mappers / Reducers

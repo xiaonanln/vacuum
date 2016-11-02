@@ -9,7 +9,7 @@ import (
 )
 
 type DispatcherRespHandler interface {
-	HandleDispatcherResp_CreateString(name string, stringID string)
+	HandleDispatcherResp_CreateString(name string, stringID string, args []interface{})
 	HandleDispatcherResp_DeclareService(stringID string, serviceName string)
 	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
 	HandleDispatcherResp_CloseString(stringID string)
@@ -44,10 +44,11 @@ func (dc *DispatcherClient) SendStringMessage(stringID string, msg interface{}) 
 	return dc.SendRelayMsg(stringID, STRING_MESSAGE_RELAY, &req)
 }
 
-func (dc *DispatcherClient) SendCreateStringReq(name string, stringID string) error {
+func (dc *DispatcherClient) SendCreateStringReq(name string, stringID string, args []interface{}) error {
 	req := CreateStringReq{
 		Name:     name,
 		StringID: stringID,
+		Args:     args,
 	}
 	return dc.SendMsg(CREATE_STRING_REQ, &req)
 }
@@ -145,7 +146,7 @@ func (dc *DispatcherClient) handleCreateStringResp(payload []byte) error {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_CreateString(resp.Name, resp.StringID)
+	dispatcherRespHandler.HandleDispatcherResp_CreateString(resp.Name, resp.StringID, resp.Args)
 	return nil
 }
 

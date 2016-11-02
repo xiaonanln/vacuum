@@ -11,8 +11,8 @@ func (d _InitStringDelegate) Init(s *String, args ...interface{}) {
 
 func (m _InitStringDelegate) Fini(s *String) {}
 
-func (m _InitStringDelegate) Loop(s *String, msg common.StringMessage) bool {
-	return false
+func (m _InitStringDelegate) Loop(s *String, msg common.StringMessage) {
+	return
 }
 
 func InitStringDelegateMaker(init func(s *String, args ...interface{})) StringDelegateMaker {
