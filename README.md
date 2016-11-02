@@ -17,3 +17,4 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 * Manipulate strings in telnet console
 * Storage strategy for Strings
 * String migration strategy
+* Use Pipe between dispatcher and vacuum servers instead of socket, for better performance
