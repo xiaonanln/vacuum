@@ -28,18 +28,31 @@ func CreateStringLocally(name string) string {
 
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string) {
-	routine := getStringRoutine(name)
-	if routine == nil {
+	delegateMaker := getStringDelegateMaker(name)
+	if delegateMaker == nil {
 		log.Panicf("OnCreateString: routine of String %s is nil", name)
 	}
 
-	s := newString(stringID, name, routine)
+	delegate := delegateMaker()
+	s := newString(stringID, name, delegate)
 	putString(s)
 	log.Debugf("OnCreateString %s: %s", name, s)
 
 	go func() {
 		defer onStringRoutineQuit(name, stringID)
-		s.routine(s)
+
+		s.delegate.Init(s)
+		for {
+			msg := s.Read()
+			if msg != nil {
+				if !s.delegate.Loop(s, msg) {
+					break
+				}
+			} else {
+				break
+			}
+		}
+		s.delegate.Fini(s)
 	}()
 }
 

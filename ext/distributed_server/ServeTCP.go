@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	TCP_LISTENER_STRING_NAME = "client_conn._TCPListenerStringRoutine"
-	CONN_HANDLER_STRING_NAME = "client_conn._ConnHandlerStringRoutine"
+	TCP_LISTENER_STRING_NAME = "client_conn._TCPListenerStringDelegateMaker"
+	CONN_HANDLER_STRING_NAME = "client_conn._ConnHandlerStringDelegateMaker"
 )
 
 func init() {
-	vacuum.RegisterString(TCP_LISTENER_STRING_NAME, _TCPListenerStringRoutine)
-	vacuum.RegisterString(CONN_HANDLER_STRING_NAME, _ConnHandlerStringRoutine)
+	vacuum.RegisterString(TCP_LISTENER_STRING_NAME, _TCPListenerStringDelegateMaker)
+	vacuum.RegisterString(CONN_HANDLER_STRING_NAME, _ConnHandlerStringDelegateMaker)
 }
 
 type TCPListener struct {
@@ -26,7 +26,7 @@ type _ServeTCPDelegate struct {
 	handleConn ConnHandler
 }
 
-func _TCPListenerStringRoutine(s *vacuum.String) {
+func _TCPListenerStringDelegateMaker(s *vacuum.String) {
 	listenAddr := s.ReadString()
 	handleConn := s.Read().(ConnHandler)
 	netutil.ServeTCP(listenAddr, _ServeTCPDelegate{
@@ -47,7 +47,7 @@ func (d _ServeTCPDelegate) ServeTCPConnection(conn net.Conn) {
 	vacuum.Send(handlerID, d.handleConn)
 }
 
-func _ConnHandlerStringRoutine(s *vacuum.String) {
+func _ConnHandlerStringDelegateMaker(s *vacuum.String) {
 	conn := s.Read().(net.Conn)
 	handleConn := s.Read().(ConnHandler)
 

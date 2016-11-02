@@ -5,6 +5,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/vacuum"
+	"github.com/xiaonanln/vacuum/common"
 )
 
 const (
@@ -19,8 +20,8 @@ var (
 )
 
 func init() {
-	vacuum.RegisterString(MAPPER_STRING_NAME, mapperRoutine)
-	vacuum.RegisterString(REDUCER_STRING_NAME, reducerRoutine)
+	vacuum.RegisterString(MAPPER_STRING_NAME, makeMapper)
+	vacuum.RegisterString(REDUCER_STRING_NAME, makeReducer)
 }
 
 type MapFunc func(input interface{}) interface{}
@@ -46,6 +47,39 @@ func RegisterReduceFunc(name string, f ReduceFunc) {
 	}
 
 	reduceFuncs[name] = f
+}
+
+type Mapper struct {
+}
+
+func (m *Mapper) Init(s *vacuum.String, args ...interface{}) {
+
+}
+
+func (m *Mapper) Fini(s *vacuum.String) {}
+
+func (m *Mapper) Loop(s *vacuum.String, msg common.StringMessage) bool {
+	return false
+}
+
+func makeMapper() vacuum.StringDelegate {
+	return &Mapper{}
+}
+
+type Reducer struct{}
+
+func (m *Reducer) Init(s *vacuum.String, args ...interface{}) {
+
+}
+
+func (m *Reducer) Fini(s *vacuum.String) {}
+
+func (m *Reducer) Loop(s *vacuum.String, msg common.StringMessage) bool {
+	return false
+}
+
+func makeReducer() vacuum.StringDelegate {
+	return &Reducer{}
 }
 
 func mapperRoutine(s *vacuum.String) {

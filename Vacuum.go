@@ -13,7 +13,7 @@ var (
 	stringsLock sync.RWMutex
 	strings     = map[string]*String{}
 
-	registeredStringRoutines = map[string]StringRoutine{}
+	registeredStringDelegateNewers = map[string]StringDelegateMaker{}
 
 	stringIDsByServiceLock sync.RWMutex
 	stringIDListByService  = map[string]StringList{}
@@ -48,21 +48,21 @@ func popString(stringID string) (s *String) {
 	return
 }
 
-func RegisterString(name string, routine StringRoutine) {
-	if registeredStringRoutines[name] != nil {
-		log.Panicf("String routine of name %s is already registered", name)
+func RegisterString(name string, newer StringDelegateMaker) {
+	if registeredStringDelegateNewers[name] != nil {
+		log.Panicf("String delegate newer of name %s is already registered", name)
 	}
 
-	registeredStringRoutines[name] = routine
-	log.Infof("String routine registered: %s", name)
+	registeredStringDelegateNewers[name] = newer
+	log.Infof("String delegate newer registered: %s", name)
 }
 
 func GetLocalString(stringID string) *String {
 	return getString(stringID)
 }
 
-func getStringRoutine(name string) StringRoutine {
-	return registeredStringRoutines[name]
+func getStringDelegateMaker(name string) StringDelegateMaker {
+	return registeredStringDelegateNewers[name]
 }
 
 func declareService(stringID string, serviceName string) {

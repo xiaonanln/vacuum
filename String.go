@@ -12,25 +12,31 @@ import (
 )
 
 const (
-	//ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER = false // only use true for debug!
-	STRING_MESSAGE_BUFFER_SIZE = 1000
+	ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER = false // only use true for debug!
+	STRING_MESSAGE_BUFFER_SIZE                    = 1000
 )
 
-type StringRoutine func(*String)
+type StringDelegate interface {
+	Init(s *String, args ...interface{})
+	Fini(s *String)
+	Loop(s *String, msg StringMessage) bool
+}
+
+type StringDelegateMaker func() StringDelegate
 
 type String struct {
 	ID        string
 	Name      string
-	routine   StringRoutine
+	delegate  StringDelegate
 	inputChan chan StringMessage
 	outputSid string
 }
 
-func newString(stringID string, name string, routine StringRoutine) *String {
+func newString(stringID string, name string, delegate StringDelegate) *String {
 	return &String{
 		ID:        stringID,
 		Name:      name,
-		routine:   routine,
+		delegate:  delegate,
 		inputChan: make(chan StringMessage, STRING_MESSAGE_BUFFER_SIZE),
 		outputSid: "",
 	}
@@ -85,21 +91,21 @@ func Send(stringID string, msg interface{}) {
 		log.Panicf("Send: stringID is empty")
 	}
 
-	dispatcher_client.SendStringMessage(stringID, msg)
+	//dispatcher_client.SendStringMessage(stringID, msg)
 
-	//if !ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER {
-	//	targetString := getString(stringID)
-	//
-	//	if targetString == nil { // string is not local, send msg to dispatcher
-	//		dispatcher_client.SendStringMessage(stringID, msg)
-	//	} else { // found the target string on this vacuum server
-	//		log.Printf("Send through channel %s <- %v", targetString, msg)
-	//		targetString.inputChan <- msg
-	//	}
-	//} else {
-	//	// FOR DEBUG ONLY
-	//
-	//}
+	if !ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER {
+		targetString := getString(stringID)
+
+		if targetString == nil { // string is not local, send msg to dispatcher
+			dispatcher_client.SendStringMessage(stringID, msg)
+		} else { // found the target string on this vacuum server
+			log.Printf("Send through channel %s <- %v", targetString, msg)
+			targetString.inputChan <- msg
+		}
+	} else {
+		// FOR DEBUG ONLY
+		dispatcher_client.SendStringMessage(stringID, msg)
+	}
 }
 
 func SendToService(serviceName string, msg StringMessage) {
