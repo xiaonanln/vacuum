@@ -25,29 +25,43 @@ type StringDelegate interface {
 type StringDelegateMaker func() StringDelegate
 
 type String struct {
-	ID        string
-	Name      string
-	delegate  StringDelegate
-	inputChan chan StringMessage
-	outputSid string
+	ID          string
+	Name        string
+	delegate    StringDelegate
+	persistence PersistentString
+	inputChan   chan StringMessage
+	outputSid   string
 }
 
 func newString(stringID string, name string, delegate StringDelegate) *String {
-	return &String{
+	s := &String{
 		ID:        stringID,
 		Name:      name,
 		delegate:  delegate,
 		inputChan: make(chan StringMessage, STRING_MESSAGE_BUFFER_SIZE),
 		outputSid: "",
 	}
+
+	s.persistence, _ = delegate.(PersistentString)
+	return s
 }
 
 func (s *String) String() string {
 	if s != nil {
-		return fmt.Sprintf("String<%s.%s>", s.Name, s.ID)
+		var pp string
+		if s.persistence != nil {
+			pp = "P!"
+		} else {
+			pp = ""
+		}
+		return fmt.Sprintf("%s<%s>%s", s.Name, s.ID, pp)
 	} else {
-		return "String<nil>"
+		return "Nil<nil>"
 	}
+}
+
+func (s *String) Persistence() PersistentString {
+	return s.persistence
 }
 
 func (s *String) Read() StringMessage {

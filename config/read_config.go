@@ -11,18 +11,39 @@ const (
 	CONFIG_FILENAME = "vacuum.conf"
 )
 
+type StorageConfig struct {
+	Type      string `json:"type"`
+	Directory string `json:"directory"`
+}
+
 type VacuumConfig struct {
-	Dispatcher struct {
-		Host        string `json:"host"`
-		ConsoleHost string `json:"console_host"`
-		PublicIP    string `json:"public_ip"`
-	} `json:"dispatcher"`
-	Vacuums []struct {
-	} `json:"vacuums"`
+	Storage *StorageConfig `json:"storage"`
+}
+
+type DispatcherConfig struct {
+	Host        string `json:"host"`
+	ConsoleHost string `json:"console_host"`
+	PublicIP    string `json:"public_ip"`
+}
+
+type Config struct {
+	Dispatcher   DispatcherConfig `json:"dispatcher"`
+	VacuumCommon VacuumConfig     `json:"vacuum_common"`
+	Vacuums      []VacuumConfig   `json:"vacuums"`
+}
+
+func (c *Config) GetVacuumConfig(serverID int) (ret VacuumConfig) {
+	ret = c.VacuumCommon
+	moreConfig := &c.Vacuums[serverID-1]
+	if moreConfig.Storage != nil {
+		ret.Storage = moreConfig.Storage
+	}
+
+	return
 }
 
 var (
-	config VacuumConfig
+	config Config
 )
 
 func checkError(err error) {
@@ -45,6 +66,14 @@ func LoadConfig(configFile string) {
 	log.WithField("config", config).Infof("Load config: %s", configFile)
 }
 
-func GetConfig() *VacuumConfig {
+func GetConfig() *Config {
 	return &config
+}
+
+func FormatConfig(c interface{}) string {
+	data, err := json.MarshalIndent(c, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+	return string(data)
 }

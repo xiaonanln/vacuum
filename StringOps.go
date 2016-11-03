@@ -26,6 +26,10 @@ func CreateStringLocally(name string, args ...interface{}) string {
 	return stringID
 }
 
+func LoadString(name string, stringID string) {
+	// load string from storage
+}
+
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string, args []interface{}) {
 	delegateMaker := getStringDelegateMaker(name)

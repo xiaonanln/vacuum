@@ -7,6 +7,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
+	"os"
+
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/config"
@@ -42,6 +44,13 @@ func init() {
 	log.Debugf(">>> Server ID: %d, Config file: %s", serverID, configFile)
 
 	config.LoadConfig(configFile)
+	vacuumConfig := config.GetConfig().GetVacuumConfig(serverID)
+	log.Printf("VACUUM %d LOAD CONFIG:", serverID)
+	os.Stderr.WriteString(config.FormatConfig(vacuumConfig))
+
+	storage := openStorage(vacuumConfig.Storage)
+	vacuum.Setup(serverID, storage)
+
 	dispatcher_client.Initialize(serverID, DispatcherRespHandler{})
 }
 
