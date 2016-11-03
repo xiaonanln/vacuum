@@ -15,7 +15,7 @@ const (
 	BATCH_COUNT  = 3
 )
 
-func Main(s *vacuum.String, _ ...interface{}) {
+func PrimeTestByMapReduceMain(s *vacuum.String) {
 	for i := 0; i < MAPPER_COUNT; i++ {
 		mapreduce.CreateMap("GetPrimesBetween", "CollectAllPrimes")
 	}
@@ -68,7 +68,7 @@ func CollectAllPrimes(_accum interface{}, _input interface{}) interface{} {
 
 func main() {
 	logrus.Debugf("Prime test usign map-reduce...")
-	vacuum.RegisterString("Main", vacuum.InitStringDelegateMaker(Main))
+	vacuum.RegisterMain(PrimeTestByMapReduceMain)
 	mapreduce.RegisterMapFunc("GetPrimesBetween", GetPrimesBetween)
 	mapreduce.RegisterReduceFunc("CollectAllPrimes", CollectAllPrimes)
 

@@ -1,6 +1,10 @@
 package vacuum
 
-import "github.com/xiaonanln/vacuum/common"
+import (
+	"os"
+
+	"github.com/xiaonanln/vacuum/common"
+)
 
 type _FuncPtrStringDelegate struct {
 	init func(s *String, args ...interface{})
@@ -26,23 +30,7 @@ func (d *_FuncPtrStringDelegate) Loop(s *String, msg common.StringMessage) {
 	}
 }
 
-//type _InitStringDelegate func(s *String, args ...interface{})
-//
-//func (d _InitStringDelegate) Init(s *String, args ...interface{}) {
-//	d(s, args...)
-//}
-//
-//func (m _InitStringDelegate) Fini(s *String) {}
-//
-//func (m _InitStringDelegate) Loop(s *String, msg common.StringMessage) {
-//	return
-//}
-
 func InitStringDelegateMaker(init func(s *String, args ...interface{})) StringDelegateMaker {
-	//return func() StringDelegate {
-	//	return _InitStringDelegate(init)
-	//}
-
 	return func() StringDelegate {
 		return &_FuncPtrStringDelegate{
 			init: func(s *String, args ...interface{}) {
@@ -53,4 +41,11 @@ func InitStringDelegateMaker(init func(s *String, args ...interface{})) StringDe
 			fini: nil,
 		}
 	}
+}
+
+func RegisterMain(main func(s *String)) {
+	RegisterString("Main", InitStringDelegateMaker(func(s *String, args ...interface{}) {
+		main(s)
+		os.Exit(0)
+	}))
 }
