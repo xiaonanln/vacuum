@@ -150,7 +150,7 @@ func (mc MessageConnection) RecvMsg(handler MessageHandler) error {
 		return err
 	}
 
-	log.WithFields(log.Fields{"pktSize": pktSize, "isRelayMsg": isRelayMsg}).Debugf("RecvMsg")
+	//log.WithFields(log.Fields{"pktSize": pktSize, "isRelayMsg": isRelayMsg}).Debugf("RecvMsg")
 	if isRelayMsg {
 		// if it is a relay msg, we just relay what we receive without interpret the payload
 		targetID := string(msg[SIZE_FIELD_SIZE : SIZE_FIELD_SIZE+STRING_ID_SIZE])

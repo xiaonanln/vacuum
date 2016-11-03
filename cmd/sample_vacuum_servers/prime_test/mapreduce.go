@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
@@ -35,7 +33,6 @@ func Main(s *vacuum.String, _ ...interface{}) {
 	mapreduce.WaitGone("GetPrimesBetween")       // wait all GetPrimesBetween to finish
 	mapreduce.Broadcast("CollectAllPrimes", nil) // send nil to CollectAllPrimes
 	mapreduce.WaitGone("CollectAllPrimes")
-	os.Exit(0)
 }
 
 func GetPrimesBetween(input interface{}) interface{} {
