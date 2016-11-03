@@ -30,7 +30,7 @@ func (d *_FuncPtrStringDelegate) Loop(s *String, msg common.StringMessage) {
 	}
 }
 
-func InitStringDelegateMaker(init func(s *String, args ...interface{})) StringDelegateMaker {
+func InitOnlyStringDelegateMaker(init func(s *String, args ...interface{})) StringDelegateMaker {
 	return func() StringDelegate {
 		return &_FuncPtrStringDelegate{
 			init: func(s *String, args ...interface{}) {
@@ -43,8 +43,18 @@ func InitStringDelegateMaker(init func(s *String, args ...interface{})) StringDe
 	}
 }
 
+func LoopOnlyStringDelegateMaker(loop func(s *String, msg common.StringMessage)) StringDelegateMaker {
+	return func() StringDelegate {
+		return &_FuncPtrStringDelegate{
+			init: nil,
+			loop: loop,
+			fini: nil,
+		}
+	}
+}
+
 func RegisterMain(main func(s *String)) {
-	RegisterString("Main", InitStringDelegateMaker(func(s *String, args ...interface{}) {
+	RegisterString("Main", InitOnlyStringDelegateMaker(func(s *String, args ...interface{}) {
 		main(s)
 		os.Exit(0)
 	}))
