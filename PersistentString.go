@@ -7,7 +7,7 @@ type PersistentString interface {
 	LoadPersistentData(data map[string]interface{})
 }
 
-func (s *String) Save() error {
+func (s *String) Save() {
 	persistence := s.Persistence()
 	if persistence == nil {
 		logrus.Panicf("string %s is not persistent", s)
@@ -15,8 +15,7 @@ func (s *String) Save() error {
 	logrus.Debugf("SAVING %s ...", s)
 	data := persistence.GetPersistentData()
 	if err := stringStorage.Write(s.ID, data); err != nil {
-		logrus.Errorf("Save %s failed: %s", s, err.Error())
-		return err
+		//logrus.Errorf("Save %s failed: %s", s, err.Error())
+		panic(err)
 	}
-	return nil
 }

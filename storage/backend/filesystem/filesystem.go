@@ -9,6 +9,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/vacuum/storage"
+	"os"
+	"encoding/base64"
 )
 
 type FileSystemStringStorage struct {
@@ -16,7 +18,7 @@ type FileSystemStringStorage struct {
 }
 
 func encodeStringID(stringID string) string {
-	return stringID
+	return base64.URLEncoding.EncodeToString([]byte(stringID))
 }
 
 func (ss *FileSystemStringStorage) Write(stringID string, data interface{}) error {
@@ -31,10 +33,25 @@ func (ss *FileSystemStringStorage) Write(stringID string, data interface{}) erro
 }
 
 func (ss *FileSystemStringStorage) Read(stringID string) (interface{}, error) {
-	return nil, nil
+	stringSaveFile := filepath.Join(ss.directory, encodeStringID(stringID))
+	dataBytes, err := ioutil.ReadFile(stringSaveFile)
+	if err != nil {
+		return nil, err
+	}
+
+	var data interface{}
+	err = json.Unmarshal(dataBytes, &data)
+	if err != nil{
+		return nil, err
+	}
+	return data, nil
 }
 
 func newFileSystemStringStorage(directory string) *FileSystemStringStorage {
+	if err := os.MkdirAll(directory, 0644); err != nil{
+		logrus.Panic(err)
+	}
+
 	return &FileSystemStringStorage{
 		directory: directory,
 	}
