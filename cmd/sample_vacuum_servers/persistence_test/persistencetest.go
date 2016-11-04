@@ -11,7 +11,7 @@ import (
 )
 
 type PersistentTester struct {
-	val int
+	val int64
 }
 
 func (pt *PersistentTester) Init(s *vacuum.String, args ...interface{}) {
@@ -20,7 +20,8 @@ func (pt *PersistentTester) Init(s *vacuum.String, args ...interface{}) {
 }
 
 func (pt *PersistentTester) Loop(s *vacuum.String, msg common.StringMessage) {
-
+	pt.val += typeconv.Int(msg)
+	s.Save()
 }
 
 func (pt *PersistentTester) Fini(s *vacuum.String) {
@@ -34,7 +35,7 @@ func (pt *PersistentTester) GetPersistentData() map[string]interface{} {
 }
 
 func (pt *PersistentTester) LoadPersistentData(data map[string]interface{}) {
-	pt.val = int(typeconv.Int(data["val"]))
+	pt.val = typeconv.Int(data["val"])
 	logrus.Printf("!!!!!!!!!!! LoadPersistentData %v!!!!!!!!!!!!!!", pt.val)
 }
 
@@ -42,6 +43,7 @@ func Main(s *vacuum.String) {
 	for {
 		id := vacuum.CreateString("PersistentTester")
 		vacuum.WaitServiceReady("PersistentTester", 1)
+		vacuum.Send(id, 1)
 		vacuum.Send(id, nil)
 		vacuum.WaitServiceGone("PersistentTester")
 		time.Sleep(time.Second)

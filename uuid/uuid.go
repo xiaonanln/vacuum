@@ -35,7 +35,7 @@ func GenUUID() string {
 	b[10] = byte(i >> 8)
 	b[11] = byte(i)
 
-	return base64.StdEncoding.EncodeToString(b)
+	return base64.URLEncoding.EncodeToString(b)
 }
 
 // objectIdCounter is atomically incremented when generating a new ObjectId
