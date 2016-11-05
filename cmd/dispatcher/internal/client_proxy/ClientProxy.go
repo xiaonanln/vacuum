@@ -64,6 +64,8 @@ func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t
 		cp.handleStringDelReq(payload)
 	} else if msgType == MIGRATE_STRING_REQ {
 		cp.handleMigrateStringReq(payload)
+	} else if msgType == LOAD_STRING_REQ {
+		cp.handleLoadStringReq(payload)
 	} else {
 		log.Panicf("ERROR: unknown dispatcher request type=%v", msgType)
 	}
@@ -114,6 +116,23 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 	}
 
 	chooseServer.SendMsg(CREATE_STRING_RESP, &resp)
+}
+
+func (cp *ClientProxy) handleLoadStringReq(data []byte) {
+	var req LoadStringReq
+	MSG_PACKER.UnpackMsg(data, &req)
+
+	chooseServer := getRandomClientProxy()
+	stringID := req.StringID
+	setStringLocation(stringID, chooseServer.ServerID)
+
+	log.Debugf("%s.handleLoadStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
+	resp := LoadStringResp{
+		Name:     req.Name,
+		StringID: stringID,
+	}
+
+	chooseServer.SendMsg(LOAD_STRING_RESP, &resp)
 }
 
 func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) {

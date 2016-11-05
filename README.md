@@ -19,3 +19,4 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 * String migration strategy
 * Use Pipe between dispatcher and vacuum servers instead of socket, for better performance
 * Use uniform log interface, rather than logrus directly (make changing log engine easier)
+* Use vlog instead of logrus directly, vlog uses logrus internally

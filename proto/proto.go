@@ -6,6 +6,8 @@ const (
 	STRING_MESSAGE_RELAY       = iota
 	CREATE_STRING_REQ          = iota
 	CREATE_STRING_RESP         = iota
+	LOAD_STRING_REQ            = iota
+	LOAD_STRING_RESP           = iota
 	DECLARE_SERVICE_REQ        = iota
 	DECLARE_SERVICE_RESP       = iota
 	CREATE_STRING_LOCALLY_REQ  = iota
@@ -36,6 +38,16 @@ type CreateStringResp struct {
 	Name     string        `msgpack:"N"`
 	StringID string        `msgpack:"ID"`
 	Args     []interface{} `msgpack:"A"`
+}
+
+type LoadStringReq struct {
+	Name     string `msgpack:"N"`
+	StringID string `msgpack:"ID"`
+}
+
+type LoadStringResp struct {
+	Name     string `msgpack:"N"`
+	StringID string `msgpack:"ID"`
 }
 
 type CreateStringLocallyReq struct {

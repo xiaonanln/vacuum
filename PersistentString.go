@@ -14,7 +14,7 @@ func (s *String) Save() {
 	}
 	logrus.Debugf("SAVING %s ...", s)
 	data := persistence.GetPersistentData()
-	if err := stringStorage.Write(s.ID, data); err != nil {
+	if err := stringStorage.Write(s.Name, s.ID, data); err != nil {
 		//logrus.Errorf("Save %s failed: %s", s, err.Error())
 		panic(err)
 	}

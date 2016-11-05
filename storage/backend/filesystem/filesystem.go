@@ -7,10 +7,11 @@ import (
 
 	"encoding/json"
 
+	"encoding/base64"
+	"os"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/vacuum/storage"
-	"os"
-	"encoding/base64"
 )
 
 type FileSystemStringStorage struct {
@@ -21,7 +22,7 @@ func encodeStringID(stringID string) string {
 	return base64.URLEncoding.EncodeToString([]byte(stringID))
 }
 
-func (ss *FileSystemStringStorage) Write(stringID string, data interface{}) error {
+func (ss *FileSystemStringStorage) Write(name string, stringID string, data interface{}) error {
 	stringSaveFile := filepath.Join(ss.directory, encodeStringID(stringID))
 	dataBytes, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
@@ -32,23 +33,28 @@ func (ss *FileSystemStringStorage) Write(stringID string, data interface{}) erro
 	return ioutil.WriteFile(stringSaveFile, dataBytes, 0644)
 }
 
-func (ss *FileSystemStringStorage) Read(stringID string) (interface{}, error) {
+func (ss *FileSystemStringStorage) Read(name string, stringID string) (interface{}, error) {
 	stringSaveFile := filepath.Join(ss.directory, encodeStringID(stringID))
 	dataBytes, err := ioutil.ReadFile(stringSaveFile)
 	if err != nil {
-		return nil, err
+		if os.IsNotExist(err) {
+			// file not exist
+			return nil, nil
+		} else {
+			return nil, err
+		}
 	}
 
 	var data interface{}
 	err = json.Unmarshal(dataBytes, &data)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
 func newFileSystemStringStorage(directory string) *FileSystemStringStorage {
-	if err := os.MkdirAll(directory, 0644); err != nil{
+	if err := os.MkdirAll(directory, 0644); err != nil {
 		logrus.Panic(err)
 	}
 

@@ -10,6 +10,7 @@ import (
 
 type DispatcherRespHandler interface {
 	HandleDispatcherResp_CreateString(name string, stringID string, args []interface{})
+	HandleDispatcherResp_LoadString(name string, stringID string)
 	HandleDispatcherResp_DeclareService(stringID string, serviceName string)
 	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
 	HandleDispatcherResp_CloseString(stringID string)
@@ -51,6 +52,14 @@ func (dc *DispatcherClient) SendCreateStringReq(name string, stringID string, ar
 		Args:     args,
 	}
 	return dc.SendMsg(CREATE_STRING_REQ, &req)
+}
+
+func (dc *DispatcherClient) SendLoadStringReq(name string, stringID string) error {
+	req := LoadStringReq{
+		Name:     name,
+		StringID: stringID,
+	}
+	return dc.SendMsg(LOAD_STRING_REQ, &req)
 }
 
 func (dc *DispatcherClient) SendCreateStringLocallyReq(name string, stringID string) error {
@@ -104,6 +113,8 @@ func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgT
 		return dc.handleDeclareServiceResp(payload)
 	} else if msgtype == STRING_DEL_RESP {
 		return dc.handleStringDelResp(payload)
+	} else if msgtype == LOAD_STRING_RESP {
+		return dc.handleLoadStringResp(payload)
 	} else {
 		log.Panicf("serveDispatcherClient: invalid msg type: %v", msgtype)
 		return nil
@@ -168,5 +179,15 @@ func (dc *DispatcherClient) handleStringDelResp(payload []byte) error {
 	}
 
 	dispatcherRespHandler.HandleDispatcherResp_DelString(resp.StringID)
+	return nil
+}
+
+func (dc *DispatcherClient) handleLoadStringResp(payload []byte) error {
+	var resp LoadStringResp
+	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+		return err
+	}
+
+	dispatcherRespHandler.HandleDispatcherResp_LoadString(resp.Name, resp.StringID)
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/uuid"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 // OnXxxXxxx functions are called from dispatcher client and there is only
@@ -28,10 +29,30 @@ func CreateStringLocally(name string, args ...interface{}) string {
 
 func LoadString(name string, stringID string) {
 	// load string from storage
+	dispatcher_client.SendLoadStringReq(name, stringID)
+	//data, err := stringStorage.Read(stringID)
+	//if err != nil {
+	//	// load failed
+	//	panic(err)
+	//}
 }
 
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string, args []interface{}) {
+	createString(name, stringID, args, nil)
+}
+
+func OnLoadString(name string, stringID string) {
+	log.Debugf("OnLoadString: name=%s, stringID=%s", name, stringID)
+	data, err := stringStorage.Read(name, stringID)
+	if err != nil {
+		vlog.TraceErrorf("Load String %s from storage failed: %s", stringID, err.Error())
+		return
+	}
+	createString(name, stringID, []interface{}{}, data)
+}
+
+func createString(name string, stringID string, args []interface{}, data interface{}) {
 	delegateMaker := getStringDelegateMaker(name)
 	if delegateMaker == nil {
 		log.Panicf("OnCreateString: routine of String %s is nil", name)
@@ -46,6 +67,9 @@ func OnCreateString(name string, stringID string, args []interface{}) {
 		defer onStringRoutineQuit(name, stringID)
 
 		s.delegate.Init(s, args...)
+		if data != nil {
+			s.persistence.LoadPersistentData(data.(map[string]interface{}))
+		}
 		for {
 			msg := s.Read()
 			if msg != nil {

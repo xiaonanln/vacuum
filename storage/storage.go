@@ -1,6 +1,6 @@
 package storage
 
 type StringStorage interface {
-	Write(stringID string, data interface{}) error
-	Read(stringID string) (interface{}, error)
+	Write(name string, stringID string, data interface{}) error
+	Read(name string, stringID string) (interface{}, error)
 }

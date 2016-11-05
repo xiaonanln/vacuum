@@ -93,6 +93,10 @@ func SendCreateStringReq(name string, stringID string, args []interface{}) error
 	return getDispatcherClientForSend().SendCreateStringReq(name, stringID, args)
 }
 
+func SendLoadStringReq(name string, stringID string) error {
+	return getDispatcherClientForSend().SendLoadStringReq(name, stringID)
+}
+
 func SendCreateStringLocallyReq(name string, stringID string) error {
 	return getDispatcherClientForSend().SendCreateStringLocallyReq(name, stringID)
 }

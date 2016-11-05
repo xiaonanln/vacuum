@@ -40,13 +40,19 @@ func (pt *PersistentTester) LoadPersistentData(data map[string]interface{}) {
 }
 
 func Main(s *vacuum.String) {
+	stringID := vacuum.CreateString("PersistentTester")
+	vacuum.WaitServiceReady("PersistentTester", 1)
+	vacuum.Send(stringID, 1)
+	vacuum.Send(stringID, nil)
+	vacuum.WaitServiceGone("PersistentTester")
+	time.Sleep(time.Second)
+
 	for {
-		id := vacuum.CreateString("PersistentTester")
+		vacuum.LoadString("PersistentTester", stringID)
 		vacuum.WaitServiceReady("PersistentTester", 1)
-		vacuum.Send(id, 1)
-		vacuum.Send(id, nil)
+		vacuum.Send(stringID, 1)
+		vacuum.Send(stringID, nil)
 		vacuum.WaitServiceGone("PersistentTester")
-		time.Sleep(time.Second)
 	}
 
 	time.Sleep(3 * time.Second)
