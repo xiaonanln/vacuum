@@ -23,7 +23,7 @@ func encodeStringID(stringID string) string {
 }
 
 func (ss *FileSystemStringStorage) Write(name string, stringID string, data interface{}) error {
-	stringSaveFile := filepath.Join(ss.directory, encodeStringID(stringID))
+	stringSaveFile := filepath.Join(ss.directory, name+"$"+encodeStringID(stringID))
 	dataBytes, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func (ss *FileSystemStringStorage) Write(name string, stringID string, data inte
 }
 
 func (ss *FileSystemStringStorage) Read(name string, stringID string) (interface{}, error) {
-	stringSaveFile := filepath.Join(ss.directory, encodeStringID(stringID))
+	stringSaveFile := filepath.Join(ss.directory, name+"$"+encodeStringID(stringID))
 	dataBytes, err := ioutil.ReadFile(stringSaveFile)
 	if err != nil {
 		if os.IsNotExist(err) {
