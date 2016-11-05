@@ -5,14 +5,13 @@ import (
 
 	"flag"
 
-	log "github.com/Sirupsen/logrus"
-
 	"os"
 
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 const (
@@ -38,14 +37,14 @@ func init() {
 	setupLog(logLevel)
 
 	if serverID <= 0 {
-		log.Panicf("Server ID must be positive, not %d", serverID)
+		vlog.Panicf("Server ID must be positive, not %d", serverID)
 	}
 
-	log.Debugf(">>> Server ID: %d, Config file: %s", serverID, configFile)
+	vlog.Debugf(">>> Server ID: %d, Config file: %s", serverID, configFile)
 
 	config.LoadConfig(configFile)
 	vacuumConfig := config.GetConfig().GetVacuumConfig(serverID)
-	log.Printf("VACUUM %d LOAD CONFIG:", serverID)
+	vlog.Debugf("VACUUM %d LOAD CONFIG:", serverID)
 	os.Stderr.WriteString(config.FormatConfig(vacuumConfig))
 
 	storage := openStorage(vacuumConfig.Storage)

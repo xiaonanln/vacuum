@@ -1,8 +1,6 @@
 package vacuum
 
 import (
-	log "github.com/Sirupsen/logrus"
-
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/uuid"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
@@ -43,7 +41,7 @@ func OnCreateString(name string, stringID string, args []interface{}) {
 }
 
 func OnLoadString(name string, stringID string) {
-	log.Debugf("OnLoadString: name=%s, stringID=%s", name, stringID)
+	vlog.Debugf("OnLoadString: name=%s, stringID=%s", name, stringID)
 	data, err := stringStorage.Read(name, stringID)
 	if err != nil {
 		vlog.TraceErrorf("Load String %s from storage failed: %s", stringID, err.Error())
@@ -55,13 +53,13 @@ func OnLoadString(name string, stringID string) {
 func createString(name string, stringID string, args []interface{}, data interface{}) {
 	delegateMaker := getStringDelegateMaker(name)
 	if delegateMaker == nil {
-		log.Panicf("OnCreateString: routine of String %s is nil", name)
+		vlog.Panicf("OnCreateString: routine of String %s is nil", name)
 	}
 
 	delegate := delegateMaker()
 	s := newString(stringID, name, delegate)
 	putString(s)
-	log.Debugf("OnCreateString %s: %s, args=%v", name, s, args)
+	vlog.Debugf("OnCreateString %s: %s, args=%v", name, s, args)
 
 	go func() {
 		defer onStringRoutineQuit(name, stringID)
@@ -88,13 +86,13 @@ func DeclareService(sid string, serviceName string) {
 }
 
 func OnDeclareService(stringID string, serviceName string) {
-	log.Infof("vacuum: OnDeclareService: %s => %s", stringID, serviceName)
+	vlog.Infof("vacuum: OnDeclareService: %s => %s", stringID, serviceName)
 	declareService(stringID, serviceName)
 }
 
 func OnSendStringMessage(stringID string, msg common.StringMessage) {
 	s := getString(stringID)
-	log.WithField("stringID", stringID).Debugf("vacuum: OnSendStringMessage: %s => %v", s, msg)
+	vlog.Debugf("vacuum: OnSendStringMessage: %s => %v", s, msg)
 	s.inputChan <- msg
 }
 
@@ -115,7 +113,7 @@ func OnCloseString(stringID string) {
 
 // Called after string quit its routine
 func onStringRoutineQuit(name string, stringID string) {
-	log.Debugf("String %s.%s quited.", name, stringID)
+	vlog.Debugf("String %s.%s quited.", name, stringID)
 	delString(stringID) // delete the string on local server
 	undeclareServicesOfString(stringID)
 	dispatcher_client.SendStringDelReq(stringID)

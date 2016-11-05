@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"runtime/debug"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 var (
@@ -115,11 +115,11 @@ func runServe(f reflect.Value, args []reflect.Value) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Errorf("ServeForever: func %v quited with error %v", f, err)
+			vlog.Errorf("ServeForever: func %v quited with error %v", f, err)
 			debug.PrintStack()
 		}
 	}()
 
 	rets := f.Call(args)
-	log.Debugf("ServeForever: func %v returns %v", f, rets)
+	vlog.Debugf("ServeForever: func %v returns %v", f, rets)
 }

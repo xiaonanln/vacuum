@@ -5,8 +5,6 @@ import (
 
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
-
 	"net"
 
 	"flag"
@@ -15,6 +13,7 @@ import (
 	"github.com/xiaonanln/vacuum/cmd/dispatcher/internal/telnet_server"
 	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/netutil"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 var (
@@ -23,7 +22,7 @@ var (
 
 func debuglog(format string, a ...interface{}) {
 	s := fmt.Sprintf(format, a...)
-	log.Debugf("dispatcher: %s", s)
+	vlog.Debugf("dispatcher: %s", s)
 }
 
 type DispatcherDelegate struct{}
@@ -33,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	config.LoadConfig(configFile)
-	log.SetLevel(log.DebugLevel)
+	vlog.SetLevel(vlog.DEBUG)
 
 	wait := &sync.WaitGroup{}
 	wait.Add(1)

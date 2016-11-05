@@ -3,12 +3,11 @@ package vacuum
 import (
 	"fmt"
 
-	"log"
-
 	"runtime"
 
 	. "github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 const (
@@ -66,7 +65,7 @@ func (s *String) Persistence() PersistentString {
 
 func (s *String) Read() StringMessage {
 	msg, _ := <-s.inputChan
-	//log.Debugf("%s READ %T(%v)", s, msg, msg)
+	//vlog.Debugf("%s READ %T(%v)", s, msg, msg)
 	return msg
 }
 
@@ -102,7 +101,7 @@ func (s *String) Yield() {
 
 func Send(stringID string, msg interface{}) {
 	if stringID == "" {
-		log.Panicf("Send: stringID is empty")
+		vlog.Panicf("Send: stringID is empty")
 	}
 
 	//dispatcher_client.SendStringMessage(stringID, msg)
@@ -113,7 +112,7 @@ func Send(stringID string, msg interface{}) {
 		if targetString == nil { // string is not local, send msg to dispatcher
 			dispatcher_client.SendStringMessage(stringID, msg)
 		} else { // found the target string on this vacuum server
-			log.Printf("Send through channel %s <- %v", targetString, msg)
+			vlog.Infof("Send through channel %s <- %v", targetString, msg)
 			targetString.inputChan <- msg
 		}
 	} else {

@@ -1,11 +1,11 @@
 package dispatcher_client
 
 import (
-	"log"
 	"net"
 
 	"github.com/xiaonanln/vacuum/common"
 	. "github.com/xiaonanln/vacuum/proto"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 type DispatcherRespHandler interface {
@@ -116,7 +116,7 @@ func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgT
 	} else if msgtype == LOAD_STRING_RESP {
 		return dc.handleLoadStringResp(payload)
 	} else {
-		log.Panicf("serveDispatcherClient: invalid msg type: %v", msgtype)
+		vlog.Panicf("serveDispatcherClient: invalid msg type: %v", msgtype)
 		return nil
 	}
 }
@@ -129,7 +129,7 @@ func (dc *DispatcherClient) HandleRelayMsg(msg *Message, pktSize uint32, targetI
 	} else if msgType == CLOSE_STRING_RELAY {
 		return dc.handleCloseStringRelay(targetID)
 	} else {
-		log.Panicf("invalid msg type: %v", msgType)
+		vlog.Panicf("invalid msg type: %v", msgType)
 		return nil
 	}
 }

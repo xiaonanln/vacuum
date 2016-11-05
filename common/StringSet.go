@@ -1,6 +1,6 @@
 package common
 
-import "log"
+import "github.com/xiaonanln/vacuum/vlog"
 
 type StringSet map[string]bool
 
@@ -44,5 +44,5 @@ func init() {
 	sl.Append("3")
 	sl.Remove("3")
 	sl.Remove("4")
-	log.Printf("sl %v", sl)
+	vlog.Infof("sl %v", sl)
 }

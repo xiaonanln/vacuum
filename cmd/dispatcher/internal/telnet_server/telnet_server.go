@@ -5,15 +5,14 @@ import (
 	"net"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
-
 	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/netutil"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 func debuglog(format string, a ...interface{}) {
 	s := fmt.Sprintf(format, a...)
-	log.Debugf("TelnetServer: %s", s)
+	vlog.Debugf("TelnetServer: %s", s)
 }
 
 type TelnetServerDelegate struct {

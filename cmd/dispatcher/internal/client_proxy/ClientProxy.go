@@ -3,13 +3,12 @@ package client_proxy
 import (
 	"net"
 
-	log "github.com/Sirupsen/logrus"
-
 	"fmt"
 
 	"runtime/debug"
 
 	. "github.com/xiaonanln/vacuum/proto"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 type ClientProxy struct {
@@ -35,12 +34,12 @@ func (cp *ClientProxy) Serve() {
 
 		err := recover()
 		if err != nil {
-			log.Errorf("Client %s paniced with error: %v", cp, err)
+			vlog.Errorf("Client %s paniced with error: %v", cp, err)
 			debug.PrintStack()
 		}
 	}()
 
-	log.Infof("New dispatcher client: %s", cp)
+	vlog.Infof("New dispatcher client: %s", cp)
 	for {
 		err := cp.RecvMsg(cp)
 		if err != nil {
@@ -67,7 +66,7 @@ func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t
 	} else if msgType == LOAD_STRING_REQ {
 		cp.handleLoadStringReq(payload)
 	} else {
-		log.Panicf("ERROR: unknown dispatcher request type=%v", msgType)
+		vlog.Panicf("ERROR: unknown dispatcher request type=%v", msgType)
 	}
 	return nil
 }
@@ -76,7 +75,7 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetID str
 	// just relay the msg
 	serverID := getStringLocation(targetID)
 	chooseServer := getClientProxy(serverID)
-	log.WithFields(log.Fields{"pktSize": pktSize, "targetID": targetID}).Debugf("%s.HandleRelayMsg to %s", cp, chooseServer)
+	vlog.Debugf("%s.HandleRelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetID)
 	return chooseServer.SendAll(msg[:pktSize])
 }
 
@@ -93,7 +92,7 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetID str
 //	serverID := getStringLocation(targetStringID)
 //	chooseServer := getClientProxy(serverID)
 //
-//	log.Debugf("%s.handleSendStringMessageReq %T %v, target server %s", cp, req, req, chooseServer)
+//	vlog.Debugf("%s.handleSendStringMessageReq %T %v, target server %s", cp, req, req, chooseServer)
 //	chooseServer.SendMsg(SEND_STRING_MESSAGE_RESP, &resp)
 //}
 
@@ -108,7 +107,7 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 	stringID := req.StringID
 	setStringLocation(stringID, chooseServer.ServerID)
 
-	log.Debugf("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
+	vlog.Debugf("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
 	resp := CreateStringResp{
 		Name:     req.Name,
 		StringID: stringID,
@@ -126,7 +125,7 @@ func (cp *ClientProxy) handleLoadStringReq(data []byte) {
 	stringID := req.StringID
 	setStringLocation(stringID, chooseServer.ServerID)
 
-	log.Debugf("%s.handleLoadStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
+	vlog.Debugf("%s.handleLoadStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
 	resp := LoadStringResp{
 		Name:     req.Name,
 		StringID: stringID,
@@ -143,20 +142,20 @@ func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) {
 
 	stringID := req.StringID
 	setStringLocation(stringID, cp.ServerID)
-	log.Debugf("%s.handleCreateStringLocallyReq %T %v", cp, req, req)
+	vlog.Debugf("%s.handleCreateStringLocallyReq %T %v", cp, req, req)
 }
 
 func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) {
 	var req RegisterVacuumServerReq
 	MSG_PACKER.UnpackMsg(data, &req)
-	log.Debugf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
+	vlog.Debugf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
 	registerClientProxyInfo(cp, req.ServerID)
 }
 
 func (cp *ClientProxy) handleDeclareServiceReq(data []byte) {
 	var req DeclareServiceReq
 	MSG_PACKER.UnpackMsg(data, &req)
-	log.Debugf("%s.handleDeclareServiceReq %T %v", cp, req, req)
+	vlog.Debugf("%s.handleDeclareServiceReq %T %v", cp, req, req)
 
 	// the the declare of service to all clients
 	sendToAllClientProxies(DECLARE_SERVICE_RESP, &DeclareServiceResp{
@@ -169,7 +168,7 @@ func (cp *ClientProxy) handleDeclareServiceReq(data []byte) {
 func (cp *ClientProxy) handleStringDelReq(data []byte) {
 	var req StringDelReq
 	MSG_PACKER.UnpackMsg(data, &req)
-	log.Debugf("%s.handleStringDelReq %T %v", cp, req, req)
+	vlog.Debugf("%s.handleStringDelReq %T %v", cp, req, req)
 
 	stringID := req.StringID
 	sendToAllClientProxies(STRING_DEL_RESP, &StringDelResp{
@@ -180,7 +179,7 @@ func (cp *ClientProxy) handleStringDelReq(data []byte) {
 func (cp *ClientProxy) handleMigrateStringReq(data []byte) {
 	var req MigrateStringReq
 	MSG_PACKER.UnpackMsg(data, &req)
-	log.Debugf("%s.handleMigrateStringReq %T %v", cp, req, req)
+	vlog.Debugf("%s.handleMigrateStringReq %T %v", cp, req, req)
 
 	// the string is migrating to specified server
 }

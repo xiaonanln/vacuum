@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 const (
@@ -48,7 +48,7 @@ var (
 
 func checkError(err error) {
 	if err != nil {
-		log.Panic(err)
+		vlog.Panic(err)
 	}
 }
 
@@ -63,7 +63,7 @@ func LoadConfig(configFile string) {
 	err = json.Unmarshal(data, &config)
 	checkError(err)
 
-	log.WithField("config", config).Infof("Load config: %s", configFile)
+	vlog.Infof("Load config: %s, config=%v", configFile, config)
 }
 
 func GetConfig() *Config {

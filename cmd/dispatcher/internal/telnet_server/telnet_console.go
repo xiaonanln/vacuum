@@ -7,11 +7,10 @@ import (
 
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
-
 	"runtime/debug"
 
 	"github.com/xiaonanln/vacuum/netutil"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 type TelnetConsole struct {
@@ -41,7 +40,7 @@ func (tc *TelnetConsole) run() {
 		}
 		tc.handleCommand(line)
 	}
-	log.Infof("Console %s closed.", tc.conn.RemoteAddr())
+	vlog.Infof("Console %s closed.", tc.conn.RemoteAddr())
 }
 
 func (tc *TelnetConsole) close() {
@@ -66,7 +65,7 @@ func (tc *TelnetConsole) handleCommand(cmd string) {
 	defer func() {
 		err := recover() // catch all errors during handling command
 		if err != nil {
-			log.Debugf("TelnetConsole.handleCommand failed: cmd=%s, err=%s", cmd, err)
+			vlog.Debugf("TelnetConsole.handleCommand failed: cmd=%s, err=%s", cmd, err)
 			debug.PrintStack()
 		}
 	}()

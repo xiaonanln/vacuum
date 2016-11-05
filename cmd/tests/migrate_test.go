@@ -7,9 +7,9 @@ import (
 
 	"math/rand"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/vacuum_server"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 func init() {
@@ -18,7 +18,7 @@ func init() {
 }
 
 func Main(s *vacuum.String) {
-	log.Printf("Main running...")
+	vlog.Printf("Main running...")
 }
 
 type _TestStorage struct {
@@ -40,9 +40,9 @@ func _TestString(s *vacuum.String) {
 	ts := &_TestStorage{}
 	ts.MagicNum = rand.Int63()
 
-	log.Printf(">>> _TestString running, the magic number is %v <<<", ts.MagicNum)
+	vlog.Printf(">>> _TestString running, the magic number is %v <<<", ts.MagicNum)
 
-	log.Printf(">>> Migrate after seconds ... <<<")
+	vlog.Printf(">>> Migrate after seconds ... <<<")
 	time.Sleep(time.Second)
 
 	s.Migrate(1)

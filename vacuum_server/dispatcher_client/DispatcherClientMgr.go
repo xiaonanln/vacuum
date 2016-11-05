@@ -1,8 +1,6 @@
 package dispatcher_client
 
 import (
-	log "github.com/Sirupsen/logrus"
-
 	"time"
 
 	"sync/atomic"
@@ -18,6 +16,7 @@ import (
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/netutil"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 const (
@@ -43,17 +42,17 @@ func setDispatcherClient(dc *DispatcherClient) {
 func assureConnectedDispatcherClient() *DispatcherClient {
 	var err error
 	dispatcherClient := getDispatcherClient()
-	log.Debugln("assureConnectedDispatcherClient: dispatcherClient", dispatcherClient)
+	vlog.Debug("assureConnectedDispatcherClient: dispatcherClient", dispatcherClient)
 	for dispatcherClient == nil {
 		dispatcherClient, err = connectDispatchClient()
 		if err != nil {
-			log.Errorf("Connect to dispatcher failed: %s", err.Error())
+			vlog.Errorf("Connect to dispatcher failed: %s", err.Error())
 			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
 			continue
 		}
 
 		if serverID == 0 {
-			log.Panicf("invalid serverID: %v", serverID)
+			vlog.Panicf("invalid serverID: %v", serverID)
 		}
 
 		dispatcherClient.RegisterVacuumServer(serverID)
@@ -121,7 +120,7 @@ func getDispatcherClientForSend() *DispatcherClient {
 	dispatcherClient := getDispatcherClient()
 	//if dispatcherClient == nil {
 	//	debug.PrintStack()
-	//	log.Errorf("dispatcher client is nil")
+	//	vlog.Errorf("dispatcher client is nil")
 	//	return errDispatcherNotConnected
 	//}
 	return dispatcherClient
@@ -130,13 +129,13 @@ func getDispatcherClientForSend() *DispatcherClient {
 // serve the dispatcher client, receive RESPs from dispatcher and process
 func serveDispatcherClient() {
 	var err error
-	log.Debugf("serveDispatcherClient: start serving dispatcher client ...")
+	vlog.Debugf("serveDispatcherClient: start serving dispatcher client ...")
 	for {
 		dispatcherClient := assureConnectedDispatcherClient()
 
 		err = dispatcherClient.RecvMsg(dispatcherClient)
 		if err != nil {
-			log.Errorf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
+			vlog.Errorf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
 			dispatcherClient.Close()
 			setDispatcherClient(nil)
 			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)

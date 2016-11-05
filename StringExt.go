@@ -3,29 +3,29 @@ package vacuum
 import (
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/typeconv"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 func WaitServiceReady(serviceName string, n int) {
 	current := GetServiceProviderCount(serviceName)
-	log.WithFields(log.Fields{"need": n, "current": current}).Printf("Waiting %s service to be ready", serviceName)
+	vlog.Debugf("Waiting service %s to be ready: need %d, current %d", serviceName, n, current)
 	for current < n {
 		time.Sleep(100 * time.Millisecond)
 		current = GetServiceProviderCount(serviceName)
-		log.Printf("WaitServiceReady %s: current %d, need %d", serviceName, current, n)
+		vlog.Debugf("WaitServiceReady %s: current %d, need %d", serviceName, current, n)
 	}
-	log.WithFields(log.Fields{"num": current}).Printf("Service %s is ready now.", serviceName)
+	vlog.Debugf("Service %s is ready now: num=%d", serviceName, current)
 }
 
 func WaitServiceGone(serviceName string) {
 	current := GetServiceProviderCount(serviceName)
-	log.WithFields(log.Fields{"current": current}).Printf("Waiting %s service to be gone", serviceName)
+	vlog.Debugf("Waiting service %s to be gone: current %d", serviceName, current)
 	for current > 0 {
 		time.Sleep(100 * time.Millisecond)
 		current = GetServiceProviderCount(serviceName)
 	}
-	log.WithFields(log.Fields{"num": current}).Printf("Service %s is gone now.", serviceName)
+	vlog.Debugf("Service %s is gone now", serviceName)
 }
 
 func (s *String) ReadInt() int64 {

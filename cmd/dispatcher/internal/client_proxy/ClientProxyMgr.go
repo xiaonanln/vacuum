@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 var (
@@ -27,7 +27,7 @@ func getRandomClientProxy() (ret *ClientProxy) {
 func getClientProxy(serverID int) (ret *ClientProxy) {
 	clientProxiesLock.RLock()
 	ret = clientProxes[serverID]
-	log.Debugln("getClientProxy", clientProxes, serverID, "=>", ret)
+	vlog.Debug("getClientProxy", clientProxes, serverID, "=>", ret)
 	clientProxiesLock.RUnlock()
 	return
 }
@@ -39,7 +39,7 @@ func registerClientProxyInfo(cp *ClientProxy, serverID int) {
 	clientProxiesLock.Lock()
 	clientProxes[serverID] = cp
 	genClientProxyIDs()
-	log.Debugf("registerClientProxyInfo: all client proxies: %v", clientProxes)
+	vlog.Debugf("registerClientProxyInfo: all client proxies: %v", clientProxes)
 	clientProxiesLock.Unlock()
 }
 
@@ -58,7 +58,7 @@ func onClientProxyClose(cp *ClientProxy) {
 		genClientProxyIDs()
 	}
 
-	log.Debugf("onClientProxyClose %v: all client proxies: %v", serverID, clientProxes)
+	vlog.Debugf("onClientProxyClose %v: all client proxies: %v", serverID, clientProxes)
 	clientProxiesLock.Unlock()
 }
 
@@ -72,14 +72,14 @@ func genClientProxyIDs() {
 func setStringLocation(stringID string, serverID int) {
 	stringLocationsLock.Lock()
 	stringLocations[stringID] = serverID
-	log.Debugf("setStringLocation %s => %v", stringID, serverID)
+	vlog.Debugf("setStringLocation %s => %v", stringID, serverID)
 	stringLocationsLock.Unlock()
 }
 
 func getStringLocation(stringID string) int {
 	stringLocationsLock.RLock()
 	serverID := stringLocations[stringID]
-	log.Debugf("getStringLocation %s => %v", stringID, serverID)
+	vlog.Debugf("getStringLocation %s => %v", stringID, serverID)
 	stringLocationsLock.RUnlock()
 	return serverID
 }

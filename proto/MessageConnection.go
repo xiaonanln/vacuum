@@ -7,12 +7,11 @@ import (
 
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
-
 	"sync"
 
 	"github.com/xiaonanln/vacuum/netutil"
 	"github.com/xiaonanln/vacuum/uuid"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 const (
@@ -79,7 +78,7 @@ func (mc MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize)
 	err = mc.SendAll((msgbuf)[:pktSize])
 	msgbuf.release()
-	log.Debugf("Send message: size=%v, type=%v: %v, error=%v", pktSize, mt, msg, err)
+	vlog.Debugf("Send message: size=%v, type=%v: %v, error=%v", pktSize, mt, msg, err)
 	return err
 }
 
@@ -109,7 +108,7 @@ func (mc MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg inte
 	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize|RELAY_MASK) // set highest bit of size to 1 to indicate a relay msg
 	err = mc.SendAll((msgbuf)[:pktSize])
 	msgbuf.release()
-	log.Debugf("Send relay message: size=%v, targetID=%s, type=%v: %v, error=%v", pktSize, targetID, mt, msg, err)
+	vlog.Debugf("Send relay message: size=%v, targetID=%s, type=%v: %v, error=%v", pktSize, targetID, mt, msg, err)
 	return err
 }
 
@@ -136,7 +135,7 @@ func (mc MessageConnection) RecvMsg(handler MessageHandler) error {
 		pktSize -= RELAY_MASK
 	}
 
-	//log.Debugf("RecvMsg: pktsize=%v, isRelayMsg=%v", pktSize, isRelayMsg)
+	//vlog.Debugf("RecvMsg: pktsize=%v, isRelayMsg=%v", pktSize, isRelayMsg)
 
 	if pktSize > MAX_MESSAGE_SIZE {
 		// pkt size is too large
@@ -150,7 +149,7 @@ func (mc MessageConnection) RecvMsg(handler MessageHandler) error {
 		return err
 	}
 
-	//log.WithFields(log.Fields{"pktSize": pktSize, "isRelayMsg": isRelayMsg}).Debugf("RecvMsg")
+	//vlog.WithFields(vlog.Fields{"pktSize": pktSize, "isRelayMsg": isRelayMsg}).Debugf("RecvMsg")
 	if isRelayMsg {
 		// if it is a relay msg, we just relay what we receive without interpret the payload
 		targetID := string(msg[SIZE_FIELD_SIZE : SIZE_FIELD_SIZE+STRING_ID_SIZE])

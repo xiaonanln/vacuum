@@ -1,13 +1,12 @@
 package vacuum_server
 
-import log "github.com/Sirupsen/logrus"
+import "github.com/xiaonanln/vacuum/vlog"
 
 func setupLog(loglevel string) {
-	lvl, err := log.ParseLevel(loglevel)
+	lvl, err := vlog.ParseLevel(loglevel)
 	if err != nil {
 		panic(err)
 	}
 
-	log.SetLevel(lvl)
-	log.SetFormatter(&log.TextFormatter{})
+	vlog.SetLevel(lvl)
 }

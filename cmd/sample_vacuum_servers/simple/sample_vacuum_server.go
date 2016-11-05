@@ -1,8 +1,6 @@
 package main
 
 import (
-	log "github.com/Sirupsen/logrus"
-
 	"time"
 
 	"github.com/xiaonanln/vacuum"
@@ -16,7 +14,7 @@ const (
 )
 
 func Main(s *vacuum.String) {
-	log.Debugf("Main %v running ...", s)
+	vlog.Debugf("Main %v running ...", s)
 	s.DeclareService("Dispatcher") // declare the dispatcher service
 
 	for i := 0; i < SENDER_COUNT; i++ {
@@ -28,34 +26,34 @@ func Main(s *vacuum.String) {
 }
 
 func Sender(s *vacuum.String) {
-	log.Debugf("Sender running ...")
+	vlog.Debugf("Sender running ...")
 	s.DeclareService("Sender") // declare the dispatcher service
 
 	// wait for receivers to be ready
 	for {
 		receiverCounter := vacuum.GetServiceProviderCount("Receiver")
-		log.Debugln("receiverCounter", receiverCounter)
+		vlog.Debugln("receiverCounter", receiverCounter)
 		if receiverCounter >= RECEIVER_COUNT {
 			break
 		} else {
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
-	log.Debugf("Now, all receivers are ready!!!")
+	vlog.Debugf("Now, all receivers are ready!!!")
 	// wait until there are any senders
 	for i := 0; i < 10; i++ {
-		log.Debugln("Send", i)
+		vlog.Debugln("Send", i)
 		s.SendToService("Receiver", i)
 	}
 }
 
 func Receiver(s *vacuum.String) {
-	log.Debugf("Receiver running ...")
+	vlog.Debugf("Receiver running ...")
 	s.DeclareService("Receiver") // declare the dispatcher service
 
 	for {
 		msg := s.Read()
-		log.Debugln("Receive", msg)
+		vlog.Debugln("Receive", msg)
 	}
 }
 

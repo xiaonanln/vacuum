@@ -10,8 +10,8 @@ import (
 	"encoding/base64"
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/vacuum/storage"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 type FileSystemStringStorage struct {
@@ -29,7 +29,7 @@ func (ss *FileSystemStringStorage) Write(name string, stringID string, data inte
 		return err
 	}
 
-	logrus.Debugf("Saving to file %s: %s", stringSaveFile, string(dataBytes))
+	vlog.Debugf("Saving to file %s: %s", stringSaveFile, string(dataBytes))
 	return ioutil.WriteFile(stringSaveFile, dataBytes, 0644)
 }
 
@@ -55,7 +55,7 @@ func (ss *FileSystemStringStorage) Read(name string, stringID string) (interface
 
 func newFileSystemStringStorage(directory string) *FileSystemStringStorage {
 	if err := os.MkdirAll(directory, 0644); err != nil {
-		logrus.Panic(err)
+		vlog.Panic(err)
 	}
 
 	return &FileSystemStringStorage{

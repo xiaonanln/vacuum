@@ -4,9 +4,8 @@ import (
 	"math/rand"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
-
 	. "github.com/xiaonanln/vacuum/common"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 var (
@@ -50,11 +49,11 @@ func popString(stringID string) (s *String) {
 
 func RegisterString(name string, newer StringDelegateMaker) {
 	if registeredStringDelegateNewers[name] != nil {
-		log.Panicf("String delegate newer of name %s is already registered", name)
+		vlog.Panicf("String delegate newer of name %s is already registered", name)
 	}
 
 	registeredStringDelegateNewers[name] = newer
-	log.Infof("String delegate newer registered: %s", name)
+	vlog.Infof("String delegate newer registered: %s", name)
 }
 
 func GetLocalString(stringID string) *String {
@@ -90,10 +89,10 @@ func undeclareServicesOfString(stringID string) {
 	stringIDsByServiceLock.Lock()
 
 	for serviceName, stringIDs := range stringIDsByService {
-		log.Debugf("undeclareServicesOfString: checking service %s, stringIDs %v, contains %v", serviceName, stringIDs, stringIDs.Contains(stringID))
+		vlog.Debugf("undeclareServicesOfString: checking service %s, stringIDs %v, contains %v", serviceName, stringIDs, stringIDs.Contains(stringID))
 		if stringIDs.Contains(stringID) {
 			// the string declared this service, remove it
-			log.Debugf("Undeclaring service %s of String %s!", serviceName, stringID)
+			vlog.Debugf("Undeclaring service %s of String %s!", serviceName, stringID)
 			stringIDs.Remove(stringID)
 			sl := stringIDListByService[serviceName]
 			sl.Remove(stringID)
@@ -111,7 +110,7 @@ func chooseServiceString(serviceName string) (stringID string) {
 	if ok {
 		stringID = stringIDs[rand.Intn(len(stringIDs))]
 	} else {
-		log.Panicf("chooseServiceString: get service string failed: %s", serviceName)
+		vlog.Panicf("chooseServiceString: get service string failed: %s", serviceName)
 		stringID = ""
 	}
 
