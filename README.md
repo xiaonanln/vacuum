@@ -15,11 +15,6 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 * Optimize dispatcher sending same message to all client proxies by create the packet only once
 * Read options from config file, and can use -c argument to change config file
 * Manipulate strings in telnet console
-* Storage strategy for Strings
-    * String storage using File System 
-    * String storage using MongoDB
-    
+* Multi-threaded storage RW
 * String migration strategy
 * Use Pipe between dispatcher and vacuum servers instead of socket, for better performance
-* Use uniform log interface, rather than logrus directly (make changing log engine easier)
-* Use vlog instead of logrus directly, vlog uses logrus internally
