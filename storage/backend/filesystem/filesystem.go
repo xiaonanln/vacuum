@@ -1,4 +1,4 @@
-package filesystem
+package string_storage_filesystem
 
 import (
 	"path/filepath"
@@ -53,16 +53,16 @@ func (ss *FileSystemStringStorage) Read(name string, stringID string) (interface
 	return data, nil
 }
 
-func newFileSystemStringStorage(directory string) *FileSystemStringStorage {
+func newFileSystemStringStorage(directory string) (*FileSystemStringStorage, error) {
 	if err := os.MkdirAll(directory, 0644); err != nil {
-		vlog.Panic(err)
+		return nil, err
 	}
 
 	return &FileSystemStringStorage{
 		directory: directory,
-	}
+	}, nil
 }
 
-func OpenDirectory(directory string) storage.StringStorage {
+func OpenDirectory(directory string) (storage.StringStorage, error) {
 	return newFileSystemStringStorage(directory)
 }

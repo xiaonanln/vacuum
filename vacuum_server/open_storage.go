@@ -1,17 +1,32 @@
 package vacuum_server
 
 import (
-	"github.com/Sirupsen/logrus"
+	"strings"
+
+	"log"
+
+	"fmt"
+
 	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/storage"
 	"github.com/xiaonanln/vacuum/storage/backend/filesystem"
+	"github.com/xiaonanln/vacuum/storage/backend/mongodb"
 )
 
 func openStorage(config *config.StorageConfig) storage.StringStorage {
-	if config.Type == "filesystem" {
-		return filesystem.OpenDirectory(config.Directory)
+	storageType := strings.ToLower(config.Type)
+	var ss storage.StringStorage
+	var err error
+
+	if storageType == "filesystem" {
+		ss, err = string_storage_filesystem.OpenDirectory(config.Directory)
+	} else if storageType == "mongodb" {
+		ss, err = string_storage_mongodb.OpenMongoDB(config.Url, config.DB)
 	} else {
-		logrus.Panicf("openStorage: unknown storage type in conf: %s", config.Type)
-		return nil
+		err = fmt.Errorf("openStorage: unknown storage type in conf: %s", config.Type)
 	}
+	if err != nil {
+		log.Panic(err)
+	}
+	return ss
 }

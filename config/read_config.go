@@ -14,6 +14,8 @@ const (
 type StorageConfig struct {
 	Type      string `json:"type"`
 	Directory string `json:"directory"`
+	Url       string `json:"url"`
+	DB        string `json:"DB"`
 }
 
 type VacuumConfig struct {
