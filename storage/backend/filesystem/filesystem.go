@@ -18,12 +18,12 @@ type FileSystemStringStorage struct {
 	directory string
 }
 
-func encodeStringID(stringID string) string {
-	return base64.URLEncoding.EncodeToString([]byte(stringID))
+func getFileName(name string, stringID string) string {
+	return name + "$" + base64.URLEncoding.EncodeToString([]byte(stringID))
 }
 
 func (ss *FileSystemStringStorage) Write(name string, stringID string, data interface{}) error {
-	stringSaveFile := filepath.Join(ss.directory, name+"$"+encodeStringID(stringID))
+	stringSaveFile := filepath.Join(ss.directory, getFileName(name, stringID))
 	dataBytes, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func (ss *FileSystemStringStorage) Write(name string, stringID string, data inte
 }
 
 func (ss *FileSystemStringStorage) Read(name string, stringID string) (interface{}, error) {
-	stringSaveFile := filepath.Join(ss.directory, name+"$"+encodeStringID(stringID))
+	stringSaveFile := filepath.Join(ss.directory, getFileName(name, stringID))
 	dataBytes, err := ioutil.ReadFile(stringSaveFile)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -54,7 +54,7 @@ func (ss *FileSystemStringStorage) Read(name string, stringID string) (interface
 }
 
 func newFileSystemStringStorage(directory string) (*FileSystemStringStorage, error) {
-	if err := os.MkdirAll(directory, 0644); err != nil {
+	if err := os.MkdirAll(directory, 0755); err != nil {
 		return nil, err
 	}
 
