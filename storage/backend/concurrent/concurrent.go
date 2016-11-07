@@ -1,14 +1,21 @@
 package concurrent
 
-import "github.com/xiaonanln/vacuum/storage"
+import (
+	"sync"
+
+	"github.com/xiaonanln/vacuum/storage"
+)
 
 type ConcurrentStringStorage struct {
 	subStorages []storage.StringStorage
+	locks       []sync.RWMutex
 }
 
 func NewConcurrentStringStorage(subStorages []storage.StringStorage) storage.StringStorage {
+	locks := make([]sync.RWMutex, len(subStorages), len(subStorages))
 	return &ConcurrentStringStorage{
 		subStorages: subStorages,
+		locks:       locks,
 	}
 }
 
@@ -20,14 +27,24 @@ func hash(stringID string) uint {
 	return h
 }
 
-func (ss *ConcurrentStringStorage) subStorageOf(name string, stringID string) storage.StringStorage {
-	return ss.subStorages[hash(stringID)%uint(len(ss.subStorages))]
+func (ss *ConcurrentStringStorage) subStorageOf(name string, stringID string) uint {
+	return hash(stringID) % uint(len(ss.subStorages))
 }
 
 func (ss *ConcurrentStringStorage) Write(name string, stringID string, data interface{}) error {
-	return ss.subStorageOf(name, stringID).Write(name, stringID, data)
+	idx := ss.subStorageOf(name, stringID)
+	lock := ss.locks[idx]
+	lock.Lock()
+	defer lock.Unlock()
+
+	return ss.subStorages[idx].Write(name, stringID, data)
 }
 
 func (ss *ConcurrentStringStorage) Read(name string, stringID string) (interface{}, error) {
-	return ss.subStorageOf(name, stringID).Read(name, stringID)
+	idx := ss.subStorageOf(name, stringID)
+	lock := ss.locks[idx]
+	lock.RLock()
+	defer lock.RUnlock()
+
+	return ss.subStorages[idx].Read(name, stringID)
 }
