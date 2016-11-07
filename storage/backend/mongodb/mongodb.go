@@ -23,7 +23,7 @@ type MongoDBStringStorge struct {
 
 func OpenMongoDB(url string, dbname string) (storage.StringStorage, error) {
 	vlog.Debug("Connecting MongoDB ...")
-	session, err := mgo.Dial(url) //连接数据库
+	session, err := mgo.Dial(url)
 	if err != nil {
 		panic(err)
 	}
@@ -33,8 +33,6 @@ func OpenMongoDB(url string, dbname string) (storage.StringStorage, error) {
 		// if db is not specified, use default
 		dbname = DEFAULT_DB_NAME
 	}
-	//db := session.DB(dbname) //数据库名称
-	// collection := db.C("person") //如果该集合已经存在的话，则直接返回
 	db = session.DB(dbname)
 	return &MongoDBStringStorge{
 		db: db,
