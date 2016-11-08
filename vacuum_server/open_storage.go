@@ -3,14 +3,12 @@ package vacuum_server
 import (
 	"strings"
 
-	"log"
-
-	"fmt"
-
 	"github.com/xiaonanln/vacuum/config"
 	"github.com/xiaonanln/vacuum/storage"
+	"github.com/xiaonanln/vacuum/storage/backend/concurrent"
 	"github.com/xiaonanln/vacuum/storage/backend/filesystem"
 	"github.com/xiaonanln/vacuum/storage/backend/mongodb"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 func openStorage(config *config.StorageConfig) storage.StringStorage {
@@ -18,15 +16,36 @@ func openStorage(config *config.StorageConfig) storage.StringStorage {
 	var ss storage.StringStorage
 	var err error
 
+	var opener func() (storage.StringStorage, error)
+
 	if storageType == "filesystem" {
-		ss, err = string_storage_filesystem.OpenDirectory(config.Directory)
+		opener = func() (storage.StringStorage, error) {
+			return string_storage_filesystem.OpenDirectory(config.Directory)
+		}
 	} else if storageType == "mongodb" {
-		ss, err = string_storage_mongodb.OpenMongoDB(config.Url, config.DB)
+		opener = func() (storage.StringStorage, error) {
+			return string_storage_mongodb.OpenMongoDB(config.Url, config.DB)
+		}
 	} else {
-		err = fmt.Errorf("openStorage: unknown storage type in conf: %s", config.Type)
+		vlog.Panicf("openStorage: unknown storage type in conf: %s", config.Type)
 	}
+
+	if config.Concurrent <= 1 {
+		ss, err = opener()
+	} else {
+		subStorages := make([]storage.StringStorage, config.Concurrent, config.Concurrent)
+		for i := 0; i < config.Concurrent; i++ {
+			subss, err := opener()
+			if err != nil {
+				vlog.Panic(err)
+			}
+			subStorages[i] = subss
+		}
+		ss = concurrent.NewConcurrentStringStorage(subStorages)
+	}
+
 	if err != nil {
-		log.Panic(err)
+		vlog.Panic(err)
 	}
 	return ss
 }
