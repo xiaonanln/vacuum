@@ -177,7 +177,8 @@ func (cp *ClientProxy) handleStringDelReq(data []byte) {
 }
 
 func (cp *ClientProxy) handleMigrateStringReq(data []byte) {
-	var req MigrateStringReq
+	req := MigrateStringReq {
+	}
 	MSG_PACKER.UnpackMsg(data, &req)
 	vlog.Debugf("%s.handleMigrateStringReq %T %v", cp, req, req)
 

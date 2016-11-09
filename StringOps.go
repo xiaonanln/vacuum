@@ -37,20 +37,15 @@ func LoadString(name string, stringID string) {
 
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string, args []interface{}) {
-	createString(name, stringID, args, nil)
+	createString(name, stringID, args, true)
 }
 
 func OnLoadString(name string, stringID string) {
 	vlog.Debugf("OnLoadString: name=%s, stringID=%s", name, stringID)
-	data, err := stringStorage.Read(name, stringID)
-	if err != nil {
-		vlog.TraceErrorf("Load String %s from storage failed: %s", stringID, err.Error())
-		return
-	}
-	createString(name, stringID, []interface{}{}, data)
+	createString(name, stringID, []interface{}{}, false)
 }
 
-func createString(name string, stringID string, args []interface{}, data interface{}) {
+func createString(name string, stringID string, args []interface{}, isNewString bool) {
 	delegateMaker := getStringDelegateMaker(name)
 	if delegateMaker == nil {
 		vlog.Panicf("OnCreateString: routine of String %s is nil", name)
@@ -65,9 +60,18 @@ func createString(name string, stringID string, args []interface{}, data interfa
 		defer onStringRoutineQuit(name, stringID)
 
 		s.delegate.Init(s, args...)
-		if data != nil {
-			s.persistence.LoadPersistentData(data.(map[string]interface{}))
+
+		if !isNewString {
+			data, err := stringStorage.Read(name, stringID)
+			if err != nil {
+				// load string failed..
+				vlog.Panic(err)
+			}
+			if data != nil {
+				s.persistence.LoadPersistentData(data.(map[string]interface{}))
+			}
 		}
+
 		for {
 			msg := s.Read()
 			if msg != nil {

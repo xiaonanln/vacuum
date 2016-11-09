@@ -47,6 +47,7 @@ func init() {
 	vlog.Debugf("VACUUM %d LOAD CONFIG:", serverID)
 	os.Stderr.WriteString(config.FormatConfig(vacuumConfig))
 
+
 	storage := openStorage(vacuumConfig.Storage)
 	vacuum.Setup(serverID, storage)
 

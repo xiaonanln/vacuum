@@ -112,8 +112,8 @@ func RelayCloseString(stringID string) error {
 	return getDispatcherClientForSend().RelayCloseString(stringID)
 }
 
-func SendMigrateStringReq(stringID string, serverID int) error {
-	return getDispatcherClientForSend().SendMigrateStringReq(stringID, serverID)
+func SendMigrateStringReq(name string, stringID string, serverID int, data map[string]interface{}) error {
+	return getDispatcherClientForSend().SendMigrateStringReq(name, stringID, serverID, data)
 }
 
 func getDispatcherClientForSend() *DispatcherClient {

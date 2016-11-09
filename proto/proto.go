@@ -70,8 +70,10 @@ type StringDelReq struct {
 }
 
 type MigrateStringReq struct {
+	Name     string `msgpack:"N"`
 	StringID string `msgpack:"ID"`
 	ServerID int    `msgpack:"SID"`
+	Data map[string]interface{}  `msgpack:"D"`
 }
 
 type StringDelResp struct {

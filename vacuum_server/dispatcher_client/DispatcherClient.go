@@ -85,8 +85,14 @@ func (dc *DispatcherClient) SendStringDelReq(stringID string) error {
 	return dc.SendMsg(STRING_DEL_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendMigrateStringReq(stringID string, serverID int) error {
-	req := MigrateStringReq{}
+func (dc *DispatcherClient) SendMigrateStringReq(name string, stringID string, serverID int, data map[string]interface{}) error {
+	req := MigrateStringReq{
+		Name:name,
+		StringID:stringID,
+		ServerID:serverID,
+		Data:data,
+	}
+
 	return dc.SendMsg(MIGRATE_STRING_REQ, &req)
 }
 
