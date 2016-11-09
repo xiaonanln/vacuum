@@ -16,4 +16,7 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 * Read options from config file, and can use -c argument to change config file
 * Manipulate strings in telnet console
 * String migration strategy
+* Compression of communication
 * Use Pipe between dispatcher and vacuum servers instead of socket, for better performance
+* Service publish, subscribe, waiting
+* Message caching, resending
