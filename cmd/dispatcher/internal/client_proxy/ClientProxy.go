@@ -79,6 +79,26 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetID str
 	return chooseServer.SendAll(msg[:pktSize])
 }
 
+func (cp *ClientProxy) handleMigrateStringReq(data []byte) {
+	var req MigrateStringReq
+	MSG_PACKER.UnpackMsg(data, &req)
+
+	vlog.Debugf("%s.handleMigrateStringReq %T %v", cp, req, req)
+
+	// the string is migrating to specified server
+	chooseServer := getClientProxy(req.ServerID)
+	setStringLocation(req.StringID, req.ServerID)
+
+	resp := MigrateStringResp{
+		Name:     req.Name,
+		StringID: req.StringID,
+		ServerID: req.ServerID,
+		Data:     req.Data,
+	}
+
+	chooseServer.SendMsg(MIGRATE_STRING_RESP, &resp)
+}
+
 //func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
 //	var req SendStringMessageReq
 //	MSG_PACKER.UnpackMsg(data, &req)
@@ -174,15 +194,6 @@ func (cp *ClientProxy) handleStringDelReq(data []byte) {
 	sendToAllClientProxies(STRING_DEL_RESP, &StringDelResp{
 		StringID: stringID,
 	}, cp) // don't send to its self
-}
-
-func (cp *ClientProxy) handleMigrateStringReq(data []byte) {
-	req := MigrateStringReq {
-	}
-	MSG_PACKER.UnpackMsg(data, &req)
-	vlog.Debugf("%s.handleMigrateStringReq %T %v", cp, req, req)
-
-	// the string is migrating to specified server
 }
 
 func sendToAllClientProxies(msgType MsgType_t, resp interface{}, exceptClientProxy *ClientProxy) {

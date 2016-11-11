@@ -37,15 +37,15 @@ func LoadString(name string, stringID string) {
 
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string, args []interface{}) {
-	createString(name, stringID, args, true)
+	createString(name, stringID, args, false, nil)
 }
 
 func OnLoadString(name string, stringID string) {
 	vlog.Debugf("OnLoadString: name=%s, stringID=%s", name, stringID)
-	createString(name, stringID, []interface{}{}, false)
+	createString(name, stringID, []interface{}{}, true, nil)
 }
 
-func createString(name string, stringID string, args []interface{}, isNewString bool) {
+func createString(name string, stringID string, args []interface{}, loadFromStorage bool, migrateData map[string]interface{}) {
 	delegateMaker := getStringDelegateMaker(name)
 	if delegateMaker == nil {
 		vlog.Panicf("OnCreateString: routine of String %s is nil", name)
@@ -61,7 +61,7 @@ func createString(name string, stringID string, args []interface{}, isNewString 
 
 		s.delegate.Init(s, args...)
 
-		if !isNewString {
+		if loadFromStorage { // loading string from storage ...
 			data, err := stringStorage.Read(name, stringID)
 			if err != nil {
 				// load string failed..
@@ -70,17 +70,37 @@ func createString(name string, stringID string, args []interface{}, isNewString 
 			if data != nil {
 				s.persistence.LoadPersistentData(data.(map[string]interface{}))
 			}
+		} else if migrateData != nil { // migrated from from other server ...
+			s.persistence.LoadPersistentData(migrateData)
+		} else { // creating new string
+			if s.IsPersistent() { // save persistent string right after it's created && inited
+				s.Save()
+			}
+		}
+
+		if s.HasFlag(SS_MIGRATING) { // Migrate may be called in Init...
+			return
 		}
 
 		for {
 			msg := s.Read()
 			if msg != nil {
 				s.delegate.Loop(s, msg)
+
+				if s.HasFlag(SS_MIGRATING) { // Migrate called in Loop
+					return
+				}
 			} else {
 				break
 			}
 		}
+
+		s.SetFlag(SS_FINIALIZING)
 		s.delegate.Fini(s)
+
+		if s.IsPersistent() {
+			s.Save()
+		}
 	}()
 }
 
@@ -126,4 +146,10 @@ func onStringRoutineQuit(name string, stringID string) {
 // string del notification from dispatcher
 func OnDelString(stringID string) {
 	undeclareServicesOfString(stringID)
+}
+
+// String migrated to this server
+func OnMigrateString(name string, stringID string, data map[string]interface{}) {
+	vlog.Debugf("String %s.%s migrated to server %v: data=%v", name, stringID, serverID, data)
+	createString(name, stringID, nil, false, data)
 }

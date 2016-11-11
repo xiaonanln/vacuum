@@ -23,6 +23,11 @@ type StringDelegate interface {
 
 type StringDelegateMaker func() StringDelegate
 
+const (
+	SS_MIGRATING   = uint64(1 << iota)
+	SS_FINIALIZING = uint64(1 << iota)
+)
+
 type String struct {
 	ID          string
 	Name        string
@@ -30,6 +35,7 @@ type String struct {
 	persistence PersistentString
 	inputChan   chan StringMessage
 	outputSid   string
+	flags       uint64
 }
 
 func newString(stringID string, name string, delegate StringDelegate) *String {
@@ -59,8 +65,16 @@ func (s *String) String() string {
 	}
 }
 
-func (s *String) Persistence() PersistentString {
-	return s.persistence
+func (s *String) SetFlag(flag uint64) {
+	s.flags |= flag
+}
+
+func (s *String) HasFlag(flag uint64) bool {
+	return (s.flags & flag) != 0
+}
+
+func (s *String) IsPersistent() bool {
+	return s.persistence != nil
 }
 
 func (s *String) Read() StringMessage {

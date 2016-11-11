@@ -15,6 +15,7 @@ const (
 	STRING_DEL_REQ             = iota
 	STRING_DEL_RESP            = iota
 	MIGRATE_STRING_REQ         = iota
+	MIGRATE_STRING_RESP        = iota
 )
 
 type MsgType_t uint16
@@ -70,10 +71,17 @@ type StringDelReq struct {
 }
 
 type MigrateStringReq struct {
-	Name     string `msgpack:"N"`
-	StringID string `msgpack:"ID"`
-	ServerID int    `msgpack:"SID"`
-	Data map[string]interface{}  `msgpack:"D"`
+	Name     string                 `msgpack:"N"`
+	StringID string                 `msgpack:"ID"`
+	ServerID int                    `msgpack:"SID"`
+	Data     map[string]interface{} `msgpack:"D"`
+}
+
+type MigrateStringResp struct {
+	Name     string                 `msgpack:"N"`
+	StringID string                 `msgpack:"ID"`
+	ServerID int                    `msgpack:"SID"`
+	Data     map[string]interface{} `msgpack:"D"`
 }
 
 type StringDelResp struct {

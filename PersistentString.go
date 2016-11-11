@@ -8,7 +8,7 @@ type PersistentString interface {
 }
 
 func (s *String) Save() {
-	persistence := s.Persistence()
+	persistence := s.persistence
 	if persistence == nil {
 		logrus.Panicf("string %s is not persistent", s)
 	}

@@ -3,10 +3,11 @@ package string_storage_mongodb
 import (
 	"fmt"
 
-	"github.com/xiaonanln/vacuum/storage"
-	"github.com/xiaonanln/vacuum/vlog"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/xiaonanln/vacuum/storage"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 const (

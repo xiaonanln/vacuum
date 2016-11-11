@@ -47,7 +47,6 @@ func init() {
 	vlog.Debugf("VACUUM %d LOAD CONFIG:", serverID)
 	os.Stderr.WriteString(config.FormatConfig(vacuumConfig))
 
-
 	storage := openStorage(vacuumConfig.Storage)
 	vacuum.Setup(serverID, storage)
 
@@ -76,6 +75,10 @@ func (rh DispatcherRespHandler) HandleDispatcherResp_DelString(stringID string) 
 
 func (rh DispatcherRespHandler) HandleDispatcherResp_LoadString(name string, stringID string) {
 	vacuum.OnLoadString(name, stringID)
+}
+
+func (rh DispatcherRespHandler) HandleDispatcherResp_OnMigrateString(name string, stringID string, data map[string]interface{}) {
+	vacuum.OnMigrateString(name, stringID, data)
 }
 
 func RunServer() {

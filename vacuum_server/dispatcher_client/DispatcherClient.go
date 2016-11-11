@@ -15,6 +15,7 @@ type DispatcherRespHandler interface {
 	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
 	HandleDispatcherResp_CloseString(stringID string)
 	HandleDispatcherResp_DelString(stringID string)
+	HandleDispatcherResp_OnMigrateString(name string, stringID string, data map[string]interface{})
 }
 
 type DispatcherClient struct {
@@ -87,10 +88,10 @@ func (dc *DispatcherClient) SendStringDelReq(stringID string) error {
 
 func (dc *DispatcherClient) SendMigrateStringReq(name string, stringID string, serverID int, data map[string]interface{}) error {
 	req := MigrateStringReq{
-		Name:name,
-		StringID:stringID,
-		ServerID:serverID,
-		Data:data,
+		Name:     name,
+		StringID: stringID,
+		ServerID: serverID,
+		Data:     data,
 	}
 
 	return dc.SendMsg(MIGRATE_STRING_REQ, &req)
@@ -111,7 +112,10 @@ func (dc *DispatcherClient) RelayCloseString(stringID string) error {
 
 func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgType_t) error {
 	payload := msg[PREPAYLOAD_SIZE:pktSize]
-	if msgtype == CREATE_STRING_RESP {
+	if msgtype == MIGRATE_STRING_RESP {
+		// migrate string to this server
+		return dc.handleMigrateStringResp(payload)
+	} else if msgtype == CREATE_STRING_RESP {
 		// create real string instance
 		return dc.handleCreateStringResp(payload)
 	} else if msgtype == DECLARE_SERVICE_RESP {
@@ -195,5 +199,15 @@ func (dc *DispatcherClient) handleLoadStringResp(payload []byte) error {
 	}
 
 	dispatcherRespHandler.HandleDispatcherResp_LoadString(resp.Name, resp.StringID)
+	return nil
+}
+
+func (dc *DispatcherClient) handleMigrateStringResp(payload []byte) error {
+	var resp MigrateStringResp
+	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+		return err
+	}
+
+	dispatcherRespHandler.HandleDispatcherResp_OnMigrateString(resp.Name, resp.StringID, resp.Data)
 	return nil
 }
