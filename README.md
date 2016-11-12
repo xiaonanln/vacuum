@@ -20,3 +20,4 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 * Use Pipe between dispatcher and vacuum servers instead of socket, for better performance
 * Service publish, subscribe, waiting
 * Message caching, resending
+* Support Google Protobuf
