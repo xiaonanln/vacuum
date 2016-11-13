@@ -7,6 +7,7 @@ import (
 
 	"runtime/debug"
 
+	"github.com/xiaonanln/vacuum/netutil"
 	. "github.com/xiaonanln/vacuum/proto"
 	"github.com/xiaonanln/vacuum/vlog"
 )
@@ -33,7 +34,8 @@ func (cp *ClientProxy) Serve() {
 		onClientProxyClose(cp)
 
 		err := recover()
-		if err != nil {
+
+		if err != nil && !netutil.IsConnectionClosed(err) {
 			vlog.Errorf("Client %s paniced with error: %v", cp, err)
 			debug.PrintStack()
 		}
@@ -61,6 +63,8 @@ func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t
 		cp.handleDeclareServiceReq(payload)
 	} else if msgType == STRING_DEL_REQ {
 		cp.handleStringDelReq(payload)
+	} else if msgType == START_MIGRATE_STRING_REQ {
+		cp.handleStartMigrateStringReq(payload)
 	} else if msgType == MIGRATE_STRING_REQ {
 		cp.handleMigrateStringReq(payload)
 	} else if msgType == LOAD_STRING_REQ {
@@ -77,6 +81,21 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetID str
 	chooseServer := getClientProxy(serverID)
 	vlog.Debugf("%s.HandleRelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetID)
 	return chooseServer.SendAll(msg[:pktSize])
+}
+
+func (cp *ClientProxy) handleStartMigrateStringReq(data []byte) {
+	var req StartMigrateStringReq
+	MSG_PACKER.UnpackMsg(data, &req)
+
+	vlog.Debugf("%s.handleStartMigrateStringReq %T %v", cp, req, req)
+	// migrating, messages to this String should be cached, until real migration happened
+	setStringMigrating(req.StringID, true)
+	// send the resp to the client
+	resp := StartMigrateStringResp{
+		StringID: req.StringID,
+	}
+
+	cp.SendMsg(START_MIGRATE_STRING_RESP, resp)
 }
 
 func (cp *ClientProxy) handleMigrateStringReq(data []byte) {

@@ -47,7 +47,7 @@ func Main(s *vacuum.String) {
 
 	for {
 		vacuum.Send(stringID, 1)
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(3000 * time.Millisecond)
 	}
 
 	time.Sleep(3 * time.Second)

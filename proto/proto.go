@@ -14,6 +14,8 @@ const (
 	CLOSE_STRING_RELAY         = iota
 	STRING_DEL_REQ             = iota
 	STRING_DEL_RESP            = iota
+	START_MIGRATE_STRING_REQ   = iota
+	START_MIGRATE_STRING_RESP  = iota
 	MIGRATE_STRING_REQ         = iota
 	MIGRATE_STRING_RESP        = iota
 )
@@ -67,6 +69,14 @@ type DeclareServiceResp struct {
 }
 
 type StringDelReq struct {
+	StringID string `msgpack:"ID"`
+}
+
+type StartMigrateStringReq struct {
+	StringID string `msgpack:"ID"`
+}
+
+type StartMigrateStringResp struct {
 	StringID string `msgpack:"ID"`
 }
 

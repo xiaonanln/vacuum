@@ -32,6 +32,18 @@ func IsTemporaryNetError(err error) bool {
 	return netErr.Temporary() || netErr.Timeout()
 }
 
+func IsConnectionClosed(_err interface{}) bool {
+	err, ok := _err.(net.Error)
+	if !ok {
+		return false
+	}
+	if err.Temporary() || err.Timeout() {
+		return false
+	}
+
+	return true
+}
+
 func WriteAll(conn net.Conn, data []byte) error {
 	for len(data) > 0 {
 		n, err := conn.Write(data)

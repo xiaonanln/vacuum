@@ -16,6 +16,7 @@ type DispatcherRespHandler interface {
 	HandleDispatcherResp_CloseString(stringID string)
 	HandleDispatcherResp_DelString(stringID string)
 	HandleDispatcherResp_OnMigrateString(name string, stringID string, data map[string]interface{})
+	HandleDispatcherResp_StartMigrateString(stringID string)
 }
 
 type DispatcherClient struct {
@@ -86,6 +87,13 @@ func (dc *DispatcherClient) SendStringDelReq(stringID string) error {
 	return dc.SendMsg(STRING_DEL_REQ, &req)
 }
 
+func (dc *DispatcherClient) SendStartMigrateStringReq(stringID string) error {
+	req := StartMigrateStringReq{
+		StringID: stringID,
+	}
+	return dc.SendMsg(START_MIGRATE_STRING_REQ, &req)
+}
+
 func (dc *DispatcherClient) SendMigrateStringReq(name string, stringID string, serverID int, data map[string]interface{}) error {
 	req := MigrateStringReq{
 		Name:     name,
@@ -112,7 +120,9 @@ func (dc *DispatcherClient) RelayCloseString(stringID string) error {
 
 func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgType_t) error {
 	payload := msg[PREPAYLOAD_SIZE:pktSize]
-	if msgtype == MIGRATE_STRING_RESP {
+	if msgtype == START_MIGRATE_STRING_RESP {
+		return dc.handleStartMigrateStringResp(payload)
+	} else if msgtype == MIGRATE_STRING_RESP {
 		// migrate string to this server
 		return dc.handleMigrateStringResp(payload)
 	} else if msgtype == CREATE_STRING_RESP {
@@ -199,6 +209,17 @@ func (dc *DispatcherClient) handleLoadStringResp(payload []byte) error {
 	}
 
 	dispatcherRespHandler.HandleDispatcherResp_LoadString(resp.Name, resp.StringID)
+	return nil
+}
+
+func (dc *DispatcherClient) handleStartMigrateStringResp(payload []byte) error {
+	// Received start-migrate from dispatcher, now we start the real migrate progress
+	var resp StartMigrateStringResp
+	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+		return err
+	}
+
+	dispatcherRespHandler.HandleDispatcherResp_StartMigrateString(resp.StringID)
 	return nil
 }
 

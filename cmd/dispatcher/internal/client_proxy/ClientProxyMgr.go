@@ -7,13 +7,20 @@ import (
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
+type _StringInfo struct {
+	ServerID  int
+	Migrating bool
+}
+
 var (
+	// ServerID to ClientProxy
 	clientProxiesLock = sync.RWMutex{}
 	clientProxes      = map[int]*ClientProxy{}
 	clientProxyIDs    = []int{}
 
-	stringLocationsLock = sync.RWMutex{}
-	stringLocations     = map[string]int{}
+	// StringID to ServerID
+	stringInfosLock = sync.RWMutex{}
+	stringInfos     = map[string]_StringInfo{}
 )
 
 func getRandomClientProxy() (ret *ClientProxy) {
@@ -70,16 +77,34 @@ func genClientProxyIDs() {
 }
 
 func setStringLocation(stringID string, serverID int) {
-	stringLocationsLock.Lock()
-	stringLocations[stringID] = serverID
+	stringInfosLock.Lock()
+	info := stringInfos[stringID]
+	info.ServerID = serverID
+	stringInfos[stringID] = info
+	stringInfosLock.Unlock()
+
 	vlog.Debugf("setStringLocation %s => %v", stringID, serverID)
-	stringLocationsLock.Unlock()
+}
+
+func setStringMigrating(stringID string, migrating bool) {
+	stringInfosLock.Lock()
+	info := stringInfos[stringID]
+	info.Migrating = migrating
+	stringInfos[stringID] = info
+	stringInfosLock.Unlock()
+
+	vlog.Debugf("setStringMigrating %s => %v", stringID, migrating)
+}
+
+func getStringInfo(stringID string) (ret _StringInfo) {
+	stringInfosLock.RLock()
+	ret = stringInfos[stringID]
+	stringInfosLock.RUnlock()
+
+	vlog.Debugf("getStringInfo %s => %v", stringID, ret)
+	return
 }
 
 func getStringLocation(stringID string) int {
-	stringLocationsLock.RLock()
-	serverID := stringLocations[stringID]
-	vlog.Debugf("getStringLocation %s => %v", stringID, serverID)
-	stringLocationsLock.RUnlock()
-	return serverID
+	return getStringInfo(stringID).ServerID
 }

@@ -78,18 +78,10 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 			}
 		}
 
-		if s.HasFlag(SS_MIGRATING) { // Migrate may be called in Init...
-			return
-		}
-
 		for {
 			msg := s.Read()
 			if msg != nil {
 				s.delegate.Loop(s, msg)
-
-				if s.HasFlag(SS_MIGRATING) { // Migrate called in Loop
-					return
-				}
 			} else {
 				break
 			}
@@ -146,10 +138,4 @@ func onStringRoutineQuit(name string, stringID string) {
 // string del notification from dispatcher
 func OnDelString(stringID string) {
 	undeclareServicesOfString(stringID)
-}
-
-// String migrated to this server
-func OnMigrateString(name string, stringID string, data map[string]interface{}) {
-	vlog.Debugf("String %s.%s migrated to server %v: data=%v", name, stringID, serverID, data)
-	createString(name, stringID, nil, false, data)
 }
