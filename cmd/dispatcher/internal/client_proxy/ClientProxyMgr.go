@@ -76,6 +76,17 @@ func genClientProxyIDs() {
 	}
 }
 
+func setStringLocationMigrating(stringID string, serverID int, migrating bool) {
+	stringInfosLock.Lock()
+	info := stringInfos[stringID]
+	info.ServerID = serverID
+	info.Migrating = migrating
+	stringInfos[stringID] = info
+	stringInfosLock.Unlock()
+
+	vlog.Debugf("setStringLocationMigrating %s => %v", stringID, serverID)
+}
+
 func setStringLocation(stringID string, serverID int) {
 	stringInfosLock.Lock()
 	info := stringInfos[stringID]

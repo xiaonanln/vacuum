@@ -83,6 +83,15 @@ func (s *String) Read() StringMessage {
 	return msg
 }
 
+func (s *String) tryRead() (StringMessage, bool) {
+	select {
+	case msg, _ := <-s.inputChan:
+		return msg, true
+	default:
+		return nil, false
+	}
+}
+
 func (s *String) Output(msg StringMessage) {
 	s.Send(s.outputSid, msg)
 }

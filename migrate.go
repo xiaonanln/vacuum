@@ -21,9 +21,11 @@ func (s *String) Migrate(serverID int) {
 	}
 
 	if s.HasFlag(SS_MIGRATING) { // already migrating...
+		vlog.Debugf("%s: already migrating", s)
 		return
 	}
 
+	vlog.Debugf("%s.Migrate: start migrating ...", s)
 	// mark as migrating
 	s.SetFlag(SS_MIGRATING)
 	// send the start-migrate req
@@ -32,7 +34,7 @@ func (s *String) Migrate(serverID int) {
 
 func StartMigrateString(stringID string) {
 	s := popString(stringID) // get the migrating string
-	vlog.Debugf(">>> StartMigrateString: stringID=%s, string=%v, migrating=%s", stringID, s, s != nil && s.HasFlag(SS_MIGRATING))
+	vlog.Debugf(">>> StartMigrateString: stringID=%s, string=%v, migrating=%v", stringID, s, s != nil && s.HasFlag(SS_MIGRATING))
 
 	if s == nil || s.HasFlag(SS_FINIALIZING) {
 		// String gone or finializing, migrate stop.

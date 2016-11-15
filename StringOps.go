@@ -57,8 +57,6 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 	vlog.Debugf("OnCreateString %s: %s, args=%v", name, s, args)
 
 	go func() {
-		defer onStringRoutineQuit(name, stringID)
-
 		s.delegate.Init(s, args...)
 
 		if loadFromStorage { // loading string from storage ...
@@ -78,13 +76,35 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 			}
 		}
 
+	read_loop:
 		for {
+			if s.HasFlag(SS_MIGRATING) {
+				for {
+					msg, ok := s.tryRead()
+					if ok {
+						if msg != nil {
+							s.delegate.Loop(s, msg)
+						} else {
+							break read_loop
+						}
+					} else {
+						// no message left unprocessed, start migrating, so quit routine
+						vlog.Debugf("%s: Quiting routine for migrating", s)
+						return
+					}
+				}
+			}
+
 			msg := s.Read()
 			if msg != nil {
 				s.delegate.Loop(s, msg)
 			} else {
-				break
+				break read_loop
 			}
+		}
+
+		if s.HasFlag(SS_MIGRATING) {
+			vlog.Debugf("%s: string migrated ignored because it's finializing", s)
 		}
 
 		s.SetFlag(SS_FINIALIZING)
@@ -93,6 +113,8 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 		if s.IsPersistent() {
 			s.Save()
 		}
+
+		onStringRoutineQuit(name, stringID)
 	}()
 }
 

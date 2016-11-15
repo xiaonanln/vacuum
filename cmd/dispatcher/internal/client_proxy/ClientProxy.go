@@ -75,12 +75,19 @@ func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t
 	return nil
 }
 
-func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetID string) error {
+func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetStringID string) error {
 	// just relay the msg
-	serverID := getStringLocation(targetID)
-	chooseServer := getClientProxy(serverID)
-	vlog.Debugf("%s.HandleRelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetID)
-	return chooseServer.SendAll(msg[:pktSize])
+	stringInfo := getStringInfo(targetStringID)
+	if !stringInfo.Migrating { // normal case
+		serverID := getStringLocation(targetStringID)
+		chooseServer := getClientProxy(serverID)
+		vlog.Debugf("%s.HandleRelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetStringID)
+		return chooseServer.SendAll(msg[:pktSize])
+	} else { // string is migrating, we need to cache the msg until string migrated
+		// just ignore for a while ...
+		vlog.Debug("HandleRelayMsg: ignoring ...")
+		return nil
+	}
 }
 
 func (cp *ClientProxy) handleStartMigrateStringReq(data []byte) {
@@ -106,7 +113,7 @@ func (cp *ClientProxy) handleMigrateStringReq(data []byte) {
 
 	// the string is migrating to specified server
 	chooseServer := getClientProxy(req.ServerID)
-	setStringLocation(req.StringID, req.ServerID)
+	setStringLocationMigrating(req.StringID, req.ServerID, false)
 
 	resp := MigrateStringResp{
 		Name:     req.Name,
