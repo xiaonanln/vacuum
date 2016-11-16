@@ -38,6 +38,7 @@ func StartMigrateString(stringID string) {
 
 	if s == nil || s.HasFlag(SS_FINIALIZING) {
 		// String gone or finializing, migrate stop.
+		vlog.Debugf("StartMigrateString: String %s already finialized or qutied", stringID)
 		return
 	}
 

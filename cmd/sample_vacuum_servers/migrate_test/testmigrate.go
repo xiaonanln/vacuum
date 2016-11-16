@@ -8,6 +8,7 @@ import (
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 type MigrateTester struct {
@@ -15,18 +16,20 @@ type MigrateTester struct {
 }
 
 func (pt *MigrateTester) Init(s *vacuum.String, args ...interface{}) {
+	vlog.Debug("!!! MigrateTester.Init")
 	pt.val = 0
-	s.DeclareService("MigrateTester")
+	//s.DeclareService("MigrateTester")
 }
 
 func (pt *MigrateTester) Loop(s *vacuum.String, msg common.StringMessage) {
 	pt.val += typeconv.Int(msg)
+	vlog.Debug("!!! MigrateTester.Loop %v", pt.val)
 	s.Save()
 	s.Migrate(1)
 }
 
 func (pt *MigrateTester) Fini(s *vacuum.String) {
-	logrus.Printf("!!!!!!!!!!! Fini %v!!!!!!!!!!!!!!", pt.val)
+	vlog.Debug("!!! MigrateTester.Fini %v", pt.val)
 }
 
 func (pt *MigrateTester) GetPersistentData() map[string]interface{} {
@@ -42,7 +45,7 @@ func (pt *MigrateTester) LoadPersistentData(data map[string]interface{}) {
 
 func Main(s *vacuum.String) {
 	stringID := vacuum.CreateString("MigrateTester")
-	vacuum.WaitServiceReady("MigrateTester", 1)
+	//vacuum.WaitServiceReady("MigrateTester", 1)
 	time.Sleep(time.Second)
 
 	for {

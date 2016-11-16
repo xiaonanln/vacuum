@@ -24,7 +24,8 @@ type StringDelegate interface {
 type StringDelegateMaker func() StringDelegate
 
 const (
-	SS_MIGRATING   = uint64(1 << iota)
+	SS_MIGRATING = uint64(1 << iota)
+	SS_MIGRATING_
 	SS_FINIALIZING = uint64(1 << iota)
 )
 

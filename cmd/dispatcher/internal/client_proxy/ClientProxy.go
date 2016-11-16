@@ -54,25 +54,25 @@ func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t
 	payload := msg[PREPAYLOAD_SIZE:pktSize]
 
 	if msgType == CREATE_STRING_REQ {
-		cp.handleCreateStringReq(payload)
+		return cp.handleCreateStringReq(payload)
 	} else if msgType == CREATE_STRING_LOCALLY_REQ {
-		cp.handleCreateStringLocallyReq(payload)
+		return cp.handleCreateStringLocallyReq(payload)
 	} else if msgType == REGISTER_VACUUM_SERVER_REQ {
-		cp.handleRegisterVacuumServerReq(payload)
+		return cp.handleRegisterVacuumServerReq(payload)
 	} else if msgType == DECLARE_SERVICE_REQ {
-		cp.handleDeclareServiceReq(payload)
+		return cp.handleDeclareServiceReq(payload)
 	} else if msgType == STRING_DEL_REQ {
-		cp.handleStringDelReq(payload)
+		return cp.handleStringDelReq(payload)
 	} else if msgType == START_MIGRATE_STRING_REQ {
-		cp.handleStartMigrateStringReq(payload)
+		return cp.handleStartMigrateStringReq(payload)
 	} else if msgType == MIGRATE_STRING_REQ {
-		cp.handleMigrateStringReq(payload)
+		return cp.handleMigrateStringReq(payload)
 	} else if msgType == LOAD_STRING_REQ {
-		cp.handleLoadStringReq(payload)
+		return cp.handleLoadStringReq(payload)
 	} else {
 		vlog.Panicf("ERROR: unknown dispatcher request type=%v", msgType)
+		return nil
 	}
-	return nil
 }
 
 func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetStringID string) error {
@@ -81,7 +81,7 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetString
 	if !stringInfo.Migrating { // normal case
 		serverID := getStringLocation(targetStringID)
 		chooseServer := getClientProxy(serverID)
-		vlog.Debugf("%s.HandleRelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetStringID)
+		vlog.Debugf(">>> RelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetStringID)
 		return chooseServer.SendAll(msg[:pktSize])
 	} else { // string is migrating, we need to cache the msg until string migrated
 		// just ignore for a while ...
@@ -90,9 +90,11 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetString
 	}
 }
 
-func (cp *ClientProxy) handleStartMigrateStringReq(data []byte) {
+func (cp *ClientProxy) handleStartMigrateStringReq(data []byte) error {
 	var req StartMigrateStringReq
-	MSG_PACKER.UnpackMsg(data, &req)
+	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
+		return err
+	}
 
 	vlog.Debugf("%s.handleStartMigrateStringReq %T %v", cp, req, req)
 	// migrating, messages to this String should be cached, until real migration happened
@@ -102,12 +104,14 @@ func (cp *ClientProxy) handleStartMigrateStringReq(data []byte) {
 		StringID: req.StringID,
 	}
 
-	cp.SendMsg(START_MIGRATE_STRING_RESP, resp)
+	return cp.SendMsg(START_MIGRATE_STRING_RESP, resp)
 }
 
-func (cp *ClientProxy) handleMigrateStringReq(data []byte) {
+func (cp *ClientProxy) handleMigrateStringReq(data []byte) error {
 	var req MigrateStringReq
-	MSG_PACKER.UnpackMsg(data, &req)
+	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
+		return err
+	}
 
 	vlog.Debugf("%s.handleMigrateStringReq %T %v", cp, req, req)
 
@@ -122,29 +126,14 @@ func (cp *ClientProxy) handleMigrateStringReq(data []byte) {
 		Data:     req.Data,
 	}
 
-	chooseServer.SendMsg(MIGRATE_STRING_RESP, &resp)
+	return chooseServer.SendMsg(MIGRATE_STRING_RESP, &resp)
 }
 
-//func (cp *ClientProxy) handleSendStringMessageReq(data []byte) {
-//	var req SendStringMessageReq
-//	MSG_PACKER.UnpackMsg(data, &req)
-//
-//	targetStringID := req.StringID
-//	resp := SendStringMessageResp{
-//		StringID: targetStringID,
-//		Msg:      req.Msg,
-//	}
-//
-//	serverID := getStringLocation(targetStringID)
-//	chooseServer := getClientProxy(serverID)
-//
-//	vlog.Debugf("%s.handleSendStringMessageReq %T %v, target server %s", cp, req, req, chooseServer)
-//	chooseServer.SendMsg(SEND_STRING_MESSAGE_RESP, &resp)
-//}
-
-func (cp *ClientProxy) handleCreateStringReq(data []byte) {
+func (cp *ClientProxy) handleCreateStringReq(data []byte) error {
 	var req CreateStringReq
-	MSG_PACKER.UnpackMsg(data, &req)
+	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
+		return err
+	}
 
 	// choose one server for create string
 
@@ -160,12 +149,14 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) {
 		Args:     req.Args,
 	}
 
-	chooseServer.SendMsg(CREATE_STRING_RESP, &resp)
+	return chooseServer.SendMsg(CREATE_STRING_RESP, &resp)
 }
 
-func (cp *ClientProxy) handleLoadStringReq(data []byte) {
+func (cp *ClientProxy) handleLoadStringReq(data []byte) error {
 	var req LoadStringReq
-	MSG_PACKER.UnpackMsg(data, &req)
+	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
+		return err
+	}
 
 	chooseServer := getRandomClientProxy()
 	stringID := req.StringID
@@ -177,52 +168,60 @@ func (cp *ClientProxy) handleLoadStringReq(data []byte) {
 		StringID: stringID,
 	}
 
-	chooseServer.SendMsg(LOAD_STRING_RESP, &resp)
+	return chooseServer.SendMsg(LOAD_STRING_RESP, &resp)
 }
 
-func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) {
+func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) error {
 	var req CreateStringLocallyReq
-	MSG_PACKER.UnpackMsg(data, &req)
+	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
+		return err
+	}
 
 	// choose one server for create string
 
 	stringID := req.StringID
 	setStringLocation(stringID, cp.ServerID)
 	vlog.Debugf("%s.handleCreateStringLocallyReq %T %v", cp, req, req)
+	return nil
 }
 
-func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) {
+func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) error {
 	var req RegisterVacuumServerReq
 	MSG_PACKER.UnpackMsg(data, &req)
 	vlog.Debugf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
 	registerClientProxyInfo(cp, req.ServerID)
+	return nil
 }
 
-func (cp *ClientProxy) handleDeclareServiceReq(data []byte) {
+func (cp *ClientProxy) handleDeclareServiceReq(data []byte) error {
 	var req DeclareServiceReq
-	MSG_PACKER.UnpackMsg(data, &req)
+	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
+		return err
+	}
 	vlog.Debugf("%s.handleDeclareServiceReq %T %v", cp, req, req)
 
 	// the the declare of service to all clients
-	sendToAllClientProxies(DECLARE_SERVICE_RESP, &DeclareServiceResp{
+	return sendToAllClientProxies(DECLARE_SERVICE_RESP, &DeclareServiceResp{
 		StringID:    req.StringID,
 		ServiceName: req.ServiceName,
 	}, nil)
 }
 
 // String quit execution its routine on the vacuum server
-func (cp *ClientProxy) handleStringDelReq(data []byte) {
+func (cp *ClientProxy) handleStringDelReq(data []byte) error {
 	var req StringDelReq
-	MSG_PACKER.UnpackMsg(data, &req)
+	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
+		return err
+	}
 	vlog.Debugf("%s.handleStringDelReq %T %v", cp, req, req)
 
 	stringID := req.StringID
-	sendToAllClientProxies(STRING_DEL_RESP, &StringDelResp{
+	return sendToAllClientProxies(STRING_DEL_RESP, &StringDelResp{
 		StringID: stringID,
 	}, cp) // don't send to its self
 }
 
-func sendToAllClientProxies(msgType MsgType_t, resp interface{}, exceptClientProxy *ClientProxy) {
+func sendToAllClientProxies(msgType MsgType_t, resp interface{}, exceptClientProxy *ClientProxy) error {
 	clientProxiesLock.RLock()
 	for _, clientProxy := range clientProxes {
 		if clientProxy != exceptClientProxy {
@@ -230,4 +229,5 @@ func sendToAllClientProxies(msgType MsgType_t, resp interface{}, exceptClientPro
 		}
 	}
 	clientProxiesLock.RUnlock()
+	return nil
 }

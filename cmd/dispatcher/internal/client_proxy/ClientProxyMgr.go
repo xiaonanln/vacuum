@@ -34,7 +34,7 @@ func getRandomClientProxy() (ret *ClientProxy) {
 func getClientProxy(serverID int) (ret *ClientProxy) {
 	clientProxiesLock.RLock()
 	ret = clientProxes[serverID]
-	vlog.Debug("getClientProxy", clientProxes, serverID, "=>", ret)
+	//vlog.Debug("getClientProxy", clientProxes, serverID, "=>", ret)
 	clientProxiesLock.RUnlock()
 	return
 }
@@ -84,7 +84,7 @@ func setStringLocationMigrating(stringID string, serverID int, migrating bool) {
 	stringInfos[stringID] = info
 	stringInfosLock.Unlock()
 
-	vlog.Debugf("setStringLocationMigrating %s => %v", stringID, serverID)
+	//vlog.Debugf("setStringLocationMigrating %s => %v", stringID, serverID)
 }
 
 func setStringLocation(stringID string, serverID int) {
@@ -94,7 +94,7 @@ func setStringLocation(stringID string, serverID int) {
 	stringInfos[stringID] = info
 	stringInfosLock.Unlock()
 
-	vlog.Debugf("setStringLocation %s => %v", stringID, serverID)
+	//vlog.Debugf("setStringLocation %s => %v", stringID, serverID)
 }
 
 func setStringMigrating(stringID string, migrating bool) {
@@ -104,7 +104,7 @@ func setStringMigrating(stringID string, migrating bool) {
 	stringInfos[stringID] = info
 	stringInfosLock.Unlock()
 
-	vlog.Debugf("setStringMigrating %s => %v", stringID, migrating)
+	//vlog.Debugf("setStringMigrating %s => %v", stringID, migrating)
 }
 
 func getStringInfo(stringID string) (ret _StringInfo) {
@@ -112,7 +112,7 @@ func getStringInfo(stringID string) (ret _StringInfo) {
 	ret = stringInfos[stringID]
 	stringInfosLock.RUnlock()
 
-	vlog.Debugf("getStringInfo %s => %v", stringID, ret)
+	//vlog.Debugf("getStringInfo %s => %v", stringID, ret)
 	return
 }
 

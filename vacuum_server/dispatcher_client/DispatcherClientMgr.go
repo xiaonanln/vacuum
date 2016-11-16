@@ -42,7 +42,7 @@ func setDispatcherClient(dc *DispatcherClient) {
 func assureConnectedDispatcherClient() *DispatcherClient {
 	var err error
 	dispatcherClient := getDispatcherClient()
-	vlog.Debug("assureConnectedDispatcherClient: dispatcherClient", dispatcherClient)
+	//vlog.Debug("assureConnectedDispatcherClient: dispatcherClient", dispatcherClient)
 	for dispatcherClient == nil {
 		dispatcherClient, err = connectDispatchClient()
 		if err != nil {

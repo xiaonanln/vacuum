@@ -9,6 +9,8 @@ import (
 
 	"sync"
 
+	"encoding/json"
+
 	"github.com/xiaonanln/vacuum/netutil"
 	"github.com/xiaonanln/vacuum/uuid"
 	"github.com/xiaonanln/vacuum/vlog"
@@ -37,6 +39,7 @@ var (
 
 type MessageConnection struct {
 	netutil.BinaryConnection
+	sendLock sync.Mutex
 }
 
 func NewMessageConnection(conn net.Conn) MessageConnection {
@@ -53,9 +56,14 @@ func (m *Message) release() {
 	messagePool.Put(m)
 }
 
+func toJsonString(msg interface{}) string {
+	s, _ := json.Marshal(msg)
+	return string(s)
+}
+
 // Send msg to/from dispatcher
 // Message format: [size*4B][type*2B][payload*NB]
-func (mc MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
+func (mc *MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 	msgbuf := allocMessage()
 
 	NETWORK_ENDIAN.PutUint16((msgbuf)[SIZE_FIELD_SIZE:SIZE_FIELD_SIZE+TYPE_FIELD_SIZE], uint16(mt))
@@ -76,15 +84,17 @@ func (mc MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 
 	var pktSize uint32 = uint32(payloadLen + PREPAYLOAD_SIZE)
 	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize)
+	mc.sendLock.Lock()
 	err = mc.SendAll((msgbuf)[:pktSize])
+	mc.sendLock.Unlock()
 	msgbuf.release()
-	vlog.Debugf("Send message: size=%v, type=%v: %v, error=%v", pktSize, mt, msg, err)
+	vlog.Debugf(">>> SendMsg: size=%v, type=%v: %v, error=%v", pktSize, mt, toJsonString(msg), err)
 	return err
 }
 
 // Send msg to another String through dispatcher
 // Message format: [size*4B][stringID][type*2B][payload*NB]
-func (mc MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg interface{}) error {
+func (mc *MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg interface{}) error {
 	msgbuf := allocMessage()
 	copy(msgbuf[SIZE_FIELD_SIZE:SIZE_FIELD_SIZE+STRING_ID_SIZE], []byte(targetID))
 
@@ -106,9 +116,11 @@ func (mc MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg inte
 
 	var pktSize uint32 = uint32(payloadLen + RELAY_PREPAYLOAD_SIZE)
 	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize|RELAY_MASK) // set highest bit of size to 1 to indicate a relay msg
+	mc.sendLock.Lock()
 	err = mc.SendAll((msgbuf)[:pktSize])
+	mc.sendLock.Unlock()
 	msgbuf.release()
-	vlog.Debugf("Send relay message: size=%v, targetID=%s, type=%v: %v, error=%v", pktSize, targetID, mt, msg, err)
+	vlog.Debugf(">>> SendRelayMsg: size=%v, targetID=%s, type=%v: %v, error=%v", pktSize, targetID, mt, msg, err)
 	return err
 }
 
@@ -117,7 +129,7 @@ type MessageHandler interface {
 	HandleRelayMsg(msg *Message, pktSize uint32, targetID string) error
 }
 
-func (mc MessageConnection) RecvMsg(handler MessageHandler) error {
+func (mc *MessageConnection) RecvMsg(handler MessageHandler) error {
 	msg := allocMessage()
 
 	pktSizeBuf := msg[:SIZE_FIELD_SIZE]

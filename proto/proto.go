@@ -1,7 +1,7 @@
 package proto
 
 const (
-	INVALID_MSG_TYPE           = 0
+	INVALID_MSG_TYPE           = iota
 	REGISTER_VACUUM_SERVER_REQ = iota
 	STRING_MESSAGE_RELAY       = iota
 	CREATE_STRING_REQ          = iota

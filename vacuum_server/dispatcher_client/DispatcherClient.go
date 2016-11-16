@@ -119,7 +119,7 @@ func (dc *DispatcherClient) RelayCloseString(stringID string) error {
 //}
 
 func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgType_t) error {
-	vlog.Debugf("<<< MSG size %v, msgtype %v", pktSize, msgtype)
+	vlog.Debugf("<<< HandleMsg: size %v, msgtype %v", pktSize, msgtype)
 	payload := msg[PREPAYLOAD_SIZE:pktSize]
 	if msgtype == START_MIGRATE_STRING_RESP {
 		return dc.handleStartMigrateStringResp(payload)
@@ -144,6 +144,9 @@ func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgT
 
 func (dc *DispatcherClient) HandleRelayMsg(msg *Message, pktSize uint32, targetID string) error {
 	var msgType MsgType_t = MsgType_t(NETWORK_ENDIAN.Uint16(msg[SIZE_FIELD_SIZE+STRING_ID_SIZE : SIZE_FIELD_SIZE+STRING_ID_SIZE+TYPE_FIELD_SIZE]))
+
+	vlog.Debugf("<<< HandleRelayMsg: size %v, msgtype %v", pktSize, msgType)
+
 	payload := msg[RELAY_PREPAYLOAD_SIZE:pktSize]
 	if msgType == STRING_MESSAGE_RELAY {
 		return dc.handleSendStringRelay(targetID, payload)

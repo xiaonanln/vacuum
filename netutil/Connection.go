@@ -21,6 +21,9 @@ func (c Connection) RecvByte() (byte, error) {
 		if n >= 1 {
 			return buf[0], nil
 		} else if err != nil {
+			if IsTemporaryNetError(err) {
+				continue
+			}
 			return 0, err
 		}
 	}
@@ -33,6 +36,9 @@ func (c Connection) SendByte(b byte) error {
 		if n >= 1 {
 			return nil
 		} else if err != nil {
+			if IsTemporaryNetError(err) {
+				continue
+			}
 			return err
 		}
 	}
@@ -42,6 +48,10 @@ func (c Connection) RecvAll(buf []byte) error {
 	for len(buf) > 0 {
 		n, err := c.Conn.Read(buf)
 		if err != nil {
+			if IsTemporaryNetError(err) {
+				continue
+			}
+
 			return err
 		}
 		buf = buf[n:]
@@ -53,6 +63,10 @@ func (c Connection) SendAll(data []byte) error {
 	for len(data) > 0 {
 		n, err := c.Conn.Write(data)
 		if err != nil {
+			if IsTemporaryNetError(err) {
+				continue
+			}
+
 			return err
 		}
 		data = data[n:]
