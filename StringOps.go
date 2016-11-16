@@ -78,22 +78,23 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 
 	read_loop:
 		for {
-			//if s.HasFlag(SS_MIGRATING) {
-			//	for {
-			//		msg, ok := s.tryRead()
-			//		if ok {
-			//			if msg != nil {
-			//				s.delegate.Loop(s, msg)
-			//			} else {
-			//				break read_loop
-			//			}
-			//		} else {
-			//			// no message left unprocessed, start migrating, so quit routine
-			//			//vlog.Debugf("%s: Quiting routine for migrating", s)
-			//			return
-			//		}
-			//	}
-			//}
+			if s.HasFlag(SS_MIGRATING) {
+				for {
+					msg, ok := s.tryRead()
+					vlog.Debugf("Migrating, running different loop: msg=%v, ok=%v", msg, ok)
+					if ok {
+						if msg != nil {
+							s.delegate.Loop(s, msg)
+						} else {
+							break read_loop
+						}
+					} else {
+						// no message left unprocessed, start migrating, so quit routine
+						vlog.Debugf("%s: Quiting routine for migrating", s)
+						return
+					}
+				}
+			}
 
 			msg := s.Read()
 			if msg != nil {
