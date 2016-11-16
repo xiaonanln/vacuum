@@ -146,6 +146,7 @@ func (dc *DispatcherClient) HandleRelayMsg(msg *Message, pktSize uint32, targetI
 	var msgType MsgType_t = MsgType_t(NETWORK_ENDIAN.Uint16(msg[SIZE_FIELD_SIZE+STRING_ID_SIZE : SIZE_FIELD_SIZE+STRING_ID_SIZE+TYPE_FIELD_SIZE]))
 
 	vlog.Debugf("<<< HandleRelayMsg: size %v, msgtype %v", pktSize, msgType)
+	defer vlog.Debugf("<<< HandleRelayMsg END")
 
 	payload := msg[RELAY_PREPAYLOAD_SIZE:pktSize]
 	if msgType == STRING_MESSAGE_RELAY {
