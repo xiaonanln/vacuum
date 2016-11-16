@@ -139,7 +139,7 @@ func serveDispatcherClient() {
 
 		err = dispatcherClient.RecvMsg(dispatcherClient)
 		if err != nil {
-			vlog.Errorf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
+			vlog.TraceErrorf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
 			dispatcherClient.Close()
 			setDispatcherClient(nil)
 			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)

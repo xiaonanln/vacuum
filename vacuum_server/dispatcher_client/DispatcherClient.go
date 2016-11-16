@@ -119,6 +119,7 @@ func (dc *DispatcherClient) RelayCloseString(stringID string) error {
 //}
 
 func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgType_t) error {
+	vlog.Debugf("<<< MSG size %v, msgtype %v", pktSize, msgtype)
 	payload := msg[PREPAYLOAD_SIZE:pktSize]
 	if msgtype == START_MIGRATE_STRING_RESP {
 		return dc.handleStartMigrateStringResp(payload)
