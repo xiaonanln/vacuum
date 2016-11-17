@@ -52,7 +52,7 @@ func allocMessage() *Message {
 	return messagePool.Get().(*Message)
 }
 
-func (m *Message) release() {
+func (m *Message) Release() {
 	messagePool.Put(m)
 }
 
@@ -71,14 +71,14 @@ func (mc *MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 	payloadCap := cap(payloadBuf)
 	payloadBuf, err := MSG_PACKER.PackMsg(msg, payloadBuf)
 	if err != nil {
-		msgbuf.release()
+		msgbuf.Release()
 		return err
 	}
 
 	payloadLen := len(payloadBuf)
 	if payloadLen > payloadCap {
 		// exceed payload
-		msgbuf.release()
+		msgbuf.Release()
 		return fmt.Errorf("MessageConnection: message paylaod too large(%d): %v", payloadLen, msg)
 	}
 
@@ -87,7 +87,7 @@ func (mc *MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 	mc.sendLock.Lock()
 	err = mc.SendAll((msgbuf)[:pktSize])
 	mc.sendLock.Unlock()
-	msgbuf.release()
+	msgbuf.Release()
 	vlog.Debug(">>> SendMsg: size=%v, type=%v: %v, error=%v", pktSize, mt, toJsonString(msg), err)
 	return err
 }
@@ -103,14 +103,14 @@ func (mc *MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg int
 	payloadCap := cap(payloadBuf)
 	payloadBuf, err := MSG_PACKER.PackMsg(msg, payloadBuf)
 	if err != nil {
-		msgbuf.release()
+		msgbuf.Release()
 		return err
 	}
 
 	payloadLen := len(payloadBuf)
 	if payloadLen > payloadCap {
 		// exceed payload
-		msgbuf.release()
+		msgbuf.Release()
 		return fmt.Errorf("MessageConnection: message paylaod too large(%d): %v", payloadLen, msg)
 	}
 
@@ -119,7 +119,7 @@ func (mc *MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg int
 	mc.sendLock.Lock()
 	err = mc.SendAll((msgbuf)[:pktSize])
 	mc.sendLock.Unlock()
-	msgbuf.release()
+	msgbuf.Release()
 	vlog.Debug(">>> SendRelayMsg: size=%v, targetID=%s, type=%v: %v, error=%v", pktSize, targetID, mt, msg, err)
 	return err
 }
@@ -151,13 +151,13 @@ func (mc *MessageConnection) RecvMsg(handler MessageHandler) error {
 
 	if pktSize > MAX_MESSAGE_SIZE {
 		// pkt size is too large
-		msg.release()
+		msg.Release()
 		return fmt.Errorf("message packet too large: %v", pktSize)
 	}
 
 	err = mc.RecvAll((msg)[SIZE_FIELD_SIZE:pktSize]) // receive the msg type and payload
 	if err != nil {
-		msg.release()
+		msg.Release()
 		return err
 	}
 
@@ -172,6 +172,5 @@ func (mc *MessageConnection) RecvMsg(handler MessageHandler) error {
 		err = handler.HandleMsg(msg, pktSize, msgtype)
 	}
 
-	msg.release()
 	return err
 }

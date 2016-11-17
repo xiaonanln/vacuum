@@ -118,31 +118,32 @@ func (dc *DispatcherClient) RelayCloseString(stringID string) error {
 //
 //}
 
-func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgType_t) error {
+func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgType_t) (err error) {
 	vlog.Debug("<<< HandleMsg: size %v, msgtype %v", pktSize, msgtype)
 	payload := msg[PREPAYLOAD_SIZE:pktSize]
 	if msgtype == START_MIGRATE_STRING_RESP {
-		return dc.handleStartMigrateStringResp(payload)
+		err = dc.handleStartMigrateStringResp(payload)
 	} else if msgtype == MIGRATE_STRING_RESP {
 		// migrate string to this server
-		return dc.handleMigrateStringResp(payload)
+		err = dc.handleMigrateStringResp(payload)
 	} else if msgtype == CREATE_STRING_RESP {
 		// create real string instance
-		return dc.handleCreateStringResp(payload)
+		err = dc.handleCreateStringResp(payload)
 	} else if msgtype == DECLARE_SERVICE_RESP {
 		// declare service
-		return dc.handleDeclareServiceResp(payload)
+		err = dc.handleDeclareServiceResp(payload)
 	} else if msgtype == STRING_DEL_RESP {
-		return dc.handleStringDelResp(payload)
+		err = dc.handleStringDelResp(payload)
 	} else if msgtype == LOAD_STRING_RESP {
-		return dc.handleLoadStringResp(payload)
+		err = dc.handleLoadStringResp(payload)
 	} else {
 		vlog.Panicf("serveDispatcherClient: invalid msg type: %v", msgtype)
-		return nil
 	}
+	msg.Release()
+	return
 }
 
-func (dc *DispatcherClient) HandleRelayMsg(msg *Message, pktSize uint32, targetID string) error {
+func (dc *DispatcherClient) HandleRelayMsg(msg *Message, pktSize uint32, targetID string) (err error) {
 	var msgType MsgType_t = MsgType_t(NETWORK_ENDIAN.Uint16(msg[SIZE_FIELD_SIZE+STRING_ID_SIZE : SIZE_FIELD_SIZE+STRING_ID_SIZE+TYPE_FIELD_SIZE]))
 
 	vlog.Debug("<<< HandleRelayMsg: size %v, msgtype %v", pktSize, msgType)
@@ -150,13 +151,14 @@ func (dc *DispatcherClient) HandleRelayMsg(msg *Message, pktSize uint32, targetI
 
 	payload := msg[RELAY_PREPAYLOAD_SIZE:pktSize]
 	if msgType == STRING_MESSAGE_RELAY {
-		return dc.handleSendStringRelay(targetID, payload)
+		err = dc.handleSendStringRelay(targetID, payload)
 	} else if msgType == CLOSE_STRING_RELAY {
-		return dc.handleCloseStringRelay(targetID)
+		err = dc.handleCloseStringRelay(targetID)
 	} else {
 		vlog.Panicf("invalid msg type: %v", msgType)
-		return nil
 	}
+	msg.Release()
+	return
 }
 
 func (dc *DispatcherClient) handleSendStringRelay(targetID string, payload []byte) error {

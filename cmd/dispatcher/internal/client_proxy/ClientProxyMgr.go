@@ -4,12 +4,25 @@ import (
 	"math/rand"
 	"sync"
 
+	"github.com/xiaonanln/vacuum/proto"
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
-type _StringInfo struct {
-	ServerID  int
-	Migrating bool
+type _CachedMessage struct {
+	msg     *proto.Message
+	pktsize uint32
+}
+
+type StringCtrl struct {
+	ServerID       int  // Server ID of string
+	Migrating      bool // if the string is migrating
+	cachedMessages []_CachedMessage
+}
+
+func newStringCtrl() *StringCtrl {
+	return &StringCtrl{
+		cachedMessages: []_CachedMessage{},
+	}
 }
 
 var (
@@ -19,8 +32,8 @@ var (
 	clientProxyIDs    = []int{}
 
 	// StringID to ServerID
-	stringInfosLock = sync.RWMutex{}
-	stringInfos     = map[string]_StringInfo{}
+	stringCtrlsLock = sync.RWMutex{}
+	stringCtrls     = map[string]*StringCtrl{}
 )
 
 func getRandomClientProxy() (ret *ClientProxy) {
@@ -76,46 +89,58 @@ func genClientProxyIDs() {
 	}
 }
 
+func lockStringCtrlForRead(stringID string) (ret *StringCtrl) {
+	stringCtrlsLock.RLock()
+	ret = stringCtrls[stringID]
+	if ret != nil {
+		return
+	}
+
+	stringCtrlsLock.RUnlock()
+	stringCtrlsLock.Lock()
+	ret = stringCtrls[stringID]
+	if ret == nil {
+		ret = newStringCtrl()
+		stringCtrls[stringID] = ret
+	}
+	stringCtrlsLock.Unlock()
+
+	stringCtrlsLock.RLock() // assure RLock
+	return
+}
+
+func lockStringCtrlForWrite(stringID string) (ret *StringCtrl) {
+	stringCtrlsLock.Lock()
+	ret = stringCtrls[stringID]
+	if ret == nil {
+		ret = newStringCtrl()
+		stringCtrls[stringID] = ret
+	}
+	// lock left locked
+	return
+}
+
 func setStringLocationMigrating(stringID string, serverID int, migrating bool) {
-	stringInfosLock.Lock()
-	info := stringInfos[stringID]
-	info.ServerID = serverID
-	info.Migrating = migrating
-	stringInfos[stringID] = info
-	stringInfosLock.Unlock()
+	ctrl := lockStringCtrlForWrite(stringID)
+	ctrl.ServerID = serverID
+	ctrl.Migrating = migrating
+	stringCtrlsLock.Unlock()
 
 	//vlog.Debug("setStringLocationMigrating %s => %v", stringID, serverID)
 }
 
 func setStringLocation(stringID string, serverID int) {
-	stringInfosLock.Lock()
-	info := stringInfos[stringID]
-	info.ServerID = serverID
-	stringInfos[stringID] = info
-	stringInfosLock.Unlock()
+	ctrl := lockStringCtrlForWrite(stringID)
+	ctrl.ServerID = serverID
+	stringCtrlsLock.Unlock()
 
 	//vlog.Debug("setStringLocation %s => %v", stringID, serverID)
 }
 
 func setStringMigrating(stringID string, migrating bool) {
-	stringInfosLock.Lock()
-	info := stringInfos[stringID]
-	info.Migrating = migrating
-	stringInfos[stringID] = info
-	stringInfosLock.Unlock()
+	ctrl := lockStringCtrlForWrite(stringID)
+	ctrl.Migrating = migrating
+	stringCtrlsLock.Unlock()
 
 	//vlog.Debug("setStringMigrating %s => %v", stringID, migrating)
-}
-
-func getStringInfo(stringID string) (ret _StringInfo) {
-	stringInfosLock.RLock()
-	ret = stringInfos[stringID]
-	stringInfosLock.RUnlock()
-
-	//vlog.Debug("getStringInfo %s => %v", stringID, ret)
-	return
-}
-
-func getStringLocation(stringID string) int {
-	return getStringInfo(stringID).ServerID
 }

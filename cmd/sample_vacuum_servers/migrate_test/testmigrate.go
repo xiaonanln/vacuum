@@ -24,7 +24,6 @@ func (pt *MigrateTester) Init(s *vacuum.String, args ...interface{}) {
 func (pt *MigrateTester) Loop(s *vacuum.String, msg common.StringMessage) {
 	pt.val += typeconv.Int(msg)
 	vlog.Debug("!!! MigrateTester.Loop %v", pt.val)
-	s.Save()
 	s.Migrate(1)
 }
 
@@ -40,7 +39,7 @@ func (pt *MigrateTester) GetPersistentData() map[string]interface{} {
 
 func (pt *MigrateTester) LoadPersistentData(data map[string]interface{}) {
 	pt.val = typeconv.Int(data["val"])
-	logrus.Printf("!!!!!!!!!!! LoadPersistentData %v!!!!!!!!!!!!!!", pt.val)
+	logrus.Printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! LoadPersistentData %v !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", pt.val)
 }
 
 func Main(s *vacuum.String) {
@@ -48,9 +47,9 @@ func Main(s *vacuum.String) {
 	//vacuum.WaitServiceReady("MigrateTester", 1)
 	time.Sleep(time.Second)
 
-	for {
+	for i := 0; i < 10000; i++ {
 		vacuum.Send(stringID, 1)
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
 	}
 
 	time.Sleep(3 * time.Second)
