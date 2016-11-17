@@ -46,7 +46,7 @@ func registerClientProxyInfo(cp *ClientProxy, serverID int) {
 	clientProxiesLock.Lock()
 	clientProxes[serverID] = cp
 	genClientProxyIDs()
-	vlog.Debugf("registerClientProxyInfo: all client proxies: %v", clientProxes)
+	vlog.Debug("registerClientProxyInfo: all client proxies: %v", clientProxes)
 	clientProxiesLock.Unlock()
 }
 
@@ -65,7 +65,7 @@ func onClientProxyClose(cp *ClientProxy) {
 		genClientProxyIDs()
 	}
 
-	vlog.Debugf("onClientProxyClose %v: all client proxies: %v", serverID, clientProxes)
+	vlog.Debug("onClientProxyClose %v: all client proxies: %v", serverID, clientProxes)
 	clientProxiesLock.Unlock()
 }
 
@@ -84,7 +84,7 @@ func setStringLocationMigrating(stringID string, serverID int, migrating bool) {
 	stringInfos[stringID] = info
 	stringInfosLock.Unlock()
 
-	//vlog.Debugf("setStringLocationMigrating %s => %v", stringID, serverID)
+	//vlog.Debug("setStringLocationMigrating %s => %v", stringID, serverID)
 }
 
 func setStringLocation(stringID string, serverID int) {
@@ -94,7 +94,7 @@ func setStringLocation(stringID string, serverID int) {
 	stringInfos[stringID] = info
 	stringInfosLock.Unlock()
 
-	//vlog.Debugf("setStringLocation %s => %v", stringID, serverID)
+	//vlog.Debug("setStringLocation %s => %v", stringID, serverID)
 }
 
 func setStringMigrating(stringID string, migrating bool) {
@@ -104,7 +104,7 @@ func setStringMigrating(stringID string, migrating bool) {
 	stringInfos[stringID] = info
 	stringInfosLock.Unlock()
 
-	//vlog.Debugf("setStringMigrating %s => %v", stringID, migrating)
+	//vlog.Debug("setStringMigrating %s => %v", stringID, migrating)
 }
 
 func getStringInfo(stringID string) (ret _StringInfo) {
@@ -112,7 +112,7 @@ func getStringInfo(stringID string) (ret _StringInfo) {
 	ret = stringInfos[stringID]
 	stringInfosLock.RUnlock()
 
-	//vlog.Debugf("getStringInfo %s => %v", stringID, ret)
+	//vlog.Debug("getStringInfo %s => %v", stringID, ret)
 	return
 }
 

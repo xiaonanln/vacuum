@@ -88,7 +88,7 @@ func (mc *MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 	err = mc.SendAll((msgbuf)[:pktSize])
 	mc.sendLock.Unlock()
 	msgbuf.release()
-	vlog.Debugf(">>> SendMsg: size=%v, type=%v: %v, error=%v", pktSize, mt, toJsonString(msg), err)
+	vlog.Debug(">>> SendMsg: size=%v, type=%v: %v, error=%v", pktSize, mt, toJsonString(msg), err)
 	return err
 }
 
@@ -120,7 +120,7 @@ func (mc *MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg int
 	err = mc.SendAll((msgbuf)[:pktSize])
 	mc.sendLock.Unlock()
 	msgbuf.release()
-	vlog.Debugf(">>> SendRelayMsg: size=%v, targetID=%s, type=%v: %v, error=%v", pktSize, targetID, mt, msg, err)
+	vlog.Debug(">>> SendRelayMsg: size=%v, targetID=%s, type=%v: %v, error=%v", pktSize, targetID, mt, msg, err)
 	return err
 }
 
@@ -147,7 +147,7 @@ func (mc *MessageConnection) RecvMsg(handler MessageHandler) error {
 		pktSize -= RELAY_MASK
 	}
 
-	vlog.Debugf("<<< RecvMsg: pktsize=%v, isRelayMsg=%v", pktSize, isRelayMsg)
+	vlog.Debug("<<< RecvMsg: pktsize=%v, isRelayMsg=%v", pktSize, isRelayMsg)
 
 	if pktSize > MAX_MESSAGE_SIZE {
 		// pkt size is too large

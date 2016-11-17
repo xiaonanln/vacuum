@@ -53,7 +53,7 @@ func RegisterString(name string, newer StringDelegateMaker) {
 	}
 
 	registeredStringDelegateNewers[name] = newer
-	vlog.Infof("String delegate newer registered: %s", name)
+	vlog.Info("String delegate newer registered: %s", name)
 }
 
 func GetLocalString(stringID string) *String {
@@ -89,10 +89,10 @@ func undeclareServicesOfString(stringID string) {
 	stringIDsByServiceLock.Lock()
 
 	for serviceName, stringIDs := range stringIDsByService {
-		vlog.Debugf("undeclareServicesOfString: checking service %s, stringIDs %v, contains %v", serviceName, stringIDs, stringIDs.Contains(stringID))
+		vlog.Debug("undeclareServicesOfString: checking service %s, stringIDs %v, contains %v", serviceName, stringIDs, stringIDs.Contains(stringID))
 		if stringIDs.Contains(stringID) {
 			// the string declared this service, remove it
-			vlog.Debugf("Undeclaring service %s of String %s!", serviceName, stringID)
+			vlog.Debug("Undeclaring service %s of String %s!", serviceName, stringID)
 			stringIDs.Remove(stringID)
 			sl := stringIDListByService[serviceName]
 			sl.Remove(stringID)

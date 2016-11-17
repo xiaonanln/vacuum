@@ -21,24 +21,25 @@ func (s *String) Migrate(serverID int) {
 	}
 
 	if s.HasFlag(SS_MIGRATING) { // already migrating...
-		vlog.Debugf("%s: already migrating", s)
+		vlog.Debug("%s: already migrating", s)
 		return
 	}
 
-	vlog.Debugf("%s.Migrate: start migrating ...", s)
+	vlog.Debug("%s.Migrate: start migrating ...", s)
 	// mark as migrating
 	s.SetFlag(SS_MIGRATING)
+	s.migrateNotify = make(chan int, 1)
 	// send the start-migrate req
 	dispatcher_client.SendStartMigrateStringReq(s.ID)
 }
 
 func StartMigrateString(stringID string) {
 	s := popString(stringID) // get the migrating string
-	vlog.Debugf(">>> StartMigrateString: stringID=%s, string=%v, migrating=%v", stringID, s, s != nil && s.HasFlag(SS_MIGRATING))
+	vlog.Debug(">>> StartMigrateString: stringID=%s, string=%v, migrating=%v", stringID, s, s != nil && s.HasFlag(SS_MIGRATING))
 
 	if s == nil || s.HasFlag(SS_FINIALIZING) {
 		// String gone or finializing, migrate stop.
-		vlog.Debugf("StartMigrateString: String %s already finialized or qutied", stringID)
+		vlog.Debug("StartMigrateString: String %s already finialized or qutied", stringID)
 		return
 	}
 
@@ -58,6 +59,6 @@ func StartMigrateString(stringID string) {
 
 // String migrated to this server
 func OnMigrateString(name string, stringID string, data map[string]interface{}) {
-	vlog.Debugf("String %s.%s migrated to server %v: data=%v", name, stringID, serverID, data)
+	vlog.Debug("String %s.%s migrated to server %v: data=%v", name, stringID, serverID, data)
 	createString(name, stringID, nil, false, data)
 }

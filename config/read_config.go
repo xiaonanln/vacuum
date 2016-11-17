@@ -66,7 +66,7 @@ func LoadConfig(configFile string) {
 	err = json.Unmarshal(data, &config)
 	checkError(err)
 
-	vlog.Infof("Load config: %s, config=%v", configFile, config)
+	vlog.Info("Load config: %s, config=%v", configFile, config)
 }
 
 func GetConfig() *Config {

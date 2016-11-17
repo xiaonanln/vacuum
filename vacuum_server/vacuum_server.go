@@ -40,11 +40,11 @@ func init() {
 		vlog.Panicf("Server ID must be positive, not %d", serverID)
 	}
 
-	vlog.Debugf(">>> Server ID: %d, Config file: %s", serverID, configFile)
+	vlog.Debug(">>> Server ID: %d, Config file: %s", serverID, configFile)
 
 	config.LoadConfig(configFile)
 	vacuumConfig := config.GetConfig().GetVacuumConfig(serverID)
-	vlog.Debugf("VACUUM %d LOAD CONFIG:", serverID)
+	vlog.Debug("VACUUM %d LOAD CONFIG:", serverID)
 	os.Stderr.WriteString(config.FormatConfig(vacuumConfig))
 
 	storage := openStorage(vacuumConfig.Storage)

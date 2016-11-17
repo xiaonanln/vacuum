@@ -46,7 +46,7 @@ func assureConnectedDispatcherClient() *DispatcherClient {
 	for dispatcherClient == nil {
 		dispatcherClient, err = connectDispatchClient()
 		if err != nil {
-			vlog.Errorf("Connect to dispatcher failed: %s", err.Error())
+			vlog.Error("Connect to dispatcher failed: %s", err.Error())
 			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)
 			continue
 		}
@@ -133,13 +133,13 @@ func getDispatcherClientForSend() *DispatcherClient {
 // serve the dispatcher client, receive RESPs from dispatcher and process
 func serveDispatcherClient() {
 	var err error
-	vlog.Debugf("serveDispatcherClient: start serving dispatcher client ...")
+	vlog.Debug("serveDispatcherClient: start serving dispatcher client ...")
 	for {
 		dispatcherClient := assureConnectedDispatcherClient()
 
 		err = dispatcherClient.RecvMsg(dispatcherClient)
 		if err != nil {
-			vlog.TraceErrorf("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
+			vlog.TraceError("serveDispatcherClient: RecvMsgPacket error: %s", err.Error())
 			dispatcherClient.Close()
 			setDispatcherClient(nil)
 			time.Sleep(LOOP_DELAY_ON_DISPATCHER_CLIENT_ERROR)

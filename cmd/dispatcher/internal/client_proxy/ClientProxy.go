@@ -36,12 +36,12 @@ func (cp *ClientProxy) Serve() {
 		err := recover()
 
 		if err != nil && !netutil.IsConnectionClosed(err) {
-			vlog.Errorf("Client %s paniced with error: %v", cp, err)
+			vlog.Error("Client %s paniced with error: %v", cp, err)
 			debug.PrintStack()
 		}
 	}()
 
-	vlog.Infof("New dispatcher client: %s", cp)
+	vlog.Info("New dispatcher client: %s", cp)
 	for {
 		err := cp.RecvMsg(cp)
 		if err != nil {
@@ -81,7 +81,7 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetString
 	if !stringInfo.Migrating { // normal case
 		serverID := getStringLocation(targetStringID)
 		chooseServer := getClientProxy(serverID)
-		vlog.Debugf(">>> RelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetStringID)
+		vlog.Debug(">>> RelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetStringID)
 		return chooseServer.SendAll(msg[:pktSize])
 	} else { // string is migrating, we need to cache the msg until string migrated
 		// just ignore for a while ...
@@ -96,7 +96,7 @@ func (cp *ClientProxy) handleStartMigrateStringReq(data []byte) error {
 		return err
 	}
 
-	vlog.Debugf("%s.handleStartMigrateStringReq %T %v", cp, req, req)
+	vlog.Debug("%s.handleStartMigrateStringReq %T %v", cp, req, req)
 	// migrating, messages to this String should be cached, until real migration happened
 	setStringMigrating(req.StringID, true)
 	// send the resp to the client
@@ -113,7 +113,7 @@ func (cp *ClientProxy) handleMigrateStringReq(data []byte) error {
 		return err
 	}
 
-	vlog.Debugf("%s.handleMigrateStringReq %T %v", cp, req, req)
+	vlog.Debug("%s.handleMigrateStringReq %T %v", cp, req, req)
 
 	// the string is migrating to specified server
 	chooseServer := getClientProxy(req.ServerID)
@@ -142,7 +142,7 @@ func (cp *ClientProxy) handleCreateStringReq(data []byte) error {
 	stringID := req.StringID
 	setStringLocation(stringID, chooseServer.ServerID)
 
-	vlog.Debugf("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
+	vlog.Debug("%s.handleCreateStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
 	resp := CreateStringResp{
 		Name:     req.Name,
 		StringID: stringID,
@@ -162,7 +162,7 @@ func (cp *ClientProxy) handleLoadStringReq(data []byte) error {
 	stringID := req.StringID
 	setStringLocation(stringID, chooseServer.ServerID)
 
-	vlog.Debugf("%s.handleLoadStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
+	vlog.Debug("%s.handleLoadStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
 	resp := LoadStringResp{
 		Name:     req.Name,
 		StringID: stringID,
@@ -181,14 +181,14 @@ func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) error {
 
 	stringID := req.StringID
 	setStringLocation(stringID, cp.ServerID)
-	vlog.Debugf("%s.handleCreateStringLocallyReq %T %v", cp, req, req)
+	vlog.Debug("%s.handleCreateStringLocallyReq %T %v", cp, req, req)
 	return nil
 }
 
 func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) error {
 	var req RegisterVacuumServerReq
 	MSG_PACKER.UnpackMsg(data, &req)
-	vlog.Debugf("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
+	vlog.Debug("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
 	registerClientProxyInfo(cp, req.ServerID)
 	return nil
 }
@@ -198,7 +198,7 @@ func (cp *ClientProxy) handleDeclareServiceReq(data []byte) error {
 	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
 		return err
 	}
-	vlog.Debugf("%s.handleDeclareServiceReq %T %v", cp, req, req)
+	vlog.Debug("%s.handleDeclareServiceReq %T %v", cp, req, req)
 
 	// the the declare of service to all clients
 	return sendToAllClientProxies(DECLARE_SERVICE_RESP, &DeclareServiceResp{
@@ -213,7 +213,7 @@ func (cp *ClientProxy) handleStringDelReq(data []byte) error {
 	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
 		return err
 	}
-	vlog.Debugf("%s.handleStringDelReq %T %v", cp, req, req)
+	vlog.Debug("%s.handleStringDelReq %T %v", cp, req, req)
 
 	stringID := req.StringID
 	return sendToAllClientProxies(STRING_DEL_RESP, &StringDelResp{

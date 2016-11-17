@@ -22,7 +22,7 @@ var (
 
 func debuglog(format string, a ...interface{}) {
 	s := fmt.Sprintf(format, a...)
-	vlog.Debugf("dispatcher: %s", s)
+	vlog.Debug("dispatcher: %s", s)
 }
 
 type DispatcherDelegate struct{}

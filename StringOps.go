@@ -41,7 +41,7 @@ func OnCreateString(name string, stringID string, args []interface{}) {
 }
 
 func OnLoadString(name string, stringID string) {
-	vlog.Debugf("OnLoadString: name=%s, stringID=%s", name, stringID)
+	vlog.Debug("OnLoadString: name=%s, stringID=%s", name, stringID)
 	createString(name, stringID, []interface{}{}, true, nil)
 }
 
@@ -54,7 +54,7 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 	delegate := delegateMaker()
 	s := newString(stringID, name, delegate)
 	putString(s)
-	vlog.Debugf("OnCreateString %s: %s, args=%v", name, s, args)
+	vlog.Debug("OnCreateString %s: %s, args=%v", name, s, args)
 
 	go func() {
 		s.delegate.Init(s, args...)
@@ -78,34 +78,32 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 
 	read_loop:
 		for {
-			if s.HasFlag(SS_MIGRATING) {
-				for {
-					msg, ok := s.tryRead()
-					vlog.Debugf("Migrating, running different loop: msg=%v, ok=%v", msg, ok)
-					if ok {
-						if msg != nil {
-							s.delegate.Loop(s, msg)
-						} else {
-							break read_loop
-						}
-					} else {
-						// no message left unprocessed, start migrating, so quit routine
-						vlog.Debugf("%s: Quiting routine for migrating", s)
-						return
-					}
+			if !s.HasFlag(SS_MIGRATING) {
+				msg := <-s.inputChan
+				if msg != nil {
+					s.delegate.Loop(s, msg)
+				} else {
+					break read_loop
 				}
+			} else {
+				select {
+				case msg := <-s.inputChan:
+					if msg != nil {
+						s.delegate.Loop(s, msg)
+					} else {
+						break read_loop
+					}
+				case <-s.migrateNotify: // notify from migrate, start real migrate now
+					vlog.Debug("%s: Quiting routine for migrating", s)
+					return
+				}
+				continue read_loop
 			}
 
-			msg := s.Read()
-			if msg != nil {
-				s.delegate.Loop(s, msg)
-			} else {
-				break read_loop
-			}
 		}
 
 		if s.HasFlag(SS_MIGRATING) {
-			vlog.Debugf("%s: string migrated ignored because it's finializing", s)
+			vlog.Debug("%s: string migrated ignored because it's finializing", s)
 		}
 
 		s.SetFlag(SS_FINIALIZING)
@@ -115,7 +113,8 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 			s.Save()
 		}
 
-		onStringRoutineQuit(name, stringID)
+		vlog.Debug("--- %s quited", s)
+		onStringRoutineQuit(s)
 	}()
 }
 
@@ -125,13 +124,13 @@ func DeclareService(sid string, serviceName string) {
 }
 
 func OnDeclareService(stringID string, serviceName string) {
-	vlog.Infof("vacuum: OnDeclareService: %s => %s", stringID, serviceName)
+	vlog.Info("vacuum: OnDeclareService: %s => %s", stringID, serviceName)
 	declareService(stringID, serviceName)
 }
 
 func OnSendStringMessage(stringID string, msg common.StringMessage) {
 	s := getString(stringID)
-	vlog.Debugf("vacuum: OnSendStringMessage: %s => %v", s, msg)
+	vlog.Debug("vacuum: OnSendStringMessage: %s => %v", s, msg)
 	s.inputChan <- msg
 }
 
@@ -151,8 +150,12 @@ func OnCloseString(stringID string) {
 }
 
 // Called after string quit its routine
-func onStringRoutineQuit(name string, stringID string) {
-	vlog.Debugf("String %s.%s quited.", name, stringID)
+func onStringRoutineQuit(s *String) {
+	close(s.inputChan)
+	if s.migrateNotify != nil {
+		close(s.migrateNotify)
+	}
+	stringID := s.ID
 	delString(stringID) // delete the string on local server
 	undeclareServicesOfString(stringID)
 	dispatcher_client.SendStringDelReq(stringID)

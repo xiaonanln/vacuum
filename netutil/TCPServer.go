@@ -20,7 +20,7 @@ type TCPServerDelegate interface {
 func ServeTCPForever(listenAddr string, delegate TCPServerDelegate) {
 	for {
 		err := serveTCPForeverOnce(listenAddr, delegate)
-		vlog.Errorf("server@%s failed with error: %v, will restart after %s", listenAddr, err, RESTART_TCP_SERVER_INTERVAL)
+		vlog.Error("server@%s failed with error: %v, will restart after %s", listenAddr, err, RESTART_TCP_SERVER_INTERVAL)
 		time.Sleep(RESTART_TCP_SERVER_INTERVAL)
 	}
 }
@@ -28,7 +28,7 @@ func ServeTCPForever(listenAddr string, delegate TCPServerDelegate) {
 func serveTCPForeverOnce(listenAddr string, delegate TCPServerDelegate) error {
 	defer func() {
 		if err := recover(); err != nil {
-			vlog.Errorf("serveTCPImpl: paniced with error %s", err)
+			vlog.Error("serveTCPImpl: paniced with error %s", err)
 			debug.PrintStack()
 		}
 	}()
@@ -39,7 +39,7 @@ func serveTCPForeverOnce(listenAddr string, delegate TCPServerDelegate) error {
 
 func ServeTCP(listenAddr string, delegate TCPServerDelegate) error {
 	ln, err := net.Listen("tcp", listenAddr)
-	vlog.Infof("Listening on TCP: %s ...", listenAddr)
+	vlog.Info("Listening on TCP: %s ...", listenAddr)
 
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func ServeTCP(listenAddr string, delegate TCPServerDelegate) error {
 			}
 		}
 
-		vlog.Infof("Connection from: %s", conn.RemoteAddr())
+		vlog.Info("Connection from: %s", conn.RemoteAddr())
 		go delegate.ServeTCPConnection(conn)
 	}
 	return nil

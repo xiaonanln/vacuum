@@ -12,7 +12,7 @@ import (
 
 func debuglog(format string, a ...interface{}) {
 	s := fmt.Sprintf(format, a...)
-	vlog.Debugf("TelnetServer: %s", s)
+	vlog.Debug("TelnetServer: %s", s)
 }
 
 type TelnetServerDelegate struct {

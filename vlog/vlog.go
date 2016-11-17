@@ -14,16 +14,12 @@ var (
 	PANIC = sublog.PanicLevel
 	FATAL = sublog.FatalLevel
 
+	Debug  = sublog.Debugf
+	Info   = sublog.Infof
+	Error  = sublog.Errorf
 	Panic  = sublog.Panic
 	Panicf = sublog.Panicf
-	Debugf = sublog.Debugf
-	Debug  = sublog.Debug
-
-	Error  = sublog.Error
-	Errorf = sublog.Errorf
-
-	Info  = sublog.Info
-	Infof = sublog.Infof
+	Fatal  = sublog.Fatalf
 )
 
 func ParseLevel(lvl string) (sublog.Level, error) {
@@ -34,12 +30,7 @@ func SetLevel(lv sublog.Level) {
 	sublog.SetLevel(lv)
 }
 
-func TraceErrorf(format string, args ...interface{}) {
+func TraceError(format string, args ...interface{}) {
 	debug.PrintStack()
-	Errorf(format, args...)
-}
-
-func TraceError(args ...interface{}) {
-	debug.PrintStack()
-	Error(args...)
+	Error(format, args...)
 }

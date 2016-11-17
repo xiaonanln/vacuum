@@ -44,5 +44,5 @@ func init() {
 	sl.Append("3")
 	sl.Remove("3")
 	sl.Remove("4")
-	vlog.Infof("sl %v", sl)
+	vlog.Info("sl %v", sl)
 }

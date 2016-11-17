@@ -30,13 +30,14 @@ const (
 )
 
 type String struct {
-	ID          string
-	Name        string
-	delegate    StringDelegate
-	persistence PersistentString
-	inputChan   chan StringMessage
-	outputSid   string
-	flags       uint64
+	ID            string
+	Name          string
+	delegate      StringDelegate
+	persistence   PersistentString
+	inputChan     chan StringMessage
+	outputSid     string
+	flags         uint64
+	migrateNotify chan int
 }
 
 func newString(stringID string, name string, delegate StringDelegate) *String {
@@ -79,9 +80,7 @@ func (s *String) IsPersistent() bool {
 }
 
 func (s *String) Read() StringMessage {
-	msg, _ := <-s.inputChan
-	//vlog.Debugf("%s READ %T(%v)", s, msg, msg)
-	return msg
+	return <-s.inputChan
 }
 
 func (s *String) tryRead() (StringMessage, bool) {
@@ -136,7 +135,7 @@ func Send(stringID string, msg interface{}) {
 		if targetString == nil { // string is not local, send msg to dispatcher
 			dispatcher_client.SendStringMessage(stringID, msg)
 		} else { // found the target string on this vacuum server
-			vlog.Infof("Send through channel %s <- %v", targetString, msg)
+			vlog.Info("Send through channel %s <- %v", targetString, msg)
 			targetString.inputChan <- msg
 		}
 	} else {

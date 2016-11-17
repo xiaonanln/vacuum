@@ -29,7 +29,7 @@ func (ss *FileSystemStringStorage) Write(name string, stringID string, data inte
 		return err
 	}
 
-	vlog.Debugf("Saving to file %s: %s", stringSaveFile, string(dataBytes))
+	vlog.Debug("Saving to file %s: %s", stringSaveFile, string(dataBytes))
 	return ioutil.WriteFile(stringSaveFile, dataBytes, 0644)
 }
 

@@ -127,11 +127,11 @@ func runServe(f reflect.Value, args []reflect.Value) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			vlog.Errorf("ServeForever: func %v quited with error %v", f, err)
+			vlog.Error("ServeForever: func %v quited with error %v", f, err)
 			debug.PrintStack()
 		}
 	}()
 
 	rets := f.Call(args)
-	vlog.Debugf("ServeForever: func %v returns %v", f, rets)
+	vlog.Debug("ServeForever: func %v returns %v", f, rets)
 }

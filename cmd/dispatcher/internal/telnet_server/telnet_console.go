@@ -40,7 +40,7 @@ func (tc *TelnetConsole) run() {
 		}
 		tc.handleCommand(line)
 	}
-	vlog.Infof("Console %s closed.", tc.conn.RemoteAddr())
+	vlog.Info("Console %s closed.", tc.conn.RemoteAddr())
 }
 
 func (tc *TelnetConsole) close() {
@@ -65,7 +65,7 @@ func (tc *TelnetConsole) handleCommand(cmd string) {
 	defer func() {
 		err := recover() // catch all errors during handling command
 		if err != nil {
-			vlog.Debugf("TelnetConsole.handleCommand failed: cmd=%s, err=%s", cmd, err)
+			vlog.Debug("TelnetConsole.handleCommand failed: cmd=%s, err=%s", cmd, err)
 			debug.PrintStack()
 		}
 	}()
