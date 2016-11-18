@@ -16,7 +16,7 @@ type DispatcherRespHandler interface {
 	HandleDispatcherResp_CloseString(stringID string)
 	HandleDispatcherResp_DelString(stringID string)
 	HandleDispatcherResp_OnMigrateString(name string, stringID string, data map[string]interface{})
-	HandleDispatcherResp_StartMigrateString(stringID string)
+	HandleDispatcherResp_MigrateString(stringID string)
 }
 
 type DispatcherClient struct {
@@ -226,7 +226,7 @@ func (dc *DispatcherClient) handleStartMigrateStringResp(payload []byte) error {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_StartMigrateString(resp.StringID)
+	dispatcherRespHandler.HandleDispatcherResp_MigrateString(resp.StringID)
 	return nil
 }
 

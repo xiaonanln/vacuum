@@ -30,14 +30,17 @@ const (
 )
 
 type String struct {
-	ID            string
-	Name          string
-	delegate      StringDelegate
-	persistence   PersistentString
-	inputChan     chan StringMessage
-	outputSid     string
-	flags         uint64
-	migrateNotify chan int
+	ID          string
+	Name        string
+	delegate    StringDelegate
+	persistence PersistentString
+	inputChan   chan StringMessage
+	outputSid   string
+
+	flags uint64
+
+	migratingToServerID int
+	migrateNotify       chan int
 }
 
 func newString(stringID string, name string, delegate StringDelegate) *String {

@@ -77,8 +77,8 @@ func (rh DispatcherRespHandler) HandleDispatcherResp_LoadString(name string, str
 	vacuum.OnLoadString(name, stringID)
 }
 
-func (rh DispatcherRespHandler) HandleDispatcherResp_StartMigrateString(stringID string) {
-	vacuum.StartMigrateString(stringID)
+func (rh DispatcherRespHandler) HandleDispatcherResp_MigrateString(stringID string) {
+	vacuum.MigrateString(stringID)
 }
 
 func (rh DispatcherRespHandler) HandleDispatcherResp_OnMigrateString(name string, stringID string, data map[string]interface{}) {

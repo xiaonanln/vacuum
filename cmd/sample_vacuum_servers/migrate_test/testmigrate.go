@@ -47,9 +47,9 @@ func Main(s *vacuum.String) {
 	//vacuum.WaitServiceReady("MigrateTester", 1)
 	time.Sleep(time.Second)
 
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000; i++ {
 		vacuum.Send(stringID, 1)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(100 * time.Microsecond)
 	}
 
 	time.Sleep(3 * time.Second)

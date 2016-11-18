@@ -28,12 +28,13 @@ func (s *String) Migrate(serverID int) {
 	vlog.Debug("%s.Migrate: start migrating ...", s)
 	// mark as migrating
 	s.SetFlag(SS_MIGRATING)
-	s.migrateNotify = make(chan int, 1)
+	s.migratingToServerID = serverID
+	s.migrateNotify = make(chan int, 0)
 	// send the start-migrate req
 	dispatcher_client.SendStartMigrateStringReq(s.ID)
 }
 
-func StartMigrateString(stringID string) {
+func MigrateString(stringID string) {
 	s := popString(stringID) // get the migrating string
 	vlog.Debug(">>> StartMigrateString: stringID=%s, string=%v, migrating=%v", stringID, s, s != nil && s.HasFlag(SS_MIGRATING))
 
@@ -43,6 +44,8 @@ func StartMigrateString(stringID string) {
 		return
 	}
 
+	migratingToServerID := s.migratingToServerID
+	s.migrateNotify <- 1 // transfer control to the string
 	// whenever we started migrating,
 	// there should be no more msg to this String,
 	// so there should be no conflict on String
@@ -54,7 +57,7 @@ func StartMigrateString(stringID string) {
 		data = s.persistence.GetPersistentData()
 	}
 
-	dispatcher_client.SendMigrateStringReq(s.Name, s.ID, serverID, data)
+	dispatcher_client.SendMigrateStringReq(s.Name, s.ID, migratingToServerID, data)
 }
 
 // String migrated to this server
