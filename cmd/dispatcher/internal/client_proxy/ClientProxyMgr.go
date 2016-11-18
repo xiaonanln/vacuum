@@ -52,15 +52,17 @@ func getClientProxy(serverID int) (ret *ClientProxy) {
 	return
 }
 
-func registerClientProxyInfo(cp *ClientProxy, serverID int) {
+func registerClientProxyInfo(cp *ClientProxy, serverID int) (ret []int) {
 	// register the new vacuum server client proxy
 	cp.ServerID = serverID
 
 	clientProxiesLock.Lock()
 	clientProxes[serverID] = cp
 	genClientProxyIDs()
+	ret = clientProxyIDs
 	vlog.Debug("registerClientProxyInfo: all client proxies: %v", clientProxes)
 	clientProxiesLock.Unlock()
+	return
 }
 
 func onClientProxyClose(cp *ClientProxy) {

@@ -25,6 +25,9 @@ func (s *String) Migrate(serverID int) {
 		return
 	}
 
+	// wait the target server ready before migrating ...
+	WaitServerReady(serverID)
+
 	vlog.Debug("%s.Migrate: start migrating ...", s)
 	// mark as migrating
 	s.SetFlag(SS_MIGRATING)
@@ -36,11 +39,11 @@ func (s *String) Migrate(serverID int) {
 
 func MigrateString(stringID string) {
 	s := popString(stringID) // get the migrating string
-	vlog.Debug(">>> StartMigrateString: stringID=%s, string=%v, migrating=%v", stringID, s, s != nil && s.HasFlag(SS_MIGRATING))
+	vlog.Debug(">>> MigrateString: stringID=%s, string=%v, migrating=%v", stringID, s, s != nil && s.HasFlag(SS_MIGRATING))
 
 	if s == nil || s.HasFlag(SS_FINIALIZING) {
 		// String gone or finializing, migrate stop.
-		vlog.Debug("StartMigrateString: String %s already finialized or qutied", stringID)
+		vlog.Debug("MigrateString: String %s already finialized or qutied", stringID)
 		return
 	}
 

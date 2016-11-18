@@ -3,12 +3,18 @@ package main
 import (
 	"time"
 
+	"math/rand"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server"
 	"github.com/xiaonanln/vacuum/vlog"
+)
+
+const (
+	N = 1000
 )
 
 type MigrateTester struct {
@@ -22,13 +28,13 @@ func (pt *MigrateTester) Init(s *vacuum.String, args ...interface{}) {
 }
 
 func (pt *MigrateTester) Loop(s *vacuum.String, msg common.StringMessage) {
-	pt.val += typeconv.Int(msg)
+	pt.val += 1
 	vlog.Debug("!!! MigrateTester.Loop %v", pt.val)
-	s.Migrate(1)
+	s.Migrate(1 + rand.Intn(2))
 }
 
 func (pt *MigrateTester) Fini(s *vacuum.String) {
-	vlog.Debug("!!! MigrateTester.Fini %v", pt.val)
+	vlog.Debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MigrateTester.Fini %v", pt.val)
 }
 
 func (pt *MigrateTester) GetPersistentData() map[string]interface{} {
@@ -39,7 +45,7 @@ func (pt *MigrateTester) GetPersistentData() map[string]interface{} {
 
 func (pt *MigrateTester) LoadPersistentData(data map[string]interface{}) {
 	pt.val = typeconv.Int(data["val"])
-	logrus.Printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! LoadPersistentData %v !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", pt.val)
+	logrus.Printf("LoadPersistentData %v", pt.val)
 }
 
 func Main(s *vacuum.String) {
@@ -47,15 +53,19 @@ func Main(s *vacuum.String) {
 	//vacuum.WaitServiceReady("MigrateTester", 1)
 	time.Sleep(time.Second)
 
-	for i := 0; i < 1000; i++ {
-		vacuum.Send(stringID, 1)
+	for i := 0; i < N; i++ {
+		vacuum.Send(stringID, i+1)
 		time.Sleep(100 * time.Microsecond)
 	}
 
+	vacuum.Send(stringID, nil)
 	time.Sleep(3 * time.Second)
+
 }
 
 func main() {
+	vacuum.WaitServerReady(1)
+	vacuum.WaitServerReady(2)
 	vacuum.RegisterMain(Main)
 	vacuum.RegisterString("MigrateTester", func() vacuum.StringDelegate {
 		pt := &MigrateTester{}

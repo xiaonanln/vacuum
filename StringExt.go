@@ -11,9 +11,9 @@ func WaitServiceReady(serviceName string, n int) {
 	current := GetServiceProviderCount(serviceName)
 	vlog.Debug("Waiting service %s to be ready: need %d, current %d", serviceName, n, current)
 	for current < n {
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_OPS_LOOP_INTERVAL)
 		current = GetServiceProviderCount(serviceName)
-		vlog.Debug("WaitServiceReady %s: current %d, need %d", serviceName, current, n)
+		//vlog.Debug("WaitServiceReady %s: current %d, need %d", serviceName, current, n)
 	}
 	vlog.Debug("Service %s is ready now: num=%d", serviceName, current)
 }
@@ -22,7 +22,7 @@ func WaitServiceGone(serviceName string) {
 	current := GetServiceProviderCount(serviceName)
 	vlog.Debug("Waiting service %s to be gone: current %d", serviceName, current)
 	for current > 0 {
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_OPS_LOOP_INTERVAL)
 		current = GetServiceProviderCount(serviceName)
 	}
 	vlog.Debug("Service %s is gone now", serviceName)

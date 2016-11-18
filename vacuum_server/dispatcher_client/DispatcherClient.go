@@ -9,6 +9,7 @@ import (
 )
 
 type DispatcherRespHandler interface {
+	HandleDispatcherResp_RegisterVacuumServer(serverIDs []int)
 	HandleDispatcherResp_CreateString(name string, stringID string, args []interface{})
 	HandleDispatcherResp_LoadString(name string, stringID string)
 	HandleDispatcherResp_DeclareService(stringID string, serviceName string)
@@ -136,6 +137,8 @@ func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgT
 		err = dc.handleStringDelResp(payload)
 	} else if msgtype == LOAD_STRING_RESP {
 		err = dc.handleLoadStringResp(payload)
+	} else if msgtype == REGISTER_VACUUM_SERVER_RESP {
+		err = dc.handleRegisterVacuumServerResp(payload)
 	} else {
 		vlog.Panicf("serveDispatcherClient: invalid msg type: %v", msgtype)
 	}
@@ -177,10 +180,19 @@ func (dc *DispatcherClient) handleCloseStringRelay(targetID string) error {
 	return nil
 }
 
+func (dc *DispatcherClient) handleRegisterVacuumServerResp(payload []byte) error {
+	var resp RegisterVacuumServerResp
+	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+		return err
+	}
+
+	dispatcherRespHandler.HandleDispatcherResp_RegisterVacuumServer(resp.ServerIDS)
+	return nil
+}
+
 func (dc *DispatcherClient) handleCreateStringResp(payload []byte) error {
 	var resp CreateStringResp
-	err := MSG_PACKER.UnpackMsg(payload, &resp)
-	if err != nil {
+	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
 		return err
 	}
 

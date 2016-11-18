@@ -1,29 +1,34 @@
 package proto
 
 const (
-	INVALID_MSG_TYPE           = iota
-	REGISTER_VACUUM_SERVER_REQ = iota
-	STRING_MESSAGE_RELAY       = iota
-	CREATE_STRING_REQ          = iota
-	CREATE_STRING_RESP         = iota
-	LOAD_STRING_REQ            = iota
-	LOAD_STRING_RESP           = iota
-	DECLARE_SERVICE_REQ        = iota
-	DECLARE_SERVICE_RESP       = iota
-	CREATE_STRING_LOCALLY_REQ  = iota
-	CLOSE_STRING_RELAY         = iota
-	STRING_DEL_REQ             = iota
-	STRING_DEL_RESP            = iota
-	START_MIGRATE_STRING_REQ   = iota
-	START_MIGRATE_STRING_RESP  = iota
-	MIGRATE_STRING_REQ         = iota
-	MIGRATE_STRING_RESP        = iota
+	INVALID_MSG_TYPE            = iota
+	REGISTER_VACUUM_SERVER_REQ  = iota
+	REGISTER_VACUUM_SERVER_RESP = iota
+	STRING_MESSAGE_RELAY        = iota
+	CREATE_STRING_REQ           = iota
+	CREATE_STRING_RESP          = iota
+	LOAD_STRING_REQ             = iota
+	LOAD_STRING_RESP            = iota
+	DECLARE_SERVICE_REQ         = iota
+	DECLARE_SERVICE_RESP        = iota
+	CREATE_STRING_LOCALLY_REQ   = iota
+	CLOSE_STRING_RELAY          = iota
+	STRING_DEL_REQ              = iota
+	STRING_DEL_RESP             = iota
+	START_MIGRATE_STRING_REQ    = iota
+	START_MIGRATE_STRING_RESP   = iota
+	MIGRATE_STRING_REQ          = iota
+	MIGRATE_STRING_RESP         = iota
 )
 
 type MsgType_t uint16
 
 type RegisterVacuumServerReq struct {
 	ServerID int `msgpack:"SID"`
+}
+
+type RegisterVacuumServerResp struct {
+	ServerIDS []int `msgpack:"SIDS"`
 }
 
 type StringMessageRelay struct {

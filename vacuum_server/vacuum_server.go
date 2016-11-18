@@ -7,6 +7,8 @@ import (
 
 	"os"
 
+	"sync"
+
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/config"
@@ -23,9 +25,8 @@ var (
 	serverID   = 1 // default server ID to be 1
 	logLevel   = DEFAULT_LOG_LEVEL
 	configFile = ""
+	serverOps  _ServerOps
 )
-
-type DispatcherRespHandler struct{}
 
 func init() {
 	// initializing the vacuum server
@@ -48,9 +49,16 @@ func init() {
 	os.Stderr.WriteString(config.FormatConfig(vacuumConfig))
 
 	storage := openStorage(vacuumConfig.Storage)
-	vacuum.Setup(serverID, storage)
+	vacuum.Setup(serverID, storage, &serverOps)
 
 	dispatcher_client.Initialize(serverID, DispatcherRespHandler{})
+}
+
+type DispatcherRespHandler struct{}
+
+func (rh DispatcherRespHandler) HandleDispatcherResp_RegisterVacuumServer(serverIDs []int) {
+	vlog.Info("RegisterVacuumServer: %v", serverIDs)
+	serverOps.setVacuumServerIDs(serverIDs)
 }
 
 func (rh DispatcherRespHandler) HandleDispatcherResp_CreateString(name string, stringID string, args []interface{}) {
@@ -83,6 +91,25 @@ func (rh DispatcherRespHandler) HandleDispatcherResp_MigrateString(stringID stri
 
 func (rh DispatcherRespHandler) HandleDispatcherResp_OnMigrateString(name string, stringID string, data map[string]interface{}) {
 	vacuum.OnMigrateString(name, stringID, data)
+}
+
+type _ServerOps struct {
+	lock      sync.RWMutex
+	serverIDs []int
+}
+
+func (so *_ServerOps) GetServerList() (ret []int) {
+	so.lock.RLock()
+	//vlog.Debug("GetServerList: %v", so.serverIDs)
+	ret = so.serverIDs
+	so.lock.RUnlock()
+	return
+}
+
+func (so *_ServerOps) setVacuumServerIDs(serverIDs []int) {
+	so.lock.Lock()
+	so.serverIDs = serverIDs
+	so.lock.Unlock()
 }
 
 func RunServer() {

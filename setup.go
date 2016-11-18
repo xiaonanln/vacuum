@@ -7,7 +7,8 @@ var (
 	stringStorage storage.StringStorage
 )
 
-func Setup(_serverID int, _storage storage.StringStorage) {
+func Setup(_serverID int, _storage storage.StringStorage, _serverOps ServerOps) {
 	serverID = _serverID
 	stringStorage = _storage
+	serverOps = _serverOps
 }

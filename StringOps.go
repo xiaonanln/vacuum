@@ -130,7 +130,7 @@ func OnDeclareService(stringID string, serviceName string) {
 
 func OnSendStringMessage(stringID string, msg common.StringMessage) {
 	s := getString(stringID)
-	vlog.Debug("vacuum: OnSendStringMessage: %s => %v", s, msg)
+	vlog.Debug("vacuum: OnSendStringMessage: %s: %s => %v", stringID, s, msg)
 	s.inputChan <- msg
 }
 

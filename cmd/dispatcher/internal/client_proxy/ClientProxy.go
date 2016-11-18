@@ -81,23 +81,24 @@ func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t
 
 func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetStringID string) (err error) {
 	// just relay the msg
-	stringCtrl := lockStringCtrlForRead(targetStringID)
-	if !stringCtrl.Migrating { // normal case
+	stringCtrl := lockStringCtrlForWrite(targetStringID) // TODO: optimize: lock for read first
+	if !stringCtrl.Migrating {                           // normal case
 		serverID := stringCtrl.ServerID
-		stringCtrlsLock.RUnlock() // unlock as soon as possible
+		stringCtrlsLock.Unlock() // unlock as soon as possible
 
 		chooseServer := getClientProxy(serverID)
 		vlog.Debug(">>> RelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetStringID)
 		err = chooseServer.SendAll(msg[:pktSize])
 		msg.Release()
-	} else { // string is migrating, we need to cache the msg until string migrated
-		stringCtrl.cachedMessages = append(stringCtrl.cachedMessages, _CachedMessage{
-			msg:     msg,
-			pktsize: pktSize,
-		}) // cahce the message
-		stringCtrlsLock.RUnlock() // unlock as soon as possible
-		// not release the msg
+		return
 	}
+
+	stringCtrl.cachedMessages = append(stringCtrl.cachedMessages, _CachedMessage{
+		msg:     msg,
+		pktsize: pktSize,
+	}) // cahce the message
+	stringCtrlsLock.Unlock() // unlock as soon as possible
+	// not release the msg
 	return
 }
 
@@ -130,12 +131,13 @@ func (cp *ClientProxy) handleMigrateStringReq(data []byte) error {
 	chooseServer := getClientProxy(req.ServerID)
 
 	ctrl := lockStringCtrlForWrite(req.StringID)
+	defer stringCtrlsLock.Unlock()
+
 	ctrl.ServerID = req.ServerID
 	ctrl.Migrating = false
 
 	var cacheMessages []_CachedMessage
 	cacheMessages, ctrl.cachedMessages = ctrl.cachedMessages, nil
-	stringCtrlsLock.Unlock()
 
 	resp := MigrateStringResp{
 		Name:     req.Name,
@@ -153,6 +155,7 @@ func (cp *ClientProxy) handleMigrateStringReq(data []byte) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -216,8 +219,9 @@ func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) error {
 	var req RegisterVacuumServerReq
 	MSG_PACKER.UnpackMsg(data, &req)
 	vlog.Debug("%s.handleRegisterVacuumServerReq %T %v", cp, req, req)
-	registerClientProxyInfo(cp, req.ServerID)
-	return nil
+	serverIDs := registerClientProxyInfo(cp, req.ServerID) // register the game server
+
+	return sendToAllClientProxies(REGISTER_VACUUM_SERVER_RESP, &RegisterVacuumServerResp{ServerIDS: serverIDs})
 }
 
 func (cp *ClientProxy) handleDeclareServiceReq(data []byte) error {
@@ -231,7 +235,7 @@ func (cp *ClientProxy) handleDeclareServiceReq(data []byte) error {
 	return sendToAllClientProxies(DECLARE_SERVICE_RESP, &DeclareServiceResp{
 		StringID:    req.StringID,
 		ServiceName: req.ServiceName,
-	}, nil)
+	})
 }
 
 // String quit execution its routine on the vacuum server
@@ -243,12 +247,16 @@ func (cp *ClientProxy) handleStringDelReq(data []byte) error {
 	vlog.Debug("%s.handleStringDelReq %T %v", cp, req, req)
 
 	stringID := req.StringID
-	return sendToAllClientProxies(STRING_DEL_RESP, &StringDelResp{
+	return sendToAllClientProxiesExcept(STRING_DEL_RESP, &StringDelResp{
 		StringID: stringID,
 	}, cp) // don't send to its self
 }
 
-func sendToAllClientProxies(msgType MsgType_t, resp interface{}, exceptClientProxy *ClientProxy) error {
+func sendToAllClientProxies(msgType MsgType_t, resp interface{}) error {
+	return sendToAllClientProxiesExcept(msgType, resp, nil)
+}
+
+func sendToAllClientProxiesExcept(msgType MsgType_t, resp interface{}, exceptClientProxy *ClientProxy) error {
 	clientProxiesLock.RLock()
 	for _, clientProxy := range clientProxes {
 		if clientProxy != exceptClientProxy {
