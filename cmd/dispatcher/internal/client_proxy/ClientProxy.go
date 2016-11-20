@@ -247,9 +247,9 @@ func (cp *ClientProxy) handleStringDelReq(data []byte) error {
 	vlog.Debug("%s.handleStringDelReq %T %v", cp, req, req)
 
 	stringID := req.StringID
-	return sendToAllClientProxiesExcept(STRING_DEL_RESP, &StringDelResp{
+	return sendToAllClientProxies(STRING_DEL_RESP, &StringDelResp{
 		StringID: stringID,
-	}, cp) // don't send to its self
+	}) // don't send to its self
 }
 
 func sendToAllClientProxies(msgType MsgType_t, resp interface{}) error {

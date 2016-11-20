@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	N = 1000
+	N        = 10000
+	NSERVERS = 2
 )
 
 type MigrateTester struct {
@@ -24,17 +25,19 @@ type MigrateTester struct {
 func (pt *MigrateTester) Init(s *vacuum.String, args ...interface{}) {
 	vlog.Debug("!!! MigrateTester.Init")
 	pt.val = 0
-	//s.DeclareService("MigrateTester")
+	s.DeclareService("MigrateTester")
 }
 
 func (pt *MigrateTester) Loop(s *vacuum.String, msg common.StringMessage) {
 	pt.val += 1
 	vlog.Debug("!!! MigrateTester.Loop %v", pt.val)
-	s.Migrate(1 + rand.Intn(2))
+	s.Migrate(1 + rand.Intn(NSERVERS))
 }
 
 func (pt *MigrateTester) Fini(s *vacuum.String) {
-	vlog.Debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MigrateTester.Fini %v", pt.val)
+	vlog.Debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	vlog.Debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MigrateTester.Fini %v !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", pt.val)
+	vlog.Debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 }
 
 func (pt *MigrateTester) GetPersistentData() map[string]interface{} {
@@ -59,13 +62,15 @@ func Main(s *vacuum.String) {
 	}
 
 	vacuum.Send(stringID, nil)
-	time.Sleep(3 * time.Second)
+	vacuum.WaitServiceGone("MigrateTester")
+	// wait for the strings to complete
 
 }
 
 func main() {
-	vacuum.WaitServerReady(1)
-	vacuum.WaitServerReady(2)
+	for serverID := 1; serverID <= NSERVERS; serverID += 1 {
+		vacuum.WaitServerReady(serverID)
+	}
 	vacuum.RegisterMain(Main)
 	vacuum.RegisterString("MigrateTester", func() vacuum.StringDelegate {
 		pt := &MigrateTester{}

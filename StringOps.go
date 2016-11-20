@@ -124,7 +124,6 @@ func DeclareService(sid string, serviceName string) {
 }
 
 func OnDeclareService(stringID string, serviceName string) {
-	vlog.Info("vacuum: OnDeclareService: %s => %s", stringID, serviceName)
 	declareService(stringID, serviceName)
 }
 
@@ -157,7 +156,6 @@ func onStringRoutineQuit(s *String) {
 	}
 	stringID := s.ID
 	delString(stringID) // delete the string on local server
-	undeclareServicesOfString(stringID)
 	dispatcher_client.SendStringDelReq(stringID)
 }
 

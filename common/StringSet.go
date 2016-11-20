@@ -37,6 +37,15 @@ func (sl *StringList) Append(elem string) {
 	*sl = append(*sl, elem)
 }
 
+func (sl *StringList) Find(s string) int {
+	for idx, elem := range *sl {
+		if elem == s {
+			return idx
+		}
+	}
+	return -1
+}
+
 func init() {
 	var sl StringList
 	sl.Append("1")

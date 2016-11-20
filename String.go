@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER = true // only use true for debug!
-	STRING_MESSAGE_BUFFER_SIZE                    = 0
+	STRING_MESSAGE_BUFFER_SIZE = 10
 )
 
 type StringDelegate interface {
@@ -130,21 +129,7 @@ func Send(stringID string, msg interface{}) {
 		vlog.Panicf("Send: stringID is empty")
 	}
 
-	//dispatcher_client.SendStringMessage(stringID, msg)
-
-	if !ALWAYS_SEND_STRING_MESSAGE_THROUGH_DISPATCHER {
-		targetString := getString(stringID)
-
-		if targetString == nil { // string is not local, send msg to dispatcher
-			dispatcher_client.SendStringMessage(stringID, msg)
-		} else { // found the target string on this vacuum server
-			vlog.Info("Send through channel %s <- %v", targetString, msg)
-			targetString.inputChan <- msg
-		}
-	} else {
-		// FOR DEBUG ONLY
-		dispatcher_client.SendStringMessage(stringID, msg)
-	}
+	dispatcher_client.SendStringMessage(stringID, msg)
 }
 
 func SendToService(serviceName string, msg StringMessage) {

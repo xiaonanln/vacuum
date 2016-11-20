@@ -71,7 +71,9 @@ func declareService(stringID string, serviceName string) {
 	if ok { // add stringID to service
 		stringIDs.Add(stringID)
 		sl := stringIDListByService[serviceName]
-		sl.Append(stringID)
+		if sl.Find(stringID) == -1 {
+			sl.Append(stringID)
+		}
 		stringIDListByService[serviceName] = sl // maintain the stringID list
 
 	} else { // found new service
@@ -81,6 +83,7 @@ func declareService(stringID string, serviceName string) {
 		stringIDListByService[serviceName] = StringList{stringID}
 	}
 
+	vlog.Info("declareService: %s => %s => %v", stringID, serviceName, stringIDListByService[serviceName])
 	stringIDsByServiceLock.Unlock()
 }
 
@@ -92,11 +95,12 @@ func undeclareServicesOfString(stringID string) {
 		vlog.Debug("undeclareServicesOfString: checking service %s, stringIDs %v, contains %v", serviceName, stringIDs, stringIDs.Contains(stringID))
 		if stringIDs.Contains(stringID) {
 			// the string declared this service, remove it
-			vlog.Debug("Undeclaring service %s of String %s!", serviceName, stringID)
 			stringIDs.Remove(stringID)
 			sl := stringIDListByService[serviceName]
 			sl.Remove(stringID)
 			stringIDListByService[serviceName] = sl
+
+			vlog.Debug("undeclareServicesOfString %s: %s => %v", serviceName, stringID, stringIDListByService[serviceName])
 		}
 	}
 

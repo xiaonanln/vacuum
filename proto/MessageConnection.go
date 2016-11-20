@@ -88,7 +88,7 @@ func (mc *MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 	err = mc.SendAll((msgbuf)[:pktSize])
 	mc.sendLock.Unlock()
 	msgbuf.Release()
-	vlog.Debug(">>> SendMsg: size=%v, type=%v: %v, error=%v", pktSize, mt, toJsonString(msg), err)
+	vlog.Debug(">>> SendMsg: size=%v, %s%v, error=%v", pktSize, MsgTypeToString(mt), toJsonString(msg), err)
 	return err
 }
 
@@ -147,8 +147,6 @@ func (mc *MessageConnection) RecvMsg(handler MessageHandler) error {
 		pktSize -= RELAY_MASK
 	}
 
-	vlog.Debug("<<< RecvMsg: pktsize=%v, isRelayMsg=%v", pktSize, isRelayMsg)
-
 	if pktSize > MAX_MESSAGE_SIZE {
 		// pkt size is too large
 		msg.Release()
@@ -161,6 +159,7 @@ func (mc *MessageConnection) RecvMsg(handler MessageHandler) error {
 		return err
 	}
 
+	vlog.Debug("<<< RecvMsg: pktsize=%v, isRelayMsg=%v, packet=%v", pktSize, isRelayMsg, msg[:pktSize])
 	//vlog.WithFields(vlog.Fields{"pktSize": pktSize, "isRelayMsg": isRelayMsg}).Debugf("RecvMsg")
 	if isRelayMsg {
 		// if it is a relay msg, we just relay what we receive without interpret the payload
