@@ -15,7 +15,7 @@ import (
 
 const (
 	N        = 10000
-	NSERVERS = 2
+	NSERVERS = 1
 )
 
 type MigrateTester struct {
@@ -30,7 +30,10 @@ func (pt *MigrateTester) Init(s *vacuum.String, args ...interface{}) {
 
 func (pt *MigrateTester) Loop(s *vacuum.String, msg common.StringMessage) {
 	pt.val += 1
-	vlog.Debug("!!! MigrateTester.Loop %v", pt.val)
+	vlog.Debug("!!! MigrateTester.Loop msg %v val %v", msg, pt.val)
+	if pt.val != typeconv.Int(msg) {
+		vlog.Panicf("Val is %v, but msg is %v", pt.val, msg)
+	}
 	s.Migrate(1 + rand.Intn(NSERVERS))
 }
 

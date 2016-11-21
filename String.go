@@ -129,6 +129,7 @@ func Send(stringID string, msg interface{}) {
 		vlog.Panicf("Send: stringID is empty")
 	}
 
+	vlog.Debug(">>> SEND %s: %v", stringID, msg)
 	dispatcher_client.SendStringMessage(stringID, msg)
 }
 

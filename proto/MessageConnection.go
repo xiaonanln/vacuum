@@ -39,7 +39,6 @@ var (
 
 type MessageConnection struct {
 	netutil.BinaryConnection
-	sendLock sync.Mutex
 }
 
 func NewMessageConnection(conn net.Conn) MessageConnection {
@@ -84,9 +83,7 @@ func (mc *MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 
 	var pktSize uint32 = uint32(payloadLen + PREPAYLOAD_SIZE)
 	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize)
-	mc.sendLock.Lock()
 	err = mc.SendAll((msgbuf)[:pktSize])
-	mc.sendLock.Unlock()
 	msgbuf.Release()
 	vlog.Debug(">>> SendMsg: size=%v, %s%v, error=%v", pktSize, MsgTypeToString(mt), toJsonString(msg), err)
 	return err
@@ -116,9 +113,7 @@ func (mc *MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg int
 
 	var pktSize uint32 = uint32(payloadLen + RELAY_PREPAYLOAD_SIZE)
 	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize|RELAY_MASK) // set highest bit of size to 1 to indicate a relay msg
-	mc.sendLock.Lock()
 	err = mc.SendAll((msgbuf)[:pktSize])
-	mc.sendLock.Unlock()
 	msgbuf.Release()
 	vlog.Debug(">>> SendRelayMsg: size=%v, targetID=%s, type=%v: %v, error=%v", pktSize, targetID, mt, msg, err)
 	return err

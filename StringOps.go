@@ -57,6 +57,8 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 	vlog.Debug("OnCreateString %s: %s, args=%v", name, s, args)
 
 	go func() {
+		defer recoverFromStringRoutineError(s)
+
 		s.delegate.Init(s, args...)
 
 		if loadFromStorage { // loading string from storage ...
@@ -78,30 +80,20 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 
 	read_loop:
 		for {
-			if !s.HasFlag(SS_MIGRATING) {
-				msg := <-s.inputChan
-				if msg != nil {
-					s.delegate.Loop(s, msg)
-				} else {
-					break read_loop
-				}
+			if s.HasFlag(SS_MIGRATING) {
+				goto migrating_read_loop_1
+			}
+
+			msg := <-s.inputChan
+			if msg != nil {
+				s.delegate.Loop(s, msg)
 			} else {
-				select {
-				case msg := <-s.inputChan:
-					if msg != nil {
-						s.delegate.Loop(s, msg)
-					} else {
-						break read_loop
-					}
-				case <-s.migrateNotify: // notify from migrate, start real migrate now
-					vlog.Debug("%s: Quiting routine for migrating", s)
-					return
-				}
-				continue read_loop
+				break read_loop
 			}
 
 		}
 
+	read_loop_done:
 		if s.HasFlag(SS_MIGRATING) {
 			vlog.Debug("%s: string migrated ignored because it's finializing", s)
 		}
@@ -115,6 +107,40 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 
 		vlog.Debug("--- %s quited", s)
 		onStringRoutineQuit(s)
+		return
+
+	migrating_read_loop_1: // read loop used when migrating ...
+		for {
+			select {
+			case msg := <-s.inputChan:
+				if msg != nil {
+					s.delegate.Loop(s, msg)
+				} else {
+					goto read_loop_done
+				}
+			case <-s.migrateNotify: // notify from migrate, start real migrate now
+				vlog.Debug("%s: received migrate notify ...", s)
+				goto migrating_read_loop_2
+			}
+		}
+		vlog.Fatal("should not goes here")
+
+	migrating_read_loop_2:
+		for {
+			select {
+			case msg := <-s.inputChan:
+				if msg != nil {
+					s.delegate.Loop(s, msg)
+				} else {
+					goto read_loop_done
+				}
+			default:
+				// no more messages, now we can quit
+				vlog.Debug("%s: all messages handled, quiting for migrating ...", s)
+				return
+			}
+		}
+		vlog.Fatal("should not goes here")
 	}()
 }
 
@@ -157,6 +183,12 @@ func onStringRoutineQuit(s *String) {
 	stringID := s.ID
 	delString(stringID) // delete the string on local server
 	dispatcher_client.SendStringDelReq(stringID)
+}
+
+func recoverFromStringRoutineError(s *String) {
+	if err := recover(); err != nil {
+		vlog.TraceError("!!! %s paniced: %v", s, err)
+	}
 }
 
 // string del notification from dispatcher
