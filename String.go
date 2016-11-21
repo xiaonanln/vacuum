@@ -5,6 +5,8 @@ import (
 
 	"runtime"
 
+	"sync/atomic"
+
 	. "github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 	"github.com/xiaonanln/vacuum/vlog"
@@ -36,7 +38,7 @@ type String struct {
 	inputChan   chan StringMessage
 	outputSid   string
 
-	flags uint64
+	_flags uint64
 
 	migratingToServerID int
 	migrateNotify       chan int
@@ -70,11 +72,19 @@ func (s *String) String() string {
 }
 
 func (s *String) SetFlag(flag uint64) {
-	s.flags |= flag
+	s.setflags(s.flags() | flag)
 }
 
 func (s *String) HasFlag(flag uint64) bool {
-	return (s.flags & flag) != 0
+	return (s.flags() & flag) != 0
+}
+
+func (s *String) setflags(val uint64) {
+	atomic.StoreUint64(&s._flags, val)
+}
+
+func (s *String) flags() uint64 {
+	return atomic.LoadUint64(&s._flags)
 }
 
 func (s *String) IsPersistent() bool {

@@ -137,6 +137,7 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 			default:
 				// no more messages, now we can quit
 				vlog.Debug("%s: all messages handled, quiting for migrating ...", s)
+				s.migrateNotify <- 1 // tell MigrateString to continue
 				return
 			}
 		}

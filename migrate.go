@@ -39,7 +39,25 @@ func (s *String) Migrate(serverID int) {
 
 func MigrateString(stringID string) {
 	s := popString(stringID) // get the migrating string
+
 	vlog.Debug(">>> MigrateString: stringID=%s, string=%v, migrating=%v", stringID, s, s != nil && s.HasFlag(SS_MIGRATING))
+	if s == nil || s.HasFlag(SS_FINIALIZING) {
+		// String gone or finializing, migrate stop.
+		vlog.Debug("MigrateString: String %s already finialized or quited", stringID)
+		return
+	}
+
+	if !s.HasFlag(SS_MIGRATING) {
+		// String is not migrating ?
+		vlog.Debug("MigrateString: String %s is not scheduled to migrate", stringID)
+		return
+	}
+
+	vlog.Debug("MigrateString: transfering to string ...")
+	s.migrateNotify <- 1 // transfer control to the string
+	vlog.Debug("MigrateString: waiting for string to complete ...")
+	<-s.migrateNotify // wait for the String to finish processing pending messages, and transfer back
+	vlog.Debug("MigrateString: string is ready to migrate now.")
 
 	if s == nil || s.HasFlag(SS_FINIALIZING) {
 		// String gone or finializing, migrate stop.
@@ -48,7 +66,6 @@ func MigrateString(stringID string) {
 	}
 
 	migratingToServerID := s.migratingToServerID
-	s.migrateNotify <- 1 // transfer control to the string
 	// whenever we started migrating,
 	// there should be no more msg to this String,
 	// so there should be no conflict on String
