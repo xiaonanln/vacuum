@@ -13,6 +13,7 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 
 # TODO List
 * String migration strategy
+* Let vacuum panic when there is a deadlock
 * Recovering from String Storage failure 
 * Optimize packet redirection through dispatcher to random / specified vacuum server (remove resp packet)
 * Manipulate strings in telnet console
