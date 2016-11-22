@@ -7,13 +7,15 @@ import (
 
 	"sync/atomic"
 
+	"sync"
+
 	. "github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
 const (
-	STRING_MESSAGE_BUFFER_SIZE = 10
+	STRING_MESSAGE_BUFFER_SIZE = 1000
 )
 
 type StringDelegate interface {
@@ -41,7 +43,7 @@ type String struct {
 	_flags uint64
 
 	migratingToServerID int
-	migrateNotify       chan int
+	migrateNotify       *sync.Cond
 }
 
 func newString(stringID string, name string, delegate StringDelegate) *String {

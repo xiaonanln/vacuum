@@ -78,27 +78,26 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 			}
 		}
 
-	read_loop:
 		for {
 			if s.HasFlag(SS_MIGRATING) {
-				goto migrating_read_loop_1
+				goto migrating_wait_notify
 			}
 
 			msg := <-s.inputChan
 			if msg != nil {
 				s.delegate.Loop(s, msg)
 			} else {
-				break read_loop
+				s.SetFlag(SS_FINIALIZING)
+				goto finialize_string
 			}
 
 		}
 
-	read_loop_done:
+	finialize_string:
 		if s.HasFlag(SS_MIGRATING) {
 			vlog.Debug("%s: string migrated ignored because it's finializing", s)
 		}
 
-		s.SetFlag(SS_FINIALIZING)
 		s.delegate.Fini(s)
 
 		if s.IsPersistent() {
@@ -109,39 +108,44 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 		onStringRoutineQuit(s)
 		return
 
-	migrating_read_loop_1: // read loop used when migrating ...
+	migrating_wait_notify:
+		vlog.Debug("%s: Waiting for StartMigrateStringResp from dispatcher ...", s)
+		s.migrateNotify.L.Lock()
+		s.migrateNotify.Wait() // wait for notification from dispatcher
+		s.migrateNotify.L.Unlock()
+		vlog.Debug("%s: StartMigrateStringResp OK")
+		// process all pending messages
+	migrating_read_loop:
 		for {
 			select {
 			case msg := <-s.inputChan:
 				if msg != nil {
 					s.delegate.Loop(s, msg)
 				} else {
-					goto read_loop_done
-				}
-			case <-s.migrateNotify: // notify from migrate, start real migrate now
-				vlog.Debug("%s: received migrate notify ...", s)
-				goto migrating_read_loop_2
-			}
-		}
-		vlog.Fatal("should not goes here")
-
-	migrating_read_loop_2:
-		for {
-			select {
-			case msg := <-s.inputChan:
-				if msg != nil {
-					s.delegate.Loop(s, msg)
-				} else {
-					goto read_loop_done
+					s.SetFlag(SS_FINIALIZING)
+					break migrating_read_loop
 				}
 			default:
 				// no more messages, now we can quit
-				vlog.Debug("%s: all messages handled, quiting for migrating ...", s)
-				s.migrateNotify <- 1 // tell MigrateString to continue
-				return
+				break migrating_read_loop
 			}
 		}
-		vlog.Fatal("should not goes here")
+		// all messages are processed, now we can start migrate or quit
+		vlog.Debug("%s: all messages handled, quiting for migrating ... finializing=%v", s, s.HasFlag(SS_FINIALIZING))
+		if s.HasFlag(SS_FINIALIZING) {
+			// if the string is finializing, migrating is shutdown
+			goto finialize_string
+		}
+		// real migrate now!
+		var data map[string]interface{}
+
+		// get migrate data from string
+		if s.persistence != nil {
+			data = s.persistence.GetPersistentData()
+		}
+
+		dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, data)
+		return
 	}()
 }
 
@@ -178,9 +182,6 @@ func OnCloseString(stringID string) {
 // Called after string quit its routine
 func onStringRoutineQuit(s *String) {
 	close(s.inputChan)
-	if s.migrateNotify != nil {
-		close(s.migrateNotify)
-	}
 	stringID := s.ID
 	delString(stringID) // delete the string on local server
 	dispatcher_client.SendStringDelReq(stringID)
