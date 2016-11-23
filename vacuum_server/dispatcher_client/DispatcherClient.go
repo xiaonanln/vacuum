@@ -16,7 +16,7 @@ type DispatcherRespHandler interface {
 	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
 	HandleDispatcherResp_CloseString(stringID string)
 	HandleDispatcherResp_DelString(stringID string)
-	HandleDispatcherResp_OnMigrateString(name string, stringID string, data map[string]interface{})
+	HandleDispatcherResp_OnMigrateString(name string, stringID string, initArgs []interface{}, data map[string]interface{})
 	HandleDispatcherResp_MigrateString(stringID string)
 }
 
@@ -95,11 +95,12 @@ func (dc *DispatcherClient) SendStartMigrateStringReq(stringID string) error {
 	return dc.SendMsg(START_MIGRATE_STRING_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendMigrateStringReq(name string, stringID string, serverID int, data map[string]interface{}) error {
+func (dc *DispatcherClient) SendMigrateStringReq(name string, stringID string, serverID int, initArgs []interface{}, data map[string]interface{}) error {
 	req := MigrateStringReq{
 		Name:     name,
 		StringID: stringID,
 		ServerID: serverID,
+		Args:     initArgs,
 		Data:     data,
 	}
 
@@ -248,6 +249,6 @@ func (dc *DispatcherClient) handleMigrateStringResp(payload []byte) error {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_OnMigrateString(resp.Name, resp.StringID, resp.Data)
+	dispatcherRespHandler.HandleDispatcherResp_OnMigrateString(resp.Name, resp.StringID, resp.Args, resp.Data)
 	return nil
 }

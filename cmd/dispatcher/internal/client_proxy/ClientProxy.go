@@ -144,6 +144,7 @@ func (cp *ClientProxy) handleMigrateStringReq(data []byte) error {
 		Name:     req.Name,
 		StringID: req.StringID,
 		ServerID: req.ServerID,
+		Args:     req.Args,
 		Data:     req.Data,
 	}
 

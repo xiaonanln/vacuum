@@ -89,8 +89,8 @@ func (rh DispatcherRespHandler) HandleDispatcherResp_MigrateString(stringID stri
 	vacuum.MigrateString(stringID)
 }
 
-func (rh DispatcherRespHandler) HandleDispatcherResp_OnMigrateString(name string, stringID string, data map[string]interface{}) {
-	vacuum.OnMigrateString(name, stringID, data)
+func (rh DispatcherRespHandler) HandleDispatcherResp_OnMigrateString(name string, stringID string, initArgs []interface{}, data map[string]interface{}) {
+	vacuum.OnMigrateString(name, stringID, initArgs, data)
 }
 
 type _ServerOps struct {

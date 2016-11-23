@@ -52,7 +52,7 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 	}
 
 	delegate := delegateMaker()
-	s := newString(stringID, name, delegate)
+	s := newString(stringID, name, args, delegate)
 	putString(s)
 	vlog.Debug("OnCreateString %s: %s, args=%v", name, s, args)
 
@@ -142,7 +142,7 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 			data = s.persistence.GetPersistentData()
 		}
 
-		dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, data)
+		dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, s.initArgs, data)
 		return
 	}()
 }

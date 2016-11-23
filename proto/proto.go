@@ -116,6 +116,7 @@ type MigrateStringReq struct {
 	Name     string                 `msgpack:"N"`
 	StringID string                 `msgpack:"ID"`
 	ServerID int                    `msgpack:"SID"`
+	Args     []interface{}          `msgpack:"A"`
 	Data     map[string]interface{} `msgpack:"D"`
 }
 
@@ -123,6 +124,7 @@ type MigrateStringResp struct {
 	Name     string                 `msgpack:"N"`
 	StringID string                 `msgpack:"ID"`
 	ServerID int                    `msgpack:"SID"`
+	Args     []interface{}          `msgpack:"A"`
 	Data     map[string]interface{} `msgpack:"D"`
 }
 

@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	N                 = 10000
-	NSERVERS          = 2
+	N                 = 1000
+	NSERVERS          = 1
 	SEND_MSG_INTERVAL = 100 * time.Microsecond
 )
 
@@ -24,7 +24,7 @@ type MigrateTester struct {
 }
 
 func (pt *MigrateTester) Init(s *vacuum.String, args ...interface{}) {
-	vlog.Debug("!!! MigrateTester.Init")
+	vlog.Debug("!!! MigrateTester.Init %v", args)
 	pt.val = 0
 	s.DeclareService("MigrateTester")
 }
@@ -32,15 +32,20 @@ func (pt *MigrateTester) Init(s *vacuum.String, args ...interface{}) {
 func (pt *MigrateTester) Loop(s *vacuum.String, msg common.StringMessage) {
 	pt.val += 1
 	vlog.Debug("!!! MigrateTester.Loop msg %v val %v", msg, pt.val)
-	if pt.val != typeconv.Int(msg) {
+	msgint := typeconv.Int(msg)
+	if pt.val != msgint {
 		vlog.Panicf("Val is %v, but msg is %v", pt.val, msg)
 	}
-	s.Migrate(1 + rand.Intn(NSERVERS))
+	if msgint < N {
+		s.Migrate(1 + rand.Intn(NSERVERS))
+	} else {
+		s.Migrate(int(msgint))
+	}
 }
 
 func (pt *MigrateTester) Fini(s *vacuum.String) {
 	vlog.Info("##################################################################################################################################")
-	vlog.Info("################################################## MigrateTester.Fini %v ##################################################", pt.val)
+	vlog.Info("#################################################### MigrateTester.Fini %v ####################################################", pt.val)
 	vlog.Info("##################################################################################################################################")
 }
 
@@ -56,7 +61,7 @@ func (pt *MigrateTester) LoadPersistentData(data map[string]interface{}) {
 }
 
 func Main(s *vacuum.String) {
-	stringID := vacuum.CreateString("MigrateTester")
+	stringID := vacuum.CreateString("MigrateTester", vacuum_server.ServerID())
 	//vacuum.WaitServiceReady("MigrateTester", 1)
 	time.Sleep(time.Second)
 
@@ -68,7 +73,6 @@ func Main(s *vacuum.String) {
 	vacuum.Send(stringID, nil)
 	vacuum.WaitServiceGone("MigrateTester")
 	// wait for the strings to complete
-
 }
 
 func main() {

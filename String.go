@@ -30,6 +30,7 @@ const (
 type String struct {
 	ID          string
 	Name        string
+	initArgs    []interface{}
 	delegate    StringDelegate
 	persistence PersistentString
 	inputQueue  sync_queue.SyncQueue
@@ -41,10 +42,11 @@ type String struct {
 	migrateNotify       chan int
 }
 
-func newString(stringID string, name string, delegate StringDelegate) *String {
+func newString(stringID string, name string, initArgs []interface{}, delegate StringDelegate) *String {
 	s := &String{
 		ID:         stringID,
 		Name:       name,
+		initArgs:   initArgs,
 		delegate:   delegate,
 		inputQueue: sync_queue.NewSyncQueue(),
 		outputSid:  "",

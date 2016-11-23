@@ -54,7 +54,7 @@ func MigrateString(stringID string) {
 }
 
 // String migrated to this server
-func OnMigrateString(name string, stringID string, data map[string]interface{}) {
-	vlog.Debug("String %s.%s migrated to server %v: data=%v", name, stringID, serverID, data)
-	createString(name, stringID, nil, false, data)
+func OnMigrateString(name string, stringID string, initArgs []interface{}, data map[string]interface{}) {
+	vlog.Debug("String %s.%s migrated to server %v: args=%v, data=%v", name, stringID, serverID, initArgs, data)
+	createString(name, stringID, initArgs, false, data)
 }
