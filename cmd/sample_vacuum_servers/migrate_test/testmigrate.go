@@ -23,8 +23,8 @@ type MigrateTester struct {
 	val int64
 }
 
-func (pt *MigrateTester) Init(s *vacuum.String, args ...interface{}) {
-	vlog.Debug("!!! MigrateTester.Init %v", args)
+func (pt *MigrateTester) Init(s *vacuum.String) {
+	vlog.Debug("!!! MigrateTester.Init %v", s.Args())
 	pt.val = 0
 	s.DeclareService("MigrateTester")
 }

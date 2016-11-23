@@ -7,14 +7,14 @@ import (
 )
 
 type _FuncPtrStringDelegate struct {
-	init func(s *String, args ...interface{})
+	init func(s *String)
 	loop func(s *String, msg common.StringMessage)
 	fini func(s *String)
 }
 
-func (d *_FuncPtrStringDelegate) Init(s *String, args ...interface{}) {
+func (d *_FuncPtrStringDelegate) Init(s *String) {
 	if d.init != nil {
-		d.init(s, args...)
+		d.init(s)
 	}
 }
 
@@ -30,11 +30,11 @@ func (d *_FuncPtrStringDelegate) Loop(s *String, msg common.StringMessage) {
 	}
 }
 
-func InitOnlyStringDelegateMaker(init func(s *String, args ...interface{})) StringDelegateMaker {
+func InitOnlyStringDelegateMaker(init func(s *String)) StringDelegateMaker {
 	return func() StringDelegate {
 		return &_FuncPtrStringDelegate{
-			init: func(s *String, args ...interface{}) {
-				init(s, args...)
+			init: func(s *String) {
+				init(s)
 				s.Send(s.ID, nil) // trick: make string quit immediately
 			},
 			loop: nil,
@@ -54,7 +54,7 @@ func LoopOnlyStringDelegateMaker(loop func(s *String, msg common.StringMessage))
 }
 
 func RegisterMain(main func(s *String)) {
-	RegisterString("Main", InitOnlyStringDelegateMaker(func(s *String, args ...interface{}) {
+	RegisterString("Main", InitOnlyStringDelegateMaker(func(s *String) {
 		main(s)
 		os.Exit(0)
 	}))

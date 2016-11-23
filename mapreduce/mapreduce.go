@@ -55,9 +55,9 @@ type Mapper struct {
 	outputServiceName string
 }
 
-func (m *Mapper) Init(s *vacuum.String, args ...interface{}) {
-	m.funcName = args[0].(string)
-	m.outputServiceName = getServiceName(args[1].(string))
+func (m *Mapper) Init(s *vacuum.String) {
+	m.funcName = s.Args()[0].(string)
+	m.outputServiceName = getServiceName(s.Args()[1].(string))
 	m.mapFunc = mapFuncs[m.funcName]
 	s.DeclareService(getServiceName(m.funcName))
 }
@@ -85,7 +85,8 @@ type Reducer struct {
 	reduceFunc        ReduceFunc
 }
 
-func (r *Reducer) Init(s *vacuum.String, args ...interface{}) {
+func (r *Reducer) Init(s *vacuum.String) {
+	args := s.Args()
 	r.funcName = args[0].(string)
 	r.outputServiceName = getServiceName(args[1].(string))
 	r.accum = args[2]

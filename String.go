@@ -14,7 +14,7 @@ import (
 )
 
 type StringDelegate interface {
-	Init(s *String, args ...interface{})
+	Init(s *String)
 	Fini(s *String)
 	Loop(s *String, msg StringMessage)
 }
@@ -68,6 +68,10 @@ func (s *String) String() string {
 	} else {
 		return "Nil<nil>"
 	}
+}
+
+func (s *String) Args() []interface{} {
+	return s.initArgs
 }
 
 func (s *String) SetFlag(flag uint64) {

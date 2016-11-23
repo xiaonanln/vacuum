@@ -14,7 +14,7 @@ type PersistentTester struct {
 	val int64
 }
 
-func (pt *PersistentTester) Init(s *vacuum.String, args ...interface{}) {
+func (pt *PersistentTester) Init(s *vacuum.String) {
 	pt.val = 0
 	s.DeclareService("PersistentTester")
 }

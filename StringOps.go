@@ -59,7 +59,7 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 	go func() {
 		defer recoverFromStringRoutineError(s)
 
-		s.delegate.Init(s, args...)
+		s.delegate.Init(s)
 
 		if loadFromStorage { // loading string from storage ...
 			data, err := stringStorage.Read(name, stringID)
