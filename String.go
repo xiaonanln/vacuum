@@ -7,15 +7,10 @@ import (
 
 	"sync/atomic"
 
-	"sync"
-
+	"github.com/xiaonanln/goSyncQueue"
 	. "github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 	"github.com/xiaonanln/vacuum/vlog"
-)
-
-const (
-	STRING_MESSAGE_BUFFER_SIZE = 1000
 )
 
 type StringDelegate interface {
@@ -37,22 +32,22 @@ type String struct {
 	Name        string
 	delegate    StringDelegate
 	persistence PersistentString
-	inputChan   chan StringMessage
+	inputQueue  sync_queue.SyncQueue
 	outputSid   string
 
 	_flags uint64
 
 	migratingToServerID int
-	migrateNotify       *sync.Cond
+	migrateNotify       chan int
 }
 
 func newString(stringID string, name string, delegate StringDelegate) *String {
 	s := &String{
-		ID:        stringID,
-		Name:      name,
-		delegate:  delegate,
-		inputChan: make(chan StringMessage, STRING_MESSAGE_BUFFER_SIZE),
-		outputSid: "",
+		ID:         stringID,
+		Name:       name,
+		delegate:   delegate,
+		inputQueue: sync_queue.NewSyncQueue(),
+		outputSid:  "",
 	}
 
 	s.persistence, _ = delegate.(PersistentString)
@@ -93,18 +88,9 @@ func (s *String) IsPersistent() bool {
 	return s.persistence != nil
 }
 
-func (s *String) Read() StringMessage {
-	return <-s.inputChan
-}
-
-func (s *String) tryRead() (StringMessage, bool) {
-	select {
-	case msg, _ := <-s.inputChan:
-		return msg, true
-	default:
-		return nil, false
-	}
-}
+//func (s *String) Read() StringMessage {
+//	return <-s.inputChan
+//}
 
 func (s *String) Output(msg StringMessage) {
 	s.Send(s.outputSid, msg)

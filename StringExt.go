@@ -3,7 +3,6 @@ package vacuum
 import (
 	"time"
 
-	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
@@ -28,15 +27,15 @@ func WaitServiceGone(serviceName string) {
 	vlog.Debug("Service %s is gone now", serviceName)
 }
 
-func (s *String) ReadInt() int64 {
-	return typeconv.Int(s.Read())
-}
-
-func (s *String) ReadIntTuple() []int64 {
-	v := s.Read()
-	return typeconv.IntTuple(v)
-}
-
-func (s *String) ReadString() string {
-	return s.Read().(string)
-}
+//func (s *String) ReadInt() int64 {
+//	return typeconv.Int(s.Read())
+//}
+//
+//func (s *String) ReadIntTuple() []int64 {
+//	v := s.Read()
+//	return typeconv.IntTuple(v)
+//}
+//
+//func (s *String) ReadString() string {
+//	return s.Read().(string)
+//}

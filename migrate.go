@@ -1,8 +1,6 @@
 package vacuum
 
 import (
-	"sync"
-
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 	"github.com/xiaonanln/vacuum/vlog"
 )
@@ -33,7 +31,7 @@ func (s *String) Migrate(serverID int) {
 	vlog.Debug("%s.Migrate: start migrating ...", s)
 	// mark as migrating
 	s.migratingToServerID = serverID
-	s.migrateNotify = sync.NewCond(&sync.Mutex{})
+	s.migrateNotify = make(chan int, 1)
 	s.SetFlag(SS_MIGRATING)
 	// send the start-migrate req
 	dispatcher_client.SendStartMigrateStringReq(s.ID)
@@ -50,9 +48,7 @@ func MigrateString(stringID string) {
 	}
 
 	vlog.Debug("MigrateString: transfering to string ...")
-	s.migrateNotify.L.Lock()
-	s.migrateNotify.Signal()
-	s.migrateNotify.L.Unlock()
+	s.migrateNotify <- 1
 
 	vlog.Debug("MigrateString: waiting for string to complete ...")
 }

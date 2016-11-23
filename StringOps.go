@@ -83,7 +83,7 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 				goto migrating_wait_notify
 			}
 
-			msg := <-s.inputChan
+			msg := s.inputQueue.Pop()
 			if msg != nil {
 				s.delegate.Loop(s, msg)
 			} else {
@@ -110,22 +110,20 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 
 	migrating_wait_notify:
 		vlog.Debug("%s: Waiting for StartMigrateStringResp from dispatcher ...", s)
-		s.migrateNotify.L.Lock()
-		s.migrateNotify.Wait() // wait for notification from dispatcher
-		s.migrateNotify.L.Unlock()
+		<-s.migrateNotify
 		vlog.Debug("%s: StartMigrateStringResp OK")
 		// process all pending messages
 	migrating_read_loop:
 		for {
-			select {
-			case msg := <-s.inputChan:
+			msg, ok := s.inputQueue.TryPop()
+			if ok {
 				if msg != nil {
 					s.delegate.Loop(s, msg)
 				} else {
 					s.SetFlag(SS_FINIALIZING)
 					break migrating_read_loop
 				}
-			default:
+			} else {
 				// no more messages, now we can quit
 				break migrating_read_loop
 			}
@@ -161,7 +159,7 @@ func OnDeclareService(stringID string, serviceName string) {
 func OnSendStringMessage(stringID string, msg common.StringMessage) {
 	s := getString(stringID)
 	vlog.Debug("vacuum: OnSendStringMessage: %s: %s => %v", stringID, s, msg)
-	s.inputChan <- msg
+	s.inputQueue.Push(msg)
 }
 
 //// Close specified string
@@ -181,7 +179,7 @@ func OnCloseString(stringID string) {
 
 // Called after string quit its routine
 func onStringRoutineQuit(s *String) {
-	close(s.inputChan)
+	s.inputQueue.Close()
 	stringID := s.ID
 	delString(stringID) // delete the string on local server
 	dispatcher_client.SendStringDelReq(stringID)

@@ -84,11 +84,12 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetString
 	stringCtrl := lockStringCtrlForWrite(targetStringID) // TODO: optimize: lock for read first
 	if !stringCtrl.Migrating {                           // normal case
 		serverID := stringCtrl.ServerID
-		stringCtrlsLock.Unlock() // unlock as soon as possible
 
 		chooseServer := getClientProxy(serverID)
-		vlog.Debug(">>> RelayMsg to %s: pktSize=%v, targetID=%s", cp, chooseServer, pktSize, targetStringID)
+		vlog.Debug(">>> RelayMsg to %s: pktSize=%v, targetID=%s", chooseServer, pktSize, targetStringID)
 		err = chooseServer.SendAll(msg[:pktSize])
+		stringCtrlsLock.Unlock() // unlock as soon as possible
+		// FIXME: the write lock here affect the order or relay messages, we need to use better lock control
 		msg.Release()
 		return
 	}

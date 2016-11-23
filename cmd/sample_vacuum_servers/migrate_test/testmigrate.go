@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	N        = 10000
-	NSERVERS = 1
+	N                 = 10000
+	NSERVERS          = 2
+	SEND_MSG_INTERVAL = 100 * time.Microsecond
 )
 
 type MigrateTester struct {
@@ -38,9 +39,9 @@ func (pt *MigrateTester) Loop(s *vacuum.String, msg common.StringMessage) {
 }
 
 func (pt *MigrateTester) Fini(s *vacuum.String) {
-	vlog.Info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	vlog.Info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MigrateTester.Fini %v !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", pt.val)
-	vlog.Info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	vlog.Info("##################################################################################################################################")
+	vlog.Info("################################################## MigrateTester.Fini %v ##################################################", pt.val)
+	vlog.Info("##################################################################################################################################")
 }
 
 func (pt *MigrateTester) GetPersistentData() map[string]interface{} {
@@ -61,7 +62,7 @@ func Main(s *vacuum.String) {
 
 	for i := 0; i < N; i++ {
 		vacuum.Send(stringID, i+1)
-		time.Sleep(100 * time.Microsecond)
+		time.Sleep(SEND_MSG_INTERVAL)
 	}
 
 	vacuum.Send(stringID, nil)
