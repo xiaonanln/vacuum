@@ -14,6 +14,8 @@ type _CachedMessage struct {
 }
 
 type StringCtrl struct {
+	sync.RWMutex // locker of the string ctrl
+
 	ServerID       int  // Server ID of string
 	Migrating      bool // if the string is migrating
 	cachedMessages []_CachedMessage
@@ -91,14 +93,16 @@ func genClientProxyIDs() {
 	}
 }
 
-func lockStringCtrlForRead(stringID string) (ret *StringCtrl) {
+func getStringCtrl(stringID string) (ret *StringCtrl) {
 	stringCtrlsLock.RLock()
 	ret = stringCtrls[stringID]
-	if ret != nil {
+	if ret != nil { // common case
+		stringCtrlsLock.RUnlock()
 		return
 	}
-
+	// unlock and re-lock
 	stringCtrlsLock.RUnlock()
+
 	stringCtrlsLock.Lock()
 	ret = stringCtrls[stringID]
 	if ret == nil {
@@ -106,43 +110,33 @@ func lockStringCtrlForRead(stringID string) (ret *StringCtrl) {
 		stringCtrls[stringID] = ret
 	}
 	stringCtrlsLock.Unlock()
-
-	stringCtrlsLock.RLock() // assure RLock
-	return
-}
-
-func lockStringCtrlForWrite(stringID string) (ret *StringCtrl) {
-	stringCtrlsLock.Lock()
-	ret = stringCtrls[stringID]
-	if ret == nil {
-		ret = newStringCtrl()
-		stringCtrls[stringID] = ret
-	}
-	// lock left locked
 	return
 }
 
 func setStringLocationMigrating(stringID string, serverID int, migrating bool) {
-	ctrl := lockStringCtrlForWrite(stringID)
+	ctrl := getStringCtrl(stringID)
+	ctrl.Lock()
 	ctrl.ServerID = serverID
 	ctrl.Migrating = migrating
-	stringCtrlsLock.Unlock()
+	ctrl.Unlock()
 
 	//vlog.Debug("setStringLocationMigrating %s => %v", stringID, serverID)
 }
 
 func setStringLocation(stringID string, serverID int) {
-	ctrl := lockStringCtrlForWrite(stringID)
+	ctrl := getStringCtrl(stringID)
+	ctrl.Lock()
 	ctrl.ServerID = serverID
-	stringCtrlsLock.Unlock()
+	ctrl.Unlock()
 
 	//vlog.Debug("setStringLocation %s => %v", stringID, serverID)
 }
 
 func setStringMigrating(stringID string, migrating bool) {
-	ctrl := lockStringCtrlForWrite(stringID)
+	ctrl := getStringCtrl(stringID)
+	ctrl.Lock()
 	ctrl.Migrating = migrating
-	stringCtrlsLock.Unlock()
+	ctrl.Unlock()
 
 	//vlog.Debug("setStringMigrating %s => %v", stringID, migrating)
 }

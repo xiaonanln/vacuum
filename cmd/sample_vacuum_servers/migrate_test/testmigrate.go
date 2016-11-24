@@ -15,8 +15,8 @@ import (
 
 const (
 	N                 = 1000
-	NSERVERS          = 1
-	SEND_MSG_INTERVAL = 100 * time.Microsecond
+	NSERVERS          = 2
+	SEND_MSG_INTERVAL = 10 * time.Microsecond
 )
 
 type MigrateTester struct {
@@ -71,6 +71,7 @@ func Main(s *vacuum.String) {
 	}
 
 	vacuum.Send(stringID, nil)
+
 	vacuum.WaitServiceGone("MigrateTester")
 	// wait for the strings to complete
 }

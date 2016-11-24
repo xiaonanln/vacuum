@@ -81,15 +81,33 @@ func (cp *ClientProxy) HandleMsg(msg *Message, pktSize uint32, msgType MsgType_t
 
 func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetStringID string) (err error) {
 	// just relay the msg
-	stringCtrl := lockStringCtrlForWrite(targetStringID) // TODO: optimize: lock for read first
-	if !stringCtrl.Migrating {                           // normal case
+	stringCtrl := getStringCtrl(targetStringID) // TODO: optimize: lock for read first
+	stringCtrl.RLock()
+
+	if !stringCtrl.Migrating { // normal case
 		serverID := stringCtrl.ServerID
 
 		chooseServer := getClientProxy(serverID)
 		vlog.Debug(">>> RelayMsg to %s: pktSize=%v, targetID=%s", chooseServer, pktSize, targetStringID)
 		err = chooseServer.SendAll(msg[:pktSize])
-		stringCtrlsLock.Unlock() // unlock as soon as possible
 		// FIXME: the write lock here affect the order or relay messages, we need to use better lock control
+		stringCtrl.RUnlock()
+
+		msg.Release()
+		return
+	}
+
+	// string is migrating ...
+	stringCtrl.RUnlock()
+	stringCtrl.Lock() // re-lock for write
+	defer stringCtrl.Unlock()
+
+	if !stringCtrl.Migrating { // normal case
+		serverID := stringCtrl.ServerID
+
+		chooseServer := getClientProxy(serverID)
+		vlog.Debug(">>> RelayMsg to %s: pktSize=%v, targetID=%s", chooseServer, pktSize, targetStringID)
+		err = chooseServer.SendAll(msg[:pktSize])
 		msg.Release()
 		return
 	}
@@ -98,8 +116,8 @@ func (cp *ClientProxy) HandleRelayMsg(msg *Message, pktSize uint32, targetString
 		msg:     msg,
 		pktsize: pktSize,
 	}) // cahce the message
-	stringCtrlsLock.Unlock() // unlock as soon as possible
 	// not release the msg
+
 	return
 }
 
@@ -131,8 +149,9 @@ func (cp *ClientProxy) handleMigrateStringReq(data []byte) error {
 	// the string is migrating to specified server
 	chooseServer := getClientProxy(req.ServerID)
 
-	ctrl := lockStringCtrlForWrite(req.StringID)
-	defer stringCtrlsLock.Unlock()
+	ctrl := getStringCtrl(req.StringID)
+	ctrl.Lock()
+	defer ctrl.Unlock()
 
 	ctrl.ServerID = req.ServerID
 	ctrl.Migrating = false
