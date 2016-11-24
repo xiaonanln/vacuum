@@ -14,6 +14,11 @@ import (
 
 const (
 	UUID_LENGTH = 16
+	encodeUUID  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_."
+)
+
+var (
+	UUIDEncoding = base64.NewEncoding(encodeUUID).WithPadding(base64.NoPadding)
 )
 
 // NewObjectId returns a new unique ObjectId.
@@ -35,7 +40,7 @@ func GenUUID() string {
 	b[10] = byte(i >> 8)
 	b[11] = byte(i)
 
-	return base64.StdEncoding.EncodeToString(b)
+	return UUIDEncoding.EncodeToString(b)
 }
 
 // objectIdCounter is atomically incremented when generating a new ObjectId
