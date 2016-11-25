@@ -11,8 +11,8 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
   * https://github.com/xiaonanln/vacuum/blob/master/cmd/sample_vacuum_servers/prime_test/print_primes.go
   * Using map-reduce: https://github.com/xiaonanln/vacuum/blob/master/cmd/sample_vacuum_servers/prime_test/mapreduce.go
 
-* TODO: Recovering from String Storage failure
 * TODO: Fix memory leak on dispatcher 
+* TODO: Recovering from String Storage failure - infinite retry
 * TODO: Optimize packet redirection through dispatcher to random / specified vacuum server (remove resp packet)
 * TODO: Manipulate strings in telnet console
 * TODO: Compression of communication ?

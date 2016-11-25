@@ -1,6 +1,15 @@
 package vacuum
 
-import "github.com/Sirupsen/logrus"
+import (
+	"time"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/xiaonanln/vacuum/vlog"
+)
+
+const (
+	SAVE_ERROR_RETRY_DELAY = 3 * time.Second
+)
 
 type PersistentString interface {
 	GetPersistentData() map[string]interface{}
@@ -10,12 +19,14 @@ type PersistentString interface {
 func (s *String) Save() {
 	persistence := s.persistence
 	if persistence == nil {
-		logrus.Panicf("string %s is not persistent", s)
+		vlog.TraceError("string %s is not persistent", s)
+		return
 	}
-	logrus.Debugf("SAVING %s ...", s)
+
+	logrus.Debugf("Saving %s ...", s)
+
 	data := persistence.GetPersistentData()
 	if err := stringStorage.Write(s.Name, s.ID, data); err != nil {
-		//logrus.Errorf("Save %s failed: %s", s, err.Error())
-		panic(err)
+		vlog.TraceError("Save %s failed: %s", err.Error())
 	}
 }

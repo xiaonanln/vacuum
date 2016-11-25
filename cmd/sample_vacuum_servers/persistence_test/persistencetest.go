@@ -53,6 +53,7 @@ func Main(s *vacuum.String) {
 		vacuum.Send(stringID, 1)
 		vacuum.Send(stringID, nil)
 		vacuum.WaitServiceGone("PersistentTester")
+		time.Sleep(time.Second)
 	}
 
 	time.Sleep(3 * time.Second)
