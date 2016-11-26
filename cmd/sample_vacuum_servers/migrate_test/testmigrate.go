@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	N                 = 1000
+	N                 = 10
 	NSERVERS          = 2
 	SEND_MSG_INTERVAL = 10 * time.Microsecond
 )
@@ -61,6 +61,10 @@ func (pt *MigrateTester) LoadPersistentData(data map[string]interface{}) {
 }
 
 func Main(s *vacuum.String) {
+	for serverID := 1; serverID <= NSERVERS; serverID += 1 {
+		vacuum.WaitServerReady(serverID)
+	}
+
 	stringID := vacuum.CreateString("MigrateTester", vacuum_server.ServerID())
 	//vacuum.WaitServiceReady("MigrateTester", 1)
 	time.Sleep(time.Second)
@@ -77,14 +81,12 @@ func Main(s *vacuum.String) {
 }
 
 func main() {
-	for serverID := 1; serverID <= NSERVERS; serverID += 1 {
-		vacuum.WaitServerReady(serverID)
-	}
 	vacuum.RegisterMain(Main)
 	vacuum.RegisterString("MigrateTester", func() vacuum.StringDelegate {
 		pt := &MigrateTester{}
 		_ = vacuum.PersistentString(pt)
 		return pt
 	})
+
 	vacuum_server.RunServer()
 }

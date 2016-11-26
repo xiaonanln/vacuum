@@ -175,6 +175,7 @@ func (cp *ClientProxy) handleMigrateStringReq(data []byte) error {
 		if err := chooseServer.SendAll(cachedMsg.msg[:cachedMsg.pktsize]); err != nil {
 			return err
 		}
+		cachedMsg.msg.Release()
 	}
 
 	return nil

@@ -2,14 +2,18 @@ package telnet_server
 
 import (
 	"net"
+	"sync"
 
 	"strings"
 
-	"fmt"
-
 	"runtime/debug"
 
+	"runtime"
+
+	"fmt"
+
 	"github.com/xiaonanln/vacuum/netutil"
+	"github.com/xiaonanln/vacuum/proto"
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
@@ -72,6 +76,8 @@ func (tc *TelnetConsole) handleCommand(cmd string) {
 
 	if cmd == "quit" || cmd == "exit" {
 		tc.handleQuit()
+	} else if cmd == "gc" {
+		tc.handleGC()
 	} else {
 		tc.handleUnknownCommand(cmd)
 	}
@@ -79,6 +85,27 @@ func (tc *TelnetConsole) handleCommand(cmd string) {
 
 func (tc *TelnetConsole) handleQuit() {
 	tc.close()
+}
+
+var (
+	syncPool = sync.Pool{
+		New: func() interface{} {
+			return &proto.Message{}
+		},
+	}
+)
+
+func (tc *TelnetConsole) handleGC() {
+	var messages []*proto.Message
+	for i := 0; i < 1000; i++ {
+		m := syncPool.Get().(*proto.Message)
+		messages = append(messages, m)
+	}
+	for _, m := range messages {
+		syncPool.Put(m)
+	}
+	messages = nil
+	runtime.GC() // get up-to-date statistics
 }
 
 func (tc *TelnetConsole) handleUnknownCommand(cmd string) {

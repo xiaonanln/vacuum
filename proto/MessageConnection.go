@@ -48,10 +48,13 @@ func NewMessageConnection(conn net.Conn) MessageConnection {
 type Message [MAX_MESSAGE_SIZE]byte
 
 func allocMessage() *Message {
-	return messagePool.Get().(*Message)
+	msg := messagePool.Get().(*Message)
+	vlog.Debug("ALLOC %p", msg)
+	return msg
 }
 
 func (m *Message) Release() {
+	vlog.Debug("RELEASE %p", m)
 	messagePool.Put(m)
 }
 
@@ -64,27 +67,25 @@ func toJsonString(msg interface{}) string {
 // Message format: [size*4B][type*2B][payload*NB]
 func (mc *MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 	msgbuf := allocMessage()
+	defer msgbuf.Release()
 
 	NETWORK_ENDIAN.PutUint16((msgbuf)[SIZE_FIELD_SIZE:SIZE_FIELD_SIZE+TYPE_FIELD_SIZE], uint16(mt))
 	payloadBuf := (msgbuf)[PREPAYLOAD_SIZE:PREPAYLOAD_SIZE]
 	payloadCap := cap(payloadBuf)
 	payloadBuf, err := MSG_PACKER.PackMsg(msg, payloadBuf)
 	if err != nil {
-		msgbuf.Release()
 		return err
 	}
 
 	payloadLen := len(payloadBuf)
 	if payloadLen > payloadCap {
 		// exceed payload
-		msgbuf.Release()
 		return fmt.Errorf("MessageConnection: message paylaod too large(%d): %v", payloadLen, msg)
 	}
 
 	var pktSize uint32 = uint32(payloadLen + PREPAYLOAD_SIZE)
 	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize)
 	err = mc.SendAll((msgbuf)[:pktSize])
-	msgbuf.Release()
 	vlog.Debug(">>> SendMsg: size=%v, %s%v, error=%v", pktSize, MsgTypeToString(mt), toJsonString(msg), err)
 	return err
 }
@@ -93,6 +94,7 @@ func (mc *MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
 // Message format: [size*4B][stringID][type*2B][payload*NB]
 func (mc *MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg interface{}) error {
 	msgbuf := allocMessage()
+	defer msgbuf.Release()
 	copy(msgbuf[SIZE_FIELD_SIZE:SIZE_FIELD_SIZE+STRING_ID_SIZE], []byte(targetID))
 
 	NETWORK_ENDIAN.PutUint16((msgbuf)[SIZE_FIELD_SIZE+STRING_ID_SIZE:SIZE_FIELD_SIZE+STRING_ID_SIZE+TYPE_FIELD_SIZE], uint16(mt))
@@ -100,21 +102,18 @@ func (mc *MessageConnection) SendRelayMsg(targetID string, mt MsgType_t, msg int
 	payloadCap := cap(payloadBuf)
 	payloadBuf, err := MSG_PACKER.PackMsg(msg, payloadBuf)
 	if err != nil {
-		msgbuf.Release()
 		return err
 	}
 
 	payloadLen := len(payloadBuf)
 	if payloadLen > payloadCap {
 		// exceed payload
-		msgbuf.Release()
 		return fmt.Errorf("MessageConnection: message paylaod too large(%d): %v", payloadLen, msg)
 	}
 
 	var pktSize uint32 = uint32(payloadLen + RELAY_PREPAYLOAD_SIZE)
 	NETWORK_ENDIAN.PutUint32((msgbuf)[:SIZE_FIELD_SIZE], pktSize|RELAY_MASK) // set highest bit of size to 1 to indicate a relay msg
 	err = mc.SendAll((msgbuf)[:pktSize])
-	msgbuf.Release()
 	vlog.Debug(">>> SendRelayMsg: size=%v, targetID=%s, type=%v: %v, error=%v", pktSize, targetID, mt, msg, err)
 	return err
 }

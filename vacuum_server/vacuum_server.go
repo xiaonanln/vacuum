@@ -50,8 +50,6 @@ func init() {
 
 	storage := openStorage(vacuumConfig.Storage)
 	vacuum.Setup(serverID, storage, &serverOps)
-
-	dispatcher_client.Initialize(serverID, DispatcherRespHandler{})
 }
 
 type DispatcherRespHandler struct{}
@@ -113,7 +111,10 @@ func (so *_ServerOps) setVacuumServerIDs(serverIDs []int) {
 }
 
 func RunServer() {
+	dispatcher_client.Initialize(serverID, DispatcherRespHandler{})
+
 	vacuum.CreateStringLocally("Main")
+
 	for {
 		time.Sleep(time.Second)
 	}
