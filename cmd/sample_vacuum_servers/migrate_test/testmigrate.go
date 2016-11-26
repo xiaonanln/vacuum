@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	N                 = 10
+	N                 = 100000
 	NSERVERS          = 2
-	SEND_MSG_INTERVAL = 10 * time.Microsecond
+	SEND_MSG_INTERVAL = 10000 * time.Microsecond
 )
 
 type MigrateTester struct {

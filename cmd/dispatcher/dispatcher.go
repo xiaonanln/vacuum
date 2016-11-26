@@ -12,6 +12,7 @@ import (
 	"github.com/xiaonanln/vacuum/cmd/dispatcher/internal/client_proxy"
 	"github.com/xiaonanln/vacuum/cmd/dispatcher/internal/telnet_server"
 	"github.com/xiaonanln/vacuum/config"
+	"github.com/xiaonanln/vacuum/httpserver"
 	"github.com/xiaonanln/vacuum/netutil"
 	"github.com/xiaonanln/vacuum/vlog"
 )
@@ -37,6 +38,7 @@ func main() {
 	wait := &sync.WaitGroup{}
 	wait.Add(1)
 	go telnet_server.ServeTelnetServer(wait)
+	httpserver.StartHTTPServer()
 
 	netutil.ServeTCPForever(config.GetConfig().Dispatcher.Host, &DispatcherDelegate{})
 	wait.Wait()

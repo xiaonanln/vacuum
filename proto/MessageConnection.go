@@ -31,11 +31,13 @@ const (
 var (
 	NETWORK_ENDIAN = binary.LittleEndian
 	messagePool    = sync.Pool{
-		New: func() interface{} {
-			return &Message{}
-		},
+		New: newMessageInPool,
 	}
 )
+
+func newMessageInPool() interface{} {
+	return &Message{}
+}
 
 type MessageConnection struct {
 	netutil.BinaryConnection
