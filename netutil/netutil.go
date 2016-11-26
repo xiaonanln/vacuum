@@ -2,6 +2,7 @@ package netutil
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"reflect"
 	"runtime"
@@ -33,11 +34,16 @@ func IsTemporaryNetError(err error) bool {
 }
 
 func IsConnectionClosed(_err interface{}) bool {
-	err, ok := _err.(net.Error)
+	err, ok := _err.(error)
+	if ok && err == io.EOF {
+		return true
+	}
+
+	neterr, ok := _err.(net.Error)
 	if !ok {
 		return false
 	}
-	if err.Temporary() || err.Timeout() {
+	if neterr.Temporary() || neterr.Timeout() {
 		return false
 	}
 
