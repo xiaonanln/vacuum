@@ -51,12 +51,12 @@ type Message [MAX_MESSAGE_SIZE]byte
 
 func allocMessage() *Message {
 	msg := messagePool.Get().(*Message)
-	vlog.Debug("ALLOC %p", msg)
+	//vlog.Debug("ALLOC %p", msg)
 	return msg
 }
 
 func (m *Message) Release() {
-	vlog.Debug("RELEASE %p", m)
+	//vlog.Debug("RELEASE %p", m)
 	messagePool.Put(m)
 }
 
