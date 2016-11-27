@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	N                 = 100000
-	NSERVERS          = 2
+	N                 = 100
+	NSERVERS          = 1
 	SEND_MSG_INTERVAL = 10000 * time.Microsecond
 )
 
@@ -36,11 +36,7 @@ func (pt *MigrateTester) Loop(s *vacuum.String, msg common.StringMessage) {
 	if pt.val != msgint {
 		vlog.Panicf("Val is %v, but msg is %v", pt.val, msg)
 	}
-	if msgint < N {
-		s.Migrate(1 + rand.Intn(NSERVERS))
-	} else {
-		s.Migrate(int(msgint))
-	}
+	s.Migrate(1 + rand.Intn(NSERVERS))
 }
 
 func (pt *MigrateTester) Fini(s *vacuum.String) {

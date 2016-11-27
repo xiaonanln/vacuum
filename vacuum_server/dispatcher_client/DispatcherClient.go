@@ -123,21 +123,21 @@ func (dc *DispatcherClient) RelayCloseString(stringID string) error {
 func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgType_t) (err error) {
 	vlog.Debug("<<< HandleMsg: size %v: %s", pktSize, MsgTypeToString(msgtype))
 	payload := msg[PREPAYLOAD_SIZE:pktSize]
-	if msgtype == START_MIGRATE_STRING_RESP {
-		err = dc.handleStartMigrateStringResp(payload)
-	} else if msgtype == MIGRATE_STRING_RESP {
+	if msgtype == START_MIGRATE_STRING_REQ {
+		err = dc.handleStartMigrateStringReq(payload)
+	} else if msgtype == MIGRATE_STRING_REQ {
 		// migrate string to this server
 		err = dc.handleMigrateStringResp(payload)
-	} else if msgtype == CREATE_STRING_RESP {
+	} else if msgtype == CREATE_STRING_REQ {
 		// create real string instance
-		err = dc.handleCreateStringResp(payload)
-	} else if msgtype == DECLARE_SERVICE_RESP {
+		err = dc.handleCreateStringReq(payload)
+	} else if msgtype == DECLARE_SERVICE_REQ {
 		// declare service
 		err = dc.handleDeclareServiceResp(payload)
-	} else if msgtype == STRING_DEL_RESP {
+	} else if msgtype == STRING_DEL_REQ {
 		err = dc.handleStringDelResp(payload)
-	} else if msgtype == LOAD_STRING_RESP {
-		err = dc.handleLoadStringResp(payload)
+	} else if msgtype == LOAD_STRING_REQ {
+		err = dc.handleLoadStringReq(payload)
 	} else if msgtype == REGISTER_VACUUM_SERVER_RESP {
 		err = dc.handleRegisterVacuumServerResp(payload)
 	} else {
@@ -191,64 +191,64 @@ func (dc *DispatcherClient) handleRegisterVacuumServerResp(payload []byte) error
 	return nil
 }
 
-func (dc *DispatcherClient) handleCreateStringResp(payload []byte) error {
-	var resp CreateStringResp
-	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+func (dc *DispatcherClient) handleCreateStringReq(payload []byte) error {
+	var req CreateStringReq
+	if err := MSG_PACKER.UnpackMsg(payload, &req); err != nil {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_CreateString(resp.Name, resp.StringID, resp.Args)
+	dispatcherRespHandler.HandleDispatcherResp_CreateString(req.Name, req.StringID, req.Args)
 	return nil
 }
 
 func (dc *DispatcherClient) handleDeclareServiceResp(payload []byte) error {
-	var resp DeclareServiceResp
-	err := MSG_PACKER.UnpackMsg(payload, &resp)
+	var req DeclareServiceReq
+	err := MSG_PACKER.UnpackMsg(payload, &req)
 	if err != nil {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_DeclareService(resp.StringID, resp.ServiceName)
+	dispatcherRespHandler.HandleDispatcherResp_DeclareService(req.StringID, req.ServiceName)
 	return nil
 }
 
 func (dc *DispatcherClient) handleStringDelResp(payload []byte) error {
-	var resp StringDelResp
-	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+	var req StringDelReq
+	if err := MSG_PACKER.UnpackMsg(payload, &req); err != nil {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_DelString(resp.StringID)
+	dispatcherRespHandler.HandleDispatcherResp_DelString(req.StringID)
 	return nil
 }
 
-func (dc *DispatcherClient) handleLoadStringResp(payload []byte) error {
-	var resp LoadStringResp
-	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+func (dc *DispatcherClient) handleLoadStringReq(payload []byte) error {
+	var req LoadStringReq
+	if err := MSG_PACKER.UnpackMsg(payload, &req); err != nil {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_LoadString(resp.Name, resp.StringID)
+	dispatcherRespHandler.HandleDispatcherResp_LoadString(req.Name, req.StringID)
 	return nil
 }
 
-func (dc *DispatcherClient) handleStartMigrateStringResp(payload []byte) error {
+func (dc *DispatcherClient) handleStartMigrateStringReq(payload []byte) error {
 	// Received start-migrate from dispatcher, now we start the real migrate progress
-	var resp StartMigrateStringResp
-	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+	var req StartMigrateStringReq
+	if err := MSG_PACKER.UnpackMsg(payload, &req); err != nil {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_MigrateString(resp.StringID)
+	dispatcherRespHandler.HandleDispatcherResp_MigrateString(req.StringID)
 	return nil
 }
 
 func (dc *DispatcherClient) handleMigrateStringResp(payload []byte) error {
-	var resp MigrateStringResp
-	if err := MSG_PACKER.UnpackMsg(payload, &resp); err != nil {
+	var req MigrateStringReq
+	if err := MSG_PACKER.UnpackMsg(payload, &req); err != nil {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_OnMigrateString(resp.Name, resp.StringID, resp.Args, resp.Data)
+	dispatcherRespHandler.HandleDispatcherResp_OnMigrateString(req.Name, req.StringID, req.Args, req.Data)
 	return nil
 }

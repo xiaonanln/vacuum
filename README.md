@@ -18,5 +18,8 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 * TODO: Message caching, resending ?
 * TODO: Support Google Protobuf
 * TODO: Recovering from String Storage failure - infinite retry
-* TODO: Optimize packet redirection through dispatcher to random / specified vacuum server (remove resp packet)
+* TODO: Optimize packet redirection through dispatcher to random / specified vacuum server (remove resp packets)
+* TODO: Entity framework
+    * Entity AOI
+    * Entity Attributes
 * TODO: Support multi-dispatchers
