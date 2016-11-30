@@ -63,7 +63,7 @@ func main() {
 	vacuum.RegisterMain(Main)
 	vacuum.RegisterString("PersistentTester", func() vacuum.StringDelegate {
 		pt := &PersistentTester{}
-		_ = vacuum.PersistentString(pt)
+		vacuum.AssurePersistent(pt)
 		return pt
 	})
 	vacuum_server.RunServer()

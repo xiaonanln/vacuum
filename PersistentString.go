@@ -30,3 +30,7 @@ func (s *String) Save() {
 		vlog.TraceError("Save %s failed: %s", err.Error())
 	}
 }
+
+func AssurePersistent(_ PersistentString) {
+
+}
