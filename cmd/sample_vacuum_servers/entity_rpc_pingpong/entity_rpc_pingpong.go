@@ -15,11 +15,13 @@ type PingPongEntity struct {
 
 func (t *PingPongEntity) Ping(pongID entity.EntityID, v int) {
 	vlog.Info("########################## %s.Ping %v ##########################", t, v)
+	time.Sleep(500 * time.Millisecond)
 	pongID.Call("Pong", t.ID, v+1)
 }
 
 func (t *PingPongEntity) Pong(pingID entity.EntityID, v int) {
 	vlog.Info("########################## %s.Pong %v ##########################", t, v)
+	time.Sleep(500 * time.Millisecond)
 	pingID.Call("Ping", t.ID, v+1)
 }
 
