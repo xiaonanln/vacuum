@@ -3,6 +3,8 @@ package entity
 import (
 	"reflect"
 
+	"fmt"
+
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
@@ -21,10 +23,22 @@ var (
 )
 
 type Entity interface {
+	//ID() EntityID
 }
 
 type BaseEntity struct {
+	ID   EntityID
+	Type string
 }
+
+func (e *BaseEntity) String() string {
+	return fmt.Sprintf("%s<%s>", e.Type, e.ID)
+}
+
+//
+//func (e *BaseEntity) ID() EntityID {
+//	return
+//}
 
 func RegisterEntity(typeName string, entityPtr interface{}) {
 	if !isEntityStringRegistered {
@@ -66,6 +80,10 @@ func (es *entityString) Init(s *vacuum.String) {
 		vlog.Panicf("Entity %s is not registered", typeName)
 	}
 	entityPtrVal := reflect.New(entityTyp) // create entity and get its pointer
+
+	baseEntityVal := reflect.Indirect(entityPtrVal).FieldByName("BaseEntity")
+	baseEntityVal.FieldByName("Type").SetString(typeName)
+	baseEntityVal.FieldByName("ID").SetString(s.ID)
 
 	es.entityPtr = entityPtrVal
 	es.entity = entityPtrVal.Interface().(Entity)
