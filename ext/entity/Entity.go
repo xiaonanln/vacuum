@@ -26,7 +26,7 @@ type Entity interface {
 type BaseEntity struct {
 }
 
-func RegisterEntity(typeName string, entityVal interface{}) {
+func RegisterEntity(typeName string, entityPtr interface{}) {
 	if !isEntityStringRegistered {
 		registerEntityString()
 	}
@@ -34,12 +34,13 @@ func RegisterEntity(typeName string, entityVal interface{}) {
 	if _, ok := registeredEntityTypes[typeName]; ok {
 		vlog.Panicf("RegisterEntity: Entity type %s already registered", typeName)
 	}
-	vlog.Debug(">>> RegisterEntity: %s <<<", typeName)
-	entityVal = reflect.Indirect(reflect.ValueOf(entityVal))
-	entityType := reflect.TypeOf(entityVal)
+	entityVal := reflect.Indirect(reflect.ValueOf(entityPtr))
+	entityType := entityVal.Type()
 
 	// register the string of entity
 	registeredEntityTypes[typeName] = entityType
+
+	vlog.Debug(">>> RegisterEntity %s => %s <<<", typeName, entityType.Name())
 }
 
 func registerEntityString() {
@@ -54,18 +55,30 @@ func CreateEntity(typeName string) EntityID {
 }
 
 type entityString struct {
-	entity Entity
+	entity    Entity
+	entityPtr reflect.Value
 }
 
 func (es *entityString) Init(s *vacuum.String) {
 	typeName := typeconv.String(s.Args()[0]) // get entity type
-	vlog.Debug("Creating entity %s ...", typeName)
-	entityTyp := registeredEntityTypes[typeName]
+	entityTyp, ok := registeredEntityTypes[typeName]
+	if !ok {
+		vlog.Panicf("Entity %s is not registered", typeName)
+	}
 	entityPtrVal := reflect.New(entityTyp) // create entity and get its pointer
+
+	es.entityPtr = entityPtrVal
 	es.entity = entityPtrVal.Interface().(Entity)
+	vlog.Debug("Creating entity %s: %v %v", typeName, entityTyp, es.entityPtr)
 }
 
 func (es *entityString) Loop(s *vacuum.String, msg common.StringMessage) {
+	defer func() {
+		err := recover() // recover from any error during RPC call
+		if err != nil {
+			vlog.TraceError("RPC %s::%v paniced: %v", es.entityPtr.Type().String()[1:], msg, err)
+		}
+	}()
 	methodNameAndArgs := msg.([]interface{})
 	methodName := typeconv.String(methodNameAndArgs[0])
 
@@ -76,8 +89,21 @@ func (es *entityString) Loop(s *vacuum.String, msg common.StringMessage) {
 		args = methodNameAndArgs[1].([]interface{})
 	}
 
-	vlog.Debug("EntityString Loop %s(%v)", methodName, args)
+	method := es.entityPtr.MethodByName(methodName)
+	vlog.Debug("EntityString Loop %s(%v) => %v.%v", methodName, args, es.entityPtr, method)
 
+	methodType := method.Type()
+
+	in := make([]reflect.Value, len(args))
+
+	for i, arg := range args {
+		argType := methodType.In(i)
+		argVal := reflect.ValueOf(arg)
+		in[i] = typeconv.Convert(argVal, argType)
+		// log.Printf("Arg %d is %T %v value %v => %v", i, arg, arg, argVal, in[i])
+	}
+	// log.Printf("arguments: %v", in)
+	method.Call(in)
 }
 
 func (es *entityString) Fini(s *vacuum.String) {

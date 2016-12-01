@@ -14,13 +14,24 @@ type TestEntity struct {
 }
 
 func (t *TestEntity) TestFunc1() {
-	vlog.Info("TestFunc1")
+	vlog.Info("#################################################################### TestFunc1 ####################################################################")
+}
+
+func (t *TestEntity) TestFunc2(a int, b float64, c string) {
+	vlog.Info("#################################################################### TestFunc2 %v %v %v ####################################################################", a, b, c)
 }
 
 func Main(s *vacuum.String) {
 	entityID := entity.CreateEntity("TestEntity")
 	entityID.Call("TestFunc1")
-	time.Sleep(3 * time.Second)
+	time.Sleep(1 * time.Second)
+	entityID.Call("TestFunc2", 1, 2, "3")
+	time.Sleep(1 * time.Second)
+	entityID.Call("TestFunc2", 1, 2)
+	time.Sleep(1 * time.Second)
+
+	entityID.Call("TestFuncNotExist", 1, 2)
+	time.Sleep(1 * time.Second)
 }
 
 func main() {
