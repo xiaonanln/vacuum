@@ -13,11 +13,14 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 
 * TODO:
 * MMORPG Game Server based on Entity
+    * Client Gate
+        * Compression
+    * Entity Attributes
+    * AOI
+    * Cell 
+    
 * Reliable Messaging
 * Recovering from String Storage failure - infinite retry
-* Entity framework
-    * Entity AOI
-    * Entity Attributes
 * Support multi-dispatchers
 * Use Pipe between dispatcher and vacuum servers instead of socket, for better performance ?
 * Compression of communication ?
