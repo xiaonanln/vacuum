@@ -63,9 +63,7 @@ func RegisterEntity(typeName string, entityPtr interface{}) {
 }
 
 func registerEntityString() {
-	vacuum.RegisterString(ENTITY_STRING_NAME, func() vacuum.StringDelegate {
-		return &entityString{}
-	})
+	vacuum.RegisterString(ENTITY_STRING_NAME, &entityString{})
 }
 
 func CreateEntity(typeName string) EntityID {
@@ -74,12 +72,14 @@ func CreateEntity(typeName string) EntityID {
 }
 
 type entityString struct {
+	vacuum.String
+
 	entity    Entity
 	entityPtr reflect.Value
 }
 
-func (es *entityString) Init(s *vacuum.String) {
-	typeName := typeconv.String(s.Args()[0]) // get entity type
+func (es *entityString) Init() {
+	typeName := typeconv.String(es.Args()[0]) // get entity type
 	entityTyp, ok := registeredEntityTypes[typeName]
 	if !ok {
 		vlog.Panicf("Entity %s is not registered", typeName)
@@ -88,14 +88,14 @@ func (es *entityString) Init(s *vacuum.String) {
 
 	baseEntityVal := reflect.Indirect(entityPtrVal).FieldByName("BaseEntity")
 	baseEntityVal.FieldByName("Type").SetString(typeName)
-	baseEntityVal.FieldByName("ID").SetString(s.ID)
-	baseEntityVal.FieldByName("S").Set(reflect.ValueOf(s))
+	baseEntityVal.FieldByName("ID").SetString(es.String.ID)
+	baseEntityVal.FieldByName("S").Set(reflect.ValueOf(&es.String))
 	es.entityPtr = entityPtrVal
 	es.entity = entityPtrVal.Interface().(Entity)
 	vlog.Debug("Creating entity %s: %v %v", typeName, entityTyp, es.entityPtr)
 }
 
-func (es *entityString) Loop(s *vacuum.String, msg common.StringMessage) {
+func (es *entityString) Loop(msg common.StringMessage) {
 	defer func() {
 		err := recover() // recover from any error during RPC call
 		if err != nil {
@@ -127,18 +127,6 @@ func (es *entityString) Loop(s *vacuum.String, msg common.StringMessage) {
 	}
 	// log.Printf("arguments: %v", in)
 	method.Call(in)
-}
-
-func (es *entityString) Fini(s *vacuum.String) {
-
-}
-
-func (es *entityString) GetPersistentData() map[string]interface{} {
-	return nil
-}
-
-func (es *entityString) LoadPersistentData(data map[string]interface{}) {
-
 }
 
 func (eid EntityID) Call(methodName string, args ...interface{}) {

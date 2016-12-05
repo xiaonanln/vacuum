@@ -23,7 +23,7 @@ func (t *TestEntity) TestFunc2(a int, b float64, c string) {
 	t.Save()
 }
 
-func Main(s *vacuum.String) {
+func Main() {
 	entityID := entity.CreateEntity("TestEntity")
 	entityID.Call("TestFunc1")
 	time.Sleep(1 * time.Second)
