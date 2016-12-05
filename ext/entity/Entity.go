@@ -22,21 +22,21 @@ var (
 	registeredEntityTypes    = map[string]reflect.Type{}
 )
 
-type Entity interface {
+type IEntity interface {
 	//ID() EntityID
 }
 
-type BaseEntity struct {
+type Entity struct {
 	ID   EntityID
 	Type string
 	S    *vacuum.String
 }
 
-func (e *BaseEntity) String() string {
+func (e *Entity) String() string {
 	return fmt.Sprintf("%s<%s>", e.Type, e.ID)
 }
 
-func (e *BaseEntity) Save() {
+func (e *Entity) Save() {
 	e.S.Save()
 }
 
@@ -74,7 +74,7 @@ func CreateEntity(typeName string) EntityID {
 type entityString struct {
 	vacuum.String
 
-	entity    Entity
+	entity    IEntity
 	entityPtr reflect.Value
 }
 
@@ -86,12 +86,13 @@ func (es *entityString) Init() {
 	}
 	entityPtrVal := reflect.New(entityTyp) // create entity and get its pointer
 
-	baseEntityVal := reflect.Indirect(entityPtrVal).FieldByName("BaseEntity")
-	baseEntityVal.FieldByName("Type").SetString(typeName)
-	baseEntityVal.FieldByName("ID").SetString(es.String.ID)
-	baseEntityVal.FieldByName("S").Set(reflect.ValueOf(&es.String))
+	baseEntity := reflect.Indirect(entityPtrVal).FieldByName("Entity").Addr().Interface().(*Entity)
+	baseEntity.Type = typeName
+	baseEntity.ID = EntityID(es.String.ID)
+	baseEntity.S = &es.String
+
 	es.entityPtr = entityPtrVal
-	es.entity = entityPtrVal.Interface().(Entity)
+	es.entity = entityPtrVal.Interface().(IEntity)
 	vlog.Debug("Creating entity %s: %v %v", typeName, entityTyp, es.entityPtr)
 }
 

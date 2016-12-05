@@ -10,7 +10,7 @@ import (
 )
 
 type TestEntity struct {
-	entity.BaseEntity // each entity class derives the BaseEntity
+	entity.Entity // each entity class derives the BaseEntity
 }
 
 func (t *TestEntity) TestFunc1() {
