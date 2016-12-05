@@ -59,95 +59,97 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 	s.I = derived.Interface().(IString)
 	putString(s)
 	vlog.Debug("OnCreateString %s: %s, args=%v", name, s, args)
+
+	go stringRoutine(s, loadFromStorage, migrateData)
+}
+func stringRoutine(s *String, loadFromStorage bool, migrateData map[string]interface{}) {
 	var is IString = s.I
 
-	go func() {
-		defer recoverFromStringRoutineError(s)
+	defer recoverFromStringRoutineError(s)
 
-		is.Init()
+	is.Init()
 
-		if loadFromStorage { // loading string from storage ...
-			data, err := stringStorage.Read(name, stringID)
-			if err != nil {
-				// load string failed..
-				vlog.Panic(err)
-			}
-			if data != nil {
-				is.LoadPersistentData(data.(map[string]interface{}))
-			}
-		} else if migrateData != nil { // migrated from from other server ...
-			is.LoadPersistentData(migrateData)
-		} else { // creating new string
-			if is.IsPersistent() { // save persistent string right after it's created && inited
-				is.Save()
-			}
+	if loadFromStorage { // loading string from storage ...
+		data, err := stringStorage.Read(s.Name, s.ID)
+		if err != nil {
+			// load string failed..
+			vlog.Panic(err)
+		}
+		if data != nil {
+			is.LoadPersistentData(data.(map[string]interface{}))
+		}
+	} else if migrateData != nil { // migrated from from other server ...
+		is.LoadPersistentData(migrateData)
+	} else { // creating new string
+		if is.IsPersistent() { // save persistent string right after it's created && inited
+			is.Save()
+		}
+	}
+
+	for {
+		if s.HasFlag(SS_MIGRATING) {
+			goto migrating_wait_notify
 		}
 
-		for {
-			if s.HasFlag(SS_MIGRATING) {
-				goto migrating_wait_notify
-			}
+		msg := s.inputQueue.Pop()
+		if msg != nil {
+			is.Loop(msg)
+		} else {
+			s.SetFlag(SS_FINIALIZING)
+			goto finialize_string
+		}
 
-			msg := s.inputQueue.Pop()
+	}
+
+finialize_string:
+	if s.HasFlag(SS_MIGRATING) {
+		vlog.Debug("%s: string migrated ignored because it's finializing", s)
+	}
+
+	is.Fini()
+
+	if is.IsPersistent() {
+		is.Save()
+	}
+
+	vlog.Debug("--- %s quited", s)
+	onStringRoutineQuit(s)
+	return
+
+migrating_wait_notify:
+	vlog.Debug("%s: Waiting for StartMigrateStringResp from dispatcher ...", s)
+	<-s.migrateNotify
+	vlog.Debug("%s: StartMigrateStringResp OK")
+	// process all pending messages
+migrating_read_loop:
+	for {
+		msg, ok := s.inputQueue.TryPop()
+		if ok {
 			if msg != nil {
 				is.Loop(msg)
 			} else {
 				s.SetFlag(SS_FINIALIZING)
-				goto finialize_string
-			}
-
-		}
-
-	finialize_string:
-		if s.HasFlag(SS_MIGRATING) {
-			vlog.Debug("%s: string migrated ignored because it's finializing", s)
-		}
-
-		is.Fini()
-
-		if is.IsPersistent() {
-			is.Save()
-		}
-
-		vlog.Debug("--- %s quited", s)
-		onStringRoutineQuit(s)
-		return
-
-	migrating_wait_notify:
-		vlog.Debug("%s: Waiting for StartMigrateStringResp from dispatcher ...", s)
-		<-s.migrateNotify
-		vlog.Debug("%s: StartMigrateStringResp OK")
-		// process all pending messages
-	migrating_read_loop:
-		for {
-			msg, ok := s.inputQueue.TryPop()
-			if ok {
-				if msg != nil {
-					is.Loop(msg)
-				} else {
-					s.SetFlag(SS_FINIALIZING)
-					break migrating_read_loop
-				}
-			} else {
-				// no more messages, now we can quit
 				break migrating_read_loop
 			}
+		} else {
+			// no more messages, now we can quit
+			break migrating_read_loop
 		}
-		// all messages are processed, now we can start migrate or quit
-		vlog.Debug("%s: all messages handled, quiting for migrating ... finializing=%v", s, s.HasFlag(SS_FINIALIZING))
-		if s.HasFlag(SS_FINIALIZING) {
-			// if the string is finializing, migrating is shutdown
-			goto finialize_string
-		}
-		// real migrate now!
-		var data map[string]interface{}
+	}
+	// all messages are processed, now we can start migrate or quit
+	vlog.Debug("%s: all messages handled, quiting for migrating ... finializing=%v", s, s.HasFlag(SS_FINIALIZING))
+	if s.HasFlag(SS_FINIALIZING) {
+		// if the string is finializing, migrating is shutdown
+		goto finialize_string
+	}
+	// real migrate now!
+	var data map[string]interface{}
 
-		// get migrate data from string
-		data = is.GetPersistentData()
+	// get migrate data from string
+	data = is.GetPersistentData()
 
-		dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, s.initArgs, data)
-		return
-	}()
+	dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, s.initArgs, data)
+	return
 }
 
 // DeclareService: declare that the specified String provides specified service

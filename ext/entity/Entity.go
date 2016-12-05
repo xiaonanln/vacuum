@@ -74,7 +74,6 @@ func CreateEntity(typeName string) EntityID {
 type entityString struct {
 	vacuum.String
 
-	entity    IEntity
 	entityPtr reflect.Value
 }
 
@@ -84,15 +83,15 @@ func (es *entityString) Init() {
 	if !ok {
 		vlog.Panicf("Entity %s is not registered", typeName)
 	}
+
 	entityPtrVal := reflect.New(entityTyp) // create entity and get its pointer
+	es.entityPtr = entityPtrVal
 
 	baseEntity := reflect.Indirect(entityPtrVal).FieldByName("Entity").Addr().Interface().(*Entity)
 	baseEntity.Type = typeName
 	baseEntity.ID = EntityID(es.String.ID)
 	baseEntity.S = &es.String
 
-	es.entityPtr = entityPtrVal
-	es.entity = entityPtrVal.Interface().(IEntity)
 	vlog.Debug("Creating entity %s: %v %v", typeName, entityTyp, es.entityPtr)
 }
 
