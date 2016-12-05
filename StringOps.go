@@ -1,6 +1,8 @@
 package vacuum
 
 import (
+	"reflect"
+
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/uuid"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
@@ -46,20 +48,23 @@ func OnLoadString(name string, stringID string) {
 }
 
 func createString(name string, stringID string, args []interface{}, loadFromStorage bool, migrateData map[string]interface{}) {
-	delegateMaker := getStringDelegateMaker(name)
-	if delegateMaker == nil {
-		vlog.Panicf("OnCreateString: routine of String %s is nil", name)
-	}
+	stringType := getRegisteredStringType(name)
+	//if stringType {
+	//	vlog.Panicf("OnCreateString: String type %s is unknown", name)
+	//}
 
-	delegate := delegateMaker()
-	s := newString(stringID, name, args, delegate)
+	derived := reflect.New(stringType) // create the new string
+	s := reflect.Indirect(derived).FieldByName("String").Addr().Interface().(*String)
+	setupString(s, stringID, name, args)
+	s.I = derived.Interface().(IString)
 	putString(s)
 	vlog.Debug("OnCreateString %s: %s, args=%v", name, s, args)
+	var is IString = s.I
 
 	go func() {
 		defer recoverFromStringRoutineError(s)
 
-		s.delegate.Init(s)
+		is.Init()
 
 		if loadFromStorage { // loading string from storage ...
 			data, err := stringStorage.Read(name, stringID)
@@ -68,13 +73,13 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 				vlog.Panic(err)
 			}
 			if data != nil {
-				s.persistence.LoadPersistentData(data.(map[string]interface{}))
+				is.LoadPersistentData(data.(map[string]interface{}))
 			}
 		} else if migrateData != nil { // migrated from from other server ...
-			s.persistence.LoadPersistentData(migrateData)
+			is.LoadPersistentData(migrateData)
 		} else { // creating new string
-			if s.IsPersistent() { // save persistent string right after it's created && inited
-				s.Save()
+			if is.IsPersistent() { // save persistent string right after it's created && inited
+				is.Save()
 			}
 		}
 
@@ -85,7 +90,7 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 
 			msg := s.inputQueue.Pop()
 			if msg != nil {
-				s.delegate.Loop(s, msg)
+				is.Loop(msg)
 			} else {
 				s.SetFlag(SS_FINIALIZING)
 				goto finialize_string
@@ -98,10 +103,10 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 			vlog.Debug("%s: string migrated ignored because it's finializing", s)
 		}
 
-		s.delegate.Fini(s)
+		is.Fini()
 
-		if s.IsPersistent() {
-			s.Save()
+		if is.IsPersistent() {
+			is.Save()
 		}
 
 		vlog.Debug("--- %s quited", s)
@@ -118,7 +123,7 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 			msg, ok := s.inputQueue.TryPop()
 			if ok {
 				if msg != nil {
-					s.delegate.Loop(s, msg)
+					is.Loop(msg)
 				} else {
 					s.SetFlag(SS_FINIALIZING)
 					break migrating_read_loop
@@ -138,9 +143,7 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 		var data map[string]interface{}
 
 		// get migrate data from string
-		if s.persistence != nil {
-			data = s.persistence.GetPersistentData()
-		}
+		data = is.GetPersistentData()
 
 		dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, s.initArgs, data)
 		return

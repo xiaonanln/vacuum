@@ -29,10 +29,15 @@ type Entity interface {
 type BaseEntity struct {
 	ID   EntityID
 	Type string
+	S    *vacuum.String
 }
 
 func (e *BaseEntity) String() string {
 	return fmt.Sprintf("%s<%s>", e.Type, e.ID)
+}
+
+func (e *BaseEntity) Save() {
+	e.S.Save()
 }
 
 //
@@ -84,7 +89,7 @@ func (es *entityString) Init(s *vacuum.String) {
 	baseEntityVal := reflect.Indirect(entityPtrVal).FieldByName("BaseEntity")
 	baseEntityVal.FieldByName("Type").SetString(typeName)
 	baseEntityVal.FieldByName("ID").SetString(s.ID)
-
+	baseEntityVal.FieldByName("S").Set(reflect.ValueOf(s))
 	es.entityPtr = entityPtrVal
 	es.entity = entityPtrVal.Interface().(Entity)
 	vlog.Debug("Creating entity %s: %v %v", typeName, entityTyp, es.entityPtr)
