@@ -12,20 +12,22 @@ const (
 )
 
 type PersistentString interface {
+	IsPersistent() bool
 	GetPersistentData() map[string]interface{}
 	LoadPersistentData(data map[string]interface{})
 }
 
 func (s *String) Save() {
-	persistence := s.persistence
-	if persistence == nil {
-		vlog.TraceError("string %s is not persistent", s)
+	is := s.I
+
+	if !is.IsPersistent() {
+		vlog.Debug("String %s is NOT persistent, save ignored.", s)
 		return
 	}
 
 	logrus.Debugf("Saving %s ...", s)
 
-	data := persistence.GetPersistentData()
+	data := is.GetPersistentData()
 	if err := stringStorage.Write(s.Name, s.ID, data); err != nil {
 		vlog.TraceError("Save %s failed: %s", err.Error())
 	}

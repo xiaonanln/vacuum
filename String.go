@@ -13,28 +13,31 @@ import (
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
-type StringDelegate interface {
-	Init(s *String)
-	Fini(s *String)
-	Loop(s *String, msg StringMessage)
-}
-
-type StringDelegateMaker func() StringDelegate
-
 const (
-	SS_MIGRATING = uint64(1 << iota)
-	SS_MIGRATING_
+	SS_MIGRATING   = uint64(1 << iota)
 	SS_FINIALIZING = uint64(1 << iota)
 )
 
+type IString interface {
+	Init()
+	Loop(msg StringMessage)
+	Fini()
+
+	IsPersistent() bool
+	GetPersistentData() map[string]interface{}
+	LoadPersistentData(data map[string]interface{})
+
+	Save()
+}
+
 type String struct {
-	ID          string
-	Name        string
-	initArgs    []interface{}
-	delegate    StringDelegate
-	persistence PersistentString
-	inputQueue  sync_queue.SyncQueue
-	outputSid   string
+	ID   string
+	Name string
+
+	I          IString
+	initArgs   []interface{}
+	inputQueue sync_queue.SyncQueue
+	outputSid  string
 
 	_flags uint64
 
@@ -42,24 +45,41 @@ type String struct {
 	migrateNotify       chan int
 }
 
-func newString(stringID string, name string, initArgs []interface{}, delegate StringDelegate) *String {
-	s := &String{
-		ID:         stringID,
-		Name:       name,
-		initArgs:   initArgs,
-		delegate:   delegate,
-		inputQueue: sync_queue.NewSyncQueue(),
-		outputSid:  "",
-	}
+func setupString(s *String, stringID string, name string, initArgs []interface{}) {
+	s.ID = stringID
+	s.Name = name
+	s.initArgs = initArgs
+	s.inputQueue = sync_queue.NewSyncQueue()
+}
 
-	s.persistence, _ = delegate.(PersistentString)
-	return s
+func (s *String) Init() {
+	vlog.Debug("%s.Init ..., args=%v", s, s.Args())
+}
+
+func (s *String) Fini() {
+	vlog.Debug("%s.Fini ...", s)
+}
+
+func (s *String) Loop(msg StringMessage) {
+	vlog.Debug("%s.Loop %v", s, msg)
+}
+
+func (s *String) IsPersistent() bool {
+	return false
+}
+
+func (s *String) GetPersistentData() map[string]interface{} {
+	return nil
+}
+
+func (s *String) LoadPersistentData(data map[string]interface{}) {
+
 }
 
 func (s *String) String() string {
 	if s != nil {
 		var pp string
-		if s.persistence != nil {
+		if s.I.IsPersistent() {
 			pp = "P!"
 		} else {
 			pp = ""
@@ -88,10 +108,6 @@ func (s *String) setflags(val uint64) {
 
 func (s *String) flags() uint64 {
 	return atomic.LoadUint64(&s._flags)
-}
-
-func (s *String) IsPersistent() bool {
-	return s.persistence != nil
 }
 
 //func (s *String) Read() StringMessage {

@@ -20,26 +20,27 @@ const (
 )
 
 type MigrateTester struct {
+	vacuum.String
 	val int64
 }
 
-func (pt *MigrateTester) Init(s *vacuum.String) {
-	vlog.Debug("!!! MigrateTester.Init %v", s.Args())
+func (pt *MigrateTester) Init() {
+	vlog.Debug("!!! MigrateTester.Init %v", pt.Args())
 	pt.val = 0
-	s.DeclareService("MigrateTester")
+	pt.DeclareService("MigrateTester")
 }
 
-func (pt *MigrateTester) Loop(s *vacuum.String, msg common.StringMessage) {
+func (pt *MigrateTester) Loop(msg common.StringMessage) {
 	pt.val += 1
 	vlog.Debug("!!! MigrateTester.Loop msg %v val %v", msg, pt.val)
 	msgint := typeconv.Int(msg)
 	if pt.val != msgint {
 		vlog.Panicf("Val is %v, but msg is %v", pt.val, msg)
 	}
-	s.Migrate(1 + rand.Intn(NSERVERS))
+	pt.Migrate(1 + rand.Intn(NSERVERS))
 }
 
-func (pt *MigrateTester) Fini(s *vacuum.String) {
+func (pt *MigrateTester) Fini() {
 	vlog.Info("##################################################################################################################################")
 	vlog.Info("#################################################### MigrateTester.Fini %v ####################################################", pt.val)
 	vlog.Info("##################################################################################################################################")
@@ -56,7 +57,7 @@ func (pt *MigrateTester) LoadPersistentData(data map[string]interface{}) {
 	logrus.Printf("LoadPersistentData %v", pt.val)
 }
 
-func Main(s *vacuum.String) {
+func Main() {
 	for serverID := 1; serverID <= NSERVERS; serverID += 1 {
 		vacuum.WaitServerReady(serverID)
 	}
@@ -78,11 +79,6 @@ func Main(s *vacuum.String) {
 
 func main() {
 	vacuum.RegisterMain(Main)
-	vacuum.RegisterString("MigrateTester", func() vacuum.StringDelegate {
-		pt := &MigrateTester{}
-		_ = vacuum.PersistentString(pt)
-		return pt
-	})
-
+	vacuum.RegisterString("MigrateTester", &MigrateTester{})
 	vacuum_server.RunServer()
 }

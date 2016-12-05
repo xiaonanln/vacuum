@@ -3,6 +3,8 @@ package main
 import (
 	"time"
 
+	"os"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
@@ -11,23 +13,27 @@ import (
 )
 
 type PersistentTester struct {
+	vacuum.String
 	val int64
 }
 
-func (pt *PersistentTester) Init(s *vacuum.String) {
+func (pt *PersistentTester) Init() {
 	pt.val = 0
-	s.DeclareService("PersistentTester")
+	pt.DeclareService("PersistentTester")
 }
 
-func (pt *PersistentTester) Loop(s *vacuum.String, msg common.StringMessage) {
+func (pt *PersistentTester) Loop(msg common.StringMessage) {
 	pt.val += typeconv.Int(msg)
-	s.Save()
+	pt.Save()
 }
 
-func (pt *PersistentTester) Fini(s *vacuum.String) {
+func (pt *PersistentTester) Fini() {
 	logrus.Printf("!!!!!!!!!!! Fini %v!!!!!!!!!!!!!!", pt.val)
 }
 
+func (pt *PersistentTester) IsPersistent() bool {
+	return true
+}
 func (pt *PersistentTester) GetPersistentData() map[string]interface{} {
 	return map[string]interface{}{
 		"val": pt.val,
@@ -39,7 +45,11 @@ func (pt *PersistentTester) LoadPersistentData(data map[string]interface{}) {
 	logrus.Printf("!!!!!!!!!!! LoadPersistentData %v!!!!!!!!!!!!!!", pt.val)
 }
 
-func Main(s *vacuum.String) {
+type Main struct {
+	vacuum.String
+}
+
+func (s *Main) Init() {
 	stringID := vacuum.CreateString("PersistentTester")
 	vacuum.WaitServiceReady("PersistentTester", 1)
 	vacuum.Send(stringID, 1)
@@ -57,14 +67,11 @@ func Main(s *vacuum.String) {
 	}
 
 	time.Sleep(3 * time.Second)
+	os.Exit(0)
 }
 
 func main() {
-	vacuum.RegisterMain(Main)
-	vacuum.RegisterString("PersistentTester", func() vacuum.StringDelegate {
-		pt := &PersistentTester{}
-		vacuum.AssurePersistent(pt)
-		return pt
-	})
+	vacuum.RegisterString("Main", &Main{})
+	vacuum.RegisterString("PersistentTester", &PersistentTester{})
 	vacuum_server.RunServer()
 }

@@ -10,7 +10,7 @@ import (
 )
 
 type PingPongEntity struct {
-	entity.BaseEntity // each entity class derives the BaseEntity
+	entity.Entity // each entity class derives the BaseEntity
 }
 
 func (t *PingPongEntity) Ping(pongID entity.EntityID, v int) {

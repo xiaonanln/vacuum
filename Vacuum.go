@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"sync"
 
+	"reflect"
+
 	. "github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vlog"
 )
@@ -12,7 +14,7 @@ var (
 	stringsLock sync.RWMutex
 	strings     = map[string]*String{}
 
-	registeredStringDelegateNewers = map[string]StringDelegateMaker{}
+	registeredStringTypes = map[string]reflect.Type{}
 
 	stringIDsByServiceLock sync.RWMutex
 	stringIDListByService  = map[string]StringList{}
@@ -47,21 +49,28 @@ func popString(stringID string) (s *String) {
 	return
 }
 
-func RegisterString(name string, newer StringDelegateMaker) {
-	if registeredStringDelegateNewers[name] != nil {
-		vlog.Panicf("String delegate newer of name %s is already registered", name)
+func RegisterString(name string, stringPtr IString) {
+	if _, ok := registeredStringTypes[name]; ok {
+		vlog.Panicf("RegisterEntity: String type %s already registered", name)
 	}
 
-	registeredStringDelegateNewers[name] = newer
-	vlog.Info("String delegate newer registered: %s", name)
+	stringVal := reflect.Indirect(reflect.ValueOf(stringPtr))
+	stringType := stringVal.Type()
+	if !stringVal.FieldByName("String").IsValid() {
+		vlog.Panicf("RegisterString %s failed: type %s is not valid String struct", name, stringType)
+	}
+
+	// register the string of entity
+	registeredStringTypes[name] = stringType
+	vlog.Info("String registered: %s => %s", name, stringType)
 }
 
 func GetLocalString(stringID string) *String {
 	return getString(stringID)
 }
 
-func getStringDelegateMaker(name string) StringDelegateMaker {
-	return registeredStringDelegateNewers[name]
+func getRegisteredStringType(name string) reflect.Type {
+	return registeredStringTypes[name]
 }
 
 func declareService(stringID string, serviceName string) {

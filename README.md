@@ -12,6 +12,7 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
   * Using map-reduce: https://github.com/xiaonanln/vacuum/blob/master/cmd/sample_vacuum_servers/prime_test/mapreduce.go
 
 * TODO:
+* Persistent Entity and Not-Persistent Entity, HOW TO?
 * MMORPG Game Server based on Entity
     * Client Gate
         * Compression
