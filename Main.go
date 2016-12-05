@@ -1,5 +1,7 @@
 package vacuum
 
+import "os"
+
 var (
 	mainfunc func()
 )
@@ -10,8 +12,8 @@ type _Main struct {
 
 func (s *_Main) Init() {
 	mainfunc()
-	s.Send(s.ID, nil)
-	//os.Exit(0)
+	//s.Send(s.ID, nil)
+	os.Exit(1)
 }
 
 func RegisterMain(main func()) {
