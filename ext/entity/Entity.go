@@ -24,12 +24,18 @@ var (
 
 type IEntity interface {
 	//ID() EntityID
+	Init()
 }
 
 type Entity struct {
+	I    IEntity
 	ID   EntityID
 	Type string
 	S    *vacuum.String
+}
+
+func (e *Entity) Init() {
+	vlog.Debug("%s.Init: Args=%v", e, e.Args())
 }
 
 func (e *Entity) String() string {
@@ -40,13 +46,18 @@ func (e *Entity) Save() {
 	e.S.Save()
 }
 
+func (e *Entity) Args() []interface{} {
+	return e.S.Args()[1:]
+}
+
 //
 //func (e *BaseEntity) ID() EntityID {
 //	return
 //}
 
-func RegisterEntity(typeName string, entityPtr interface{}) {
+func RegisterEntity(typeName string, entityPtr IEntity) {
 	if !isEntityStringRegistered {
+		isEntityStringRegistered = true
 		registerEntityString()
 	}
 
@@ -66,8 +77,13 @@ func registerEntityString() {
 	vacuum.RegisterString(ENTITY_STRING_NAME, &entityString{})
 }
 
-func CreateEntity(typeName string) EntityID {
-	stringID := vacuum.CreateString(ENTITY_STRING_NAME, typeName)
+func CreateEntity(typeName string, args ...interface{}) EntityID {
+	argscount := len(args)
+	stringArgs := make([]interface{}, argscount+1, argscount+1)
+	stringArgs[0] = typeName
+	copy(stringArgs[1:], args)
+
+	stringID := vacuum.CreateString(ENTITY_STRING_NAME, stringArgs...)
 	return EntityID(stringID)
 }
 
@@ -88,11 +104,14 @@ func (es *entityString) Init() {
 	es.entityPtr = entityPtrVal
 
 	baseEntity := reflect.Indirect(entityPtrVal).FieldByName("Entity").Addr().Interface().(*Entity)
+	baseEntity.I = entityPtrVal.Interface().(IEntity)
+
 	baseEntity.Type = typeName
 	baseEntity.ID = EntityID(es.String.ID)
 	baseEntity.S = &es.String
 
 	vlog.Debug("Creating entity %s: %v %v", typeName, entityTyp, es.entityPtr)
+	baseEntity.I.Init()
 }
 
 func (es *entityString) Loop(msg common.StringMessage) {
