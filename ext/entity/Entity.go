@@ -87,6 +87,16 @@ func CreateEntity(typeName string, args ...interface{}) EntityID {
 	return EntityID(stringID)
 }
 
+func CreateEntityLocally(typeName string, args ...interface{}) EntityID {
+	argscount := len(args)
+	stringArgs := make([]interface{}, argscount+1, argscount+1)
+	stringArgs[0] = typeName
+	copy(stringArgs[1:], args)
+
+	stringID := vacuum.CreateStringLocally(ENTITY_STRING_NAME, stringArgs...)
+	return EntityID(stringID)
+}
+
 type entityString struct {
 	vacuum.String
 

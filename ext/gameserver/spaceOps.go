@@ -18,7 +18,3 @@ func CreateSpace(kind int) SpaceID {
 	spaceID := SpaceID(eid)
 	return spaceID
 }
-
-func SetSpaceDelegate() {
-
-}

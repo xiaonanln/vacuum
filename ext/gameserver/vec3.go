@@ -1,4 +1,4 @@
-package gs_position
+package gameserver
 
 import "math"
 
