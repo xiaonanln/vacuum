@@ -18,14 +18,19 @@ type MySpaceDelegate struct {
 	gameserver.SpaceDelegate
 }
 
-func (delegate *MySpaceDelegate) OnLoaded(space *gameserver.GSSpace) {
+func (delegate *MySpaceDelegate) OnReady(space *gameserver.GSSpace) {
 	space.CreateEntity(MONSTER)
+}
+
+type MyEntityDelegate struct {
+	gameserver.EntityDelegate
 }
 
 func main() {
 	vlog.Info("gameserver_dev starting ...")
 	//gameserver.GSEntity{}
 	gameserver.SetSpaceDelegate(&MySpaceDelegate{})
+	gameserver.SetEntityDelegate(&MyEntityDelegate{})
 
 	vacuum.RegisterMain(func() {
 		spaceID := gameserver.CreateSpace(0)

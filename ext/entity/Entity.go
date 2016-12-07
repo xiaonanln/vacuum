@@ -5,6 +5,8 @@ import (
 
 	"fmt"
 
+	"sync"
+
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
@@ -20,7 +22,29 @@ const (
 var (
 	isEntityStringRegistered = false
 	registeredEntityTypes    = map[string]reflect.Type{}
+
+	entitiesLock sync.RWMutex
+	entities     = map[EntityID]IEntity{} // all entities
 )
+
+func putEntity(id EntityID, entity IEntity) {
+	entitiesLock.Lock()
+	entities[id] = entity
+	entitiesLock.Unlock()
+}
+
+func delEntity(id EntityID) {
+	entitiesLock.Lock()
+	delete(entities, id)
+	entitiesLock.Unlock()
+}
+
+func getEntity(id EntityID) (ret IEntity) {
+	entitiesLock.RLock()
+	ret = entities[id]
+	entitiesLock.RUnlock()
+	return
+}
 
 type IEntity interface {
 	//ID() EntityID
@@ -99,8 +123,9 @@ func CreateEntityLocally(typeName string, args ...interface{}) EntityID {
 
 type entityString struct {
 	vacuum.String
-
-	entityPtr reflect.Value
+	entityID     EntityID
+	entity       IEntity
+	entityPtrVal reflect.Value
 }
 
 func (es *entityString) Init() {
@@ -111,24 +136,36 @@ func (es *entityString) Init() {
 	}
 
 	entityPtrVal := reflect.New(entityTyp) // create entity and get its pointer
-	es.entityPtr = entityPtrVal
+	es.entityPtrVal = entityPtrVal
+	es.entity = entityPtrVal.Interface().(IEntity)
+	es.entityID = EntityID(es.String.ID)
 
 	baseEntity := reflect.Indirect(entityPtrVal).FieldByName("Entity").Addr().Interface().(*Entity)
-	baseEntity.I = entityPtrVal.Interface().(IEntity)
+	baseEntity.I = es.entity
 
 	baseEntity.Type = typeName
-	baseEntity.ID = EntityID(es.String.ID)
+	baseEntity.ID = es.entityID
 	baseEntity.S = &es.String
 
-	vlog.Debug("Creating entity %s: %v %v", typeName, entityTyp, es.entityPtr)
+	putEntity(baseEntity.ID, baseEntity.I)
+	vlog.Debug("Creating entity %s: %v %v", typeName, entityTyp, es.entityPtrVal)
+
 	baseEntity.I.Init()
+}
+
+func (es *entityString) OnMigrated() {
+	delEntity(es.entityID)
+}
+
+func (es *entityString) Fini() {
+	delEntity(es.entityID)
 }
 
 func (es *entityString) Loop(msg common.StringMessage) {
 	defer func() {
 		err := recover() // recover from any error during RPC call
 		if err != nil {
-			vlog.TraceError("RPC %s::%v paniced: %v", es.entityPtr.Type().String()[1:], msg, err)
+			vlog.TraceError("RPC %s::%v paniced: %v", es.entityPtrVal.Type().String()[1:], msg, err)
 		}
 	}()
 	methodNameAndArgs := msg.([]interface{})
@@ -141,8 +178,8 @@ func (es *entityString) Loop(msg common.StringMessage) {
 		args = methodNameAndArgs[1].([]interface{})
 	}
 
-	method := es.entityPtr.MethodByName(methodName)
-	vlog.Debug("EntityString Loop %s(%v) => %v.%v", methodName, args, es.entityPtr, method)
+	method := es.entityPtrVal.MethodByName(methodName)
+	vlog.Debug("EntityString Loop %s(%v) => %v.%v", methodName, args, es.entityPtrVal, method)
 
 	methodType := method.Type()
 
@@ -163,4 +200,8 @@ func (eid EntityID) Call(methodName string, args ...interface{}) {
 		methodName,
 		args,
 	})
+}
+
+func (eid EntityID) GetLocalEntity() IEntity {
+	return getEntity(eid)
 }

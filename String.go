@@ -22,6 +22,7 @@ type IString interface {
 	Init()
 	Loop(msg StringMessage)
 	Fini()
+	OnMigrated()
 
 	IsPersistent() bool
 	GetPersistentData() map[string]interface{}
@@ -58,6 +59,10 @@ func (s *String) Init() {
 
 func (s *String) Fini() {
 	vlog.Debug("%s.Fini ...", s)
+}
+
+func (s *String) OnMigrated() {
+	vlog.Debug("%s.OnMigrated ...", s)
 }
 
 func (s *String) Loop(msg StringMessage) {

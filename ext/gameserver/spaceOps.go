@@ -12,6 +12,14 @@ func (sid SpaceID) String() string {
 	return fmt.Sprintf("SpaceID#%s", string(sid))
 }
 
+func (spaceID SpaceID) getLocalSpace() *GSSpace {
+	localEntity := entity.EntityID(spaceID).GetLocalEntity()
+	if localEntity == nil {
+		return nil
+	}
+	return localEntity.(*GSSpace)
+}
+
 // Create a space
 func CreateSpace(kind int) SpaceID {
 	eid := entity.CreateEntity(SPACE_ENTITY_TYPE, kind)

@@ -20,6 +20,12 @@ func (entity *GSEntity) String() string {
 
 func (entity *GSEntity) Init() {
 	entityKind := typeconv.Int(entity.Args()[0])
+	spaceID := SpaceID(typeconv.String(entity.Args()[1]))
 	entity.Kind = int(entityKind)
-	vlog.Debug("%s.Init: kind=%v", entity, entity.Kind)
+
+	space := spaceID.getLocalSpace()
+	vlog.Debug("%s.Init: space=%s", entity, space)
+	space.onEntityCreated(entity)
+
+	entityDelegate.OnReady(entity)
 }

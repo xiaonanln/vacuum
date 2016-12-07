@@ -3,11 +3,11 @@ package gameserver
 import "github.com/xiaonanln/vacuum/vlog"
 
 var (
-	spaceDelegate ISpaceDelegate
+	spaceDelegate ISpaceDelegate = &SpaceDelegate{}
 )
 
 type ISpaceDelegate interface {
-	OnLoaded(space *GSSpace)
+	OnReady(space *GSSpace)
 }
 
 func SetSpaceDelegate(delegate ISpaceDelegate) {
@@ -17,6 +17,6 @@ func SetSpaceDelegate(delegate ISpaceDelegate) {
 type SpaceDelegate struct {
 }
 
-func (delegate *SpaceDelegate) OnLoaded(space *GSSpace) {
-	vlog.Debug("%s.OnInit ...", space)
+func (delegate *SpaceDelegate) OnReady(space *GSSpace) {
+	vlog.Debug("%s.OnReady ...", space)
 }

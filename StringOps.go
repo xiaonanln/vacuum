@@ -143,12 +143,14 @@ migrating_read_loop:
 		goto finialize_string
 	}
 	// real migrate now!
-	var data map[string]interface{}
+	delString(s.ID) // delete the string on local server
+	s.inputQueue.Close()
 
 	// get migrate data from string
-	data = is.GetPersistentData()
+	data := is.GetPersistentData()
 
 	dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, s.initArgs, data)
+	s.I.OnMigrated()
 	return
 }
 
