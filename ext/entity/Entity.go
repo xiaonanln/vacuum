@@ -3,6 +3,8 @@ package entity
 import (
 	"reflect"
 
+	"gopkg.in/xiaonanln/typeconv.v0"
+
 	"fmt"
 
 	"sync"
