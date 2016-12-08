@@ -4,3 +4,6 @@
 [submodule "vendor/gopkg.in/xiaonanln/goTimer.v0"]
 	path = vendor/gopkg.in/xiaonanln/goTimer.v0
 	url = http://gopkg.in/xiaonanln/goTimer.v0
+[submodule "vendor/gopkg.in/xiaonanln/typeconv.v0"]
+	path = vendor/gopkg.in/xiaonanln/typeconv.v0
+	url = http://gopkg.in/xiaonanln/typeconv.v0

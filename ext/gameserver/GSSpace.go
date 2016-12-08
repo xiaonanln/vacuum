@@ -3,7 +3,8 @@ package gameserver
 import (
 	"fmt"
 
-	"github.com/xiaonanln/typeconv"
+	"gopkg.in/xiaonanln/typeconv.v0"
+
 	"github.com/xiaonanln/vacuum/ext/entity"
 )
 
