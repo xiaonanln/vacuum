@@ -29,3 +29,4 @@ cmd/vacuum-server/vacuum-server
 *.d
 *.nm
 strings_store/
+.idea/
