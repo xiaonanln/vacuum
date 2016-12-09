@@ -50,14 +50,22 @@ func (entity *GSEntity) Init() {
 	space.onEntityCreated(entity)
 
 	entityDelegate.OnReady(entity)
+	entityDelegate.OnEnterSpace(entity, space)
 }
 
 func (entity *GSEntity) checkAOI(other *GSEntity) {
+	if entity.aoi.sightDistance <= 0 { // AOI disabled, sees nothing
+		if entity.aoi.InRange(other) {
+			entity.onLeaveAOI(other)
+			vlog.Debug("%s MISS %s.", entity, other)
+		}
+	}
+
 	dist := entity.DistanceTo(other)
-	if dist <= entity.space.aoiDistance {
+	if dist < entity.aoi.sightDistance { // use < so that if AOI sightDistance is 0, entity sees nobody
 		if !entity.aoi.InRange(other) {
 			entity.onEnterAOI(other)
-			vlog.Debug("%s SEE %s!", entity, other)
+			vlog.Debug("%s SEES %s!", entity, other)
 		}
 	} else {
 		if entity.aoi.InRange(other) {
@@ -77,4 +85,34 @@ func (entity *GSEntity) onLeaveAOI(other *GSEntity) {
 
 func (entity *GSEntity) DistanceTo(other *GSEntity) len_t {
 	return entity.Pos.DistanceTo(other.Pos)
+}
+
+func (entity *GSEntity) SetAOIDistance(dist len_t) {
+	if dist < 0 {
+		vlog.Panicf("SetAOIDistance: AOI distance should be positive, not %v", dist)
+	}
+
+	entity.aoi.sightDistance = dist
+	for otherEntity, _ := range entity.space.entities { // check all entities in space for AOI
+		if otherEntity != entity {
+			entity.checkAOI(otherEntity)
+		}
+	}
+}
+
+func (entity *GSEntity) SetPos(pos Vec3) {
+	entity.Pos = pos
+	// position changed, recheck AOI!
+
+	aoidist := entity.aoi.sightDistance
+	space := entity.space
+
+	for other, _ := range space.entities {
+		if other != entity {
+			other.checkAOI(entity)
+			if aoidist > 0 {
+				entity.checkAOI(other)
+			}
+		}
+	}
 }

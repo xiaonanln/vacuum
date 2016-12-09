@@ -13,18 +13,28 @@ import (
 const (
 	MONSTER = 1 + iota
 )
+const (
+	NMONSTERS = 100
+)
 
 type MySpaceDelegate struct {
 	gameserver.SpaceDelegate
 }
 
 func (delegate *MySpaceDelegate) OnReady(space *gameserver.GSSpace) {
-	space.CreateEntity(MONSTER, gameserver.Vec3{100, 100, 100})
-	space.CreateEntity(MONSTER, gameserver.Vec3{100, 100, 100})
+	for i := 0; i < NMONSTERS; i++ {
+		space.CreateEntity(MONSTER, gameserver.Vec3{100, 100, 100})
+	}
 }
 
 type MyEntityDelegate struct {
 	gameserver.EntityDelegate
+}
+
+func (delegate *MyEntityDelegate) OnEnterSpace(entity *gameserver.GSEntity, space *gameserver.GSSpace) {
+	vlog.Debug("%s.OnEnterSpace %s, entity count %d", entity, space, space.GetEntityCount())
+	entity.SetAOIDistance(100)
+
 }
 
 func main() {

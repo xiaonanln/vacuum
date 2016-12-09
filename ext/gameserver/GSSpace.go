@@ -5,11 +5,6 @@ import (
 
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum/ext/entity"
-	"github.com/xiaonanln/vacuum/vlog"
-)
-
-const (
-	DEFAULT_AOI_DISTANCE = 100
 )
 
 //var (
@@ -32,8 +27,7 @@ const (
 
 type GSSpace struct {
 	entity.Entity
-	Kind        int
-	aoiDistance len_t
+	Kind int
 
 	entities map[*GSEntity]bool
 }
@@ -44,7 +38,6 @@ func (space *GSSpace) Init() {
 
 	space.Kind = int(spaceKind)
 	space.entities = map[*GSEntity]bool{}
-	space.aoiDistance = DEFAULT_AOI_DISTANCE
 
 	spaceDelegate.OnReady(space)
 }
@@ -60,18 +53,17 @@ func (space *GSSpace) CreateEntity(kind int, pos Vec3) {
 
 func (space *GSSpace) onEntityCreated(entity *GSEntity) {
 	space.entities[entity] = true
+	aoidist := entity.aoi.sightDistance
 	for other, _ := range space.entities {
 		if other != entity {
 			other.checkAOI(entity)
-			entity.checkAOI(other)
+			if aoidist > 0 {
+				entity.checkAOI(other)
+			}
 		}
 	}
 }
 
-func (space *GSSpace) SetAOIDistance(dist len_t) {
-	if dist <= 0 {
-		vlog.Panicf("SetAOIDistance: AOI distance should be positive, not %v", dist)
-	}
-
-	space.aoiDistance = dist
+func (space *GSSpace) GetEntityCount() int {
+	return len(space.entities)
 }

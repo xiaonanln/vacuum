@@ -8,6 +8,7 @@ var (
 
 type IEntityDelegate interface {
 	OnReady(entity *GSEntity)
+	OnEnterSpace(entity *GSEntity, space *GSSpace)
 }
 
 func SetEntityDelegate(delegate IEntityDelegate) {
@@ -19,4 +20,8 @@ type EntityDelegate struct {
 
 func (delegate *EntityDelegate) OnReady(entity *GSEntity) {
 	vlog.Debug("%s.OnReady ...", entity)
+}
+
+func (delegate *EntityDelegate) OnEnterSpace(entity *GSEntity, space *GSSpace) {
+	vlog.Debug("%s.OnEnterSpace %s", entity, space)
 }
