@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "ps1aG1mVoPLrkQPjJbsBHcO0V3U=",
+			"checksumSHA1": "Yl/OlGZvS3IruYNPoPd1IJUSBTM=",
 			"path": "github.com/xiaonanln/typeconv",
-			"revision": "e1e939168331f729cc4d7e41b231d972786ca484",
-			"revisionTime": "2016-12-09T07:30:03Z"
+			"revision": "c216b67fa0f92bef5bdb9c0f119a75c5152cd36a",
+			"revisionTime": "2016-12-09T16:07:07Z"
 		},
 		{
 			"checksumSHA1": "wQB/yDNNuaVv4nfrOv/2YOxuA6g=",
