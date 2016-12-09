@@ -9,7 +9,7 @@
 			"revisionTime": "2016-12-09T07:30:03Z"
 		},
 		{
-			"checksumSHA1": "ZcrLHdSZB9hlCsGxZ9rA9Zx68/I=",
+			"checksumSHA1": "wQB/yDNNuaVv4nfrOv/2YOxuA6g=",
 			"path": "gopkg.in/mgo.v2",
 			"revision": "b6e2fa371e64216a45e61072a96d4e3859f169da",
 			"revisionTime": "2016-02-23T13:38:14Z",
@@ -18,7 +18,8 @@
 		{
 			"checksumSHA1": "mI8c5+5nxb2NhW6EBlfMiESkw0A=",
 			"path": "gopkg.in/xiaonanln/goTimer.v0",
-			"revision": ""
+			"revision": "6d9d357d63774dd213f0527989a86ff95ca75892",
+			"revisionTime": "2016-11-29T08:41:41Z"
 		}
 	],
 	"rootPath": "github.com/xiaonanln/vacuum"
