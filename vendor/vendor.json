@@ -9,10 +9,11 @@
 			"revisionTime": "2016-12-09T07:30:03Z"
 		},
 		{
-			"checksumSHA1": "qUjZHcoophrdExVVHkLUkK+AzPw=",
+			"checksumSHA1": "ZcrLHdSZB9hlCsGxZ9rA9Zx68/I=",
 			"path": "gopkg.in/mgo.v2",
 			"revision": "b6e2fa371e64216a45e61072a96d4e3859f169da",
-			"revisionTime": "2016-02-23T13:38:14Z"
+			"revisionTime": "2016-02-23T13:38:14Z",
+			"tree": true
 		},
 		{
 			"checksumSHA1": "mI8c5+5nxb2NhW6EBlfMiESkw0A=",
