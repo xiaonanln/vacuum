@@ -1,6 +1,9 @@
 package gameserver
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 type len_t int64
 
@@ -38,4 +41,14 @@ func (p Vec3) Sub(p2 Vec3) Vec3 {
 		Y: p.Y - p2.Y,
 		Z: p.Z - p2.Z,
 	}
+}
+
+func (p *Vec3) Assign(x, y, z len_t) {
+	p.X = x
+	p.Y = y
+	p.Z = z
+}
+
+func (p Vec3) String() string {
+	return fmt.Sprintf("(%v,%v,%v)", p.X, p.Y, p.Z)
 }

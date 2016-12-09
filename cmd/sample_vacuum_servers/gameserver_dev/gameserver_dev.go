@@ -19,7 +19,8 @@ type MySpaceDelegate struct {
 }
 
 func (delegate *MySpaceDelegate) OnReady(space *gameserver.GSSpace) {
-	space.CreateEntity(MONSTER)
+	space.CreateEntity(MONSTER, gameserver.Vec3{100, 100, 100})
+	space.CreateEntity(MONSTER, gameserver.Vec3{100, 100, 100})
 }
 
 type MyEntityDelegate struct {

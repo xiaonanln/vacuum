@@ -49,6 +49,7 @@ func getEntity(id EntityID) (ret IEntity) {
 type IEntity interface {
 	//ID() EntityID
 	Init()
+	Destroy() // destroy the entity
 }
 
 type Entity struct {
@@ -60,6 +61,12 @@ type Entity struct {
 
 func (e *Entity) Init() {
 	vlog.Debug("%s.Init: Args=%v", e, e.Args())
+}
+
+// Destroy entity
+func (e *Entity) Destroy() {
+	delEntity(e.ID)
+	e.S.Send(e.S.ID, nil) // send nil to self to terminate the string
 }
 
 func (e *Entity) String() string {
@@ -158,7 +165,7 @@ func (es *entityString) OnMigrated() {
 }
 
 func (es *entityString) Fini() {
-	delEntity(es.entityID)
+	// entity ID should already be removed from entities map
 }
 
 func (es *entityString) Loop(msg common.StringMessage) {
@@ -187,8 +194,7 @@ func (es *entityString) Loop(msg common.StringMessage) {
 
 	for i, arg := range args {
 		argType := methodType.In(i)
-		argVal := reflect.ValueOf(arg)
-		in[i] = typeconv.Convert(argVal, argType)
+		in[i] = typeconv.Convert(arg, argType)
 		// log.Printf("Arg %d is %T %v value %v => %v", i, arg, arg, argVal, in[i])
 	}
 	// log.Printf("arguments: %v", in)
