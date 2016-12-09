@@ -3,12 +3,11 @@ package entity
 import (
 	"reflect"
 
-	"gopkg.in/xiaonanln/typeconv.v0"
-
 	"fmt"
 
 	"sync"
 
+	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vlog"

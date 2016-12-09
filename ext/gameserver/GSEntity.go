@@ -3,9 +3,9 @@ package gameserver
 import (
 	"fmt"
 
+	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum/ext/entity"
 	"github.com/xiaonanln/vacuum/vlog"
-	typeconv "gopkg.in/xiaonanln/typeconv.v0"
 )
 
 type GSEntity struct {
