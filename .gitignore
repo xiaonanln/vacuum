@@ -30,3 +30,4 @@ cmd/vacuum-server/vacuum-server
 *.nm
 strings_store/
 .idea/
+vendor/
