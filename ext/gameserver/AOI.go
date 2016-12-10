@@ -1,7 +1,7 @@
 package gameserver
 
 type AOI struct {
-	sightDistance len_t
+	sightDistance Len_t
 	entities      map[*GSEntity]bool
 }
 

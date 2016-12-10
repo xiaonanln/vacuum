@@ -11,7 +11,6 @@ import (
 	. "github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 	"github.com/xiaonanln/vacuum/vlog"
-	_ "gopkg.in/xiaonanln/goTimer.v0"
 )
 
 const (

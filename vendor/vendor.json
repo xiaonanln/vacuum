@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "Y3YMAOaA19NZROdLIl9hSpsLMVA=",
+			"path": "github.com/xiaonanln/goTimer",
+			"revision": "a9ef5bdd0e1d540946e5f7d4ff3f6acae13e1822",
+			"revisionTime": "2016-12-10T16:39:25Z"
+		},
+		{
 			"checksumSHA1": "Yl/OlGZvS3IruYNPoPd1IJUSBTM=",
 			"path": "github.com/xiaonanln/typeconv",
 			"revision": "c216b67fa0f92bef5bdb9c0f119a75c5152cd36a",
@@ -14,12 +20,6 @@
 			"revision": "b6e2fa371e64216a45e61072a96d4e3859f169da",
 			"revisionTime": "2016-02-23T13:38:14Z",
 			"tree": true
-		},
-		{
-			"checksumSHA1": "mI8c5+5nxb2NhW6EBlfMiESkw0A=",
-			"path": "gopkg.in/xiaonanln/goTimer.v0",
-			"revision": "6d9d357d63774dd213f0527989a86ff95ca75892",
-			"revisionTime": "2016-11-29T08:41:41Z"
 		}
 	],
 	"rootPath": "github.com/xiaonanln/vacuum"

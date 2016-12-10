@@ -3,6 +3,11 @@ package gameserver
 import (
 	"fmt"
 
+	"sync"
+
+	"time"
+
+	"github.com/xiaonanln/goTimer"
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum/ext/entity"
 )
@@ -27,9 +32,11 @@ import (
 
 type GSSpace struct {
 	entity.Entity
+	sync.RWMutex
 	Kind int
 
 	entities map[*GSEntity]bool
+	timers   map[*timer.Timer]bool
 }
 
 func (space *GSSpace) Init() {
@@ -66,4 +73,28 @@ func (space *GSSpace) onEntityCreated(entity *GSEntity) {
 
 func (space *GSSpace) GetEntityCount() int {
 	return len(space.entities)
+}
+
+func (space *GSSpace) AddCallback(d time.Duration, callback func()) {
+	timer.AddCallback(d, func() {
+		space.Lock()
+		callback()
+		space.Unlock()
+	})
+}
+
+func (space *GSSpace) AddTimer(d time.Duration, callback func()) {
+	timer.AddTimer(d, func() {
+		space.Lock()
+		callback()
+		space.Unlock()
+	})
+}
+
+func (space *GSSpace) Destroy() {
+	space.Entity.Destroy() // super.Destroy
+}
+
+func (space *GSSpace) Entities() map[*GSEntity]bool {
+	return space.entities
 }

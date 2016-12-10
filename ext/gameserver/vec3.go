@@ -5,22 +5,22 @@ import (
 	"math"
 )
 
-type len_t int64
+type Len_t int64
 
 type Vec3 struct {
-	X len_t
-	Y len_t
-	Z len_t
+	X Len_t
+	Y Len_t
+	Z Len_t
 }
 
-func (p Vec3) DistanceTo(p2 Vec3) len_t {
+func (p Vec3) DistanceTo(p2 Vec3) Len_t {
 	dx := p.X - p2.X
 	dy := p.Y - p2.Y
 	dz := p.Z - p2.Z
-	return len_t(math.Sqrt(float64(dx*dx + dy*dy + dz*dz)))
+	return Len_t(math.Sqrt(float64(dx*dx + dy*dy + dz*dz)))
 }
 
-func (p Vec3) DistanceSquareTo(p2 Vec3) len_t {
+func (p Vec3) DistanceSquareTo(p2 Vec3) Len_t {
 	dx := p.X - p2.X
 	dy := p.Y - p2.Y
 	dz := p.Z - p2.Z
@@ -43,7 +43,7 @@ func (p Vec3) Sub(p2 Vec3) Vec3 {
 	}
 }
 
-func (p *Vec3) Assign(x, y, z len_t) {
+func (p *Vec3) Assign(x, y, z Len_t) {
 	p.X = x
 	p.Y = y
 	p.Z = z

@@ -3,6 +3,8 @@ package main
 import (
 	"time"
 
+	"math/rand"
+
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/ext/gameserver"
 	_ "github.com/xiaonanln/vacuum/ext/gameserver"
@@ -34,7 +36,22 @@ type MyEntityDelegate struct {
 func (delegate *MyEntityDelegate) OnEnterSpace(entity *gameserver.GSEntity, space *gameserver.GSSpace) {
 	vlog.Debug("%s.OnEnterSpace %s, entity count %d", entity, space, space.GetEntityCount())
 	entity.SetAOIDistance(100)
+	if space.GetEntityCount() >= NMONSTERS {
+		delegate.onAllMonstersCreated(space)
+	}
+}
 
+func (delegate *MyEntityDelegate) onAllMonstersCreated(space *gameserver.GSSpace) {
+	space.AddTimer(time.Second, func() {
+		vlog.Info("space %s ticking", space)
+
+		for entity, _ := range space.Entities() {
+			x := gameserver.Len_t(rand.Intn(1000))
+			y := gameserver.Len_t(rand.Intn(1000))
+			z := gameserver.Len_t(rand.Intn(1000))
+			entity.SetPos(gameserver.Vec3{x, y, z})
+		}
+	})
 }
 
 func main() {
@@ -46,7 +63,7 @@ func main() {
 	vacuum.RegisterMain(func() {
 		spaceID := gameserver.CreateSpace(0)
 		vlog.Info("Create space: %s", spaceID)
-		time.Sleep(3 * time.Second)
+		time.Sleep(10 * time.Second)
 	})
 	vacuum_server.RunServer()
 }

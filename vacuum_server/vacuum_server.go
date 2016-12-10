@@ -9,6 +9,7 @@ import (
 
 	"sync"
 
+	"github.com/xiaonanln/goTimer"
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/config"
@@ -47,6 +48,8 @@ func init() {
 	vacuumConfig := config.GetConfig().GetVacuumConfig(serverID)
 	vlog.Debug("VACUUM %d LOAD CONFIG:", serverID)
 	os.Stderr.WriteString(config.FormatConfig(vacuumConfig))
+
+	timer.StartTicks(10 * time.Millisecond)
 
 	storage := openStorage(vacuumConfig.Storage)
 	vacuum.Setup(serverID, storage, &serverOps)

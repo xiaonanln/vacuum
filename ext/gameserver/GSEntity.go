@@ -29,10 +29,10 @@ func (entity *GSEntity) Init() {
 	entityKind := typeconv.Int(args[0])
 	spaceID := SpaceID(typeconv.String(args[1]))
 
-	var x, y, z len_t
-	x = typeconv.Convert(args[2], reflect.TypeOf(x)).Interface().(len_t)
-	y = typeconv.Convert(args[3], reflect.TypeOf(y)).Interface().(len_t)
-	z = typeconv.Convert(args[4], reflect.TypeOf(z)).Interface().(len_t)
+	var x, y, z Len_t
+	x = typeconv.Convert(args[2], reflect.TypeOf(x)).Interface().(Len_t)
+	y = typeconv.Convert(args[3], reflect.TypeOf(y)).Interface().(Len_t)
+	z = typeconv.Convert(args[4], reflect.TypeOf(z)).Interface().(Len_t)
 
 	entity.Kind = int(entityKind)
 	entity.aoi.init()
@@ -42,15 +42,19 @@ func (entity *GSEntity) Init() {
 	vlog.Debug("%s.Init: space=%s, pos=%s", entity, space, entity.Pos)
 	if space == nil {
 		// how can space be destroy
-		entity.Destroy()
+		entity.I.Destroy()
 		return
 	}
 
 	entity.space = space
-	space.onEntityCreated(entity)
 
+	space.Lock()
+
+	space.onEntityCreated(entity)
 	entityDelegate.OnReady(entity)
 	entityDelegate.OnEnterSpace(entity, space)
+
+	space.Unlock()
 }
 
 func (entity *GSEntity) checkAOI(other *GSEntity) {
@@ -71,6 +75,7 @@ func (entity *GSEntity) checkAOI(other *GSEntity) {
 		if entity.aoi.InRange(other) {
 			entity.onLeaveAOI(other)
 			vlog.Debug("%s MISS %s.", entity, other)
+
 		}
 	}
 }
@@ -83,11 +88,11 @@ func (entity *GSEntity) onLeaveAOI(other *GSEntity) {
 	entity.aoi.Remove(other)
 }
 
-func (entity *GSEntity) DistanceTo(other *GSEntity) len_t {
+func (entity *GSEntity) DistanceTo(other *GSEntity) Len_t {
 	return entity.Pos.DistanceTo(other.Pos)
 }
 
-func (entity *GSEntity) SetAOIDistance(dist len_t) {
+func (entity *GSEntity) SetAOIDistance(dist Len_t) {
 	if dist < 0 {
 		vlog.Panicf("SetAOIDistance: AOI distance should be positive, not %v", dist)
 	}
@@ -101,6 +106,7 @@ func (entity *GSEntity) SetAOIDistance(dist len_t) {
 }
 
 func (entity *GSEntity) SetPos(pos Vec3) {
+	vlog.Debug("%s.SetPos %s", entity, pos)
 	entity.Pos = pos
 	// position changed, recheck AOI!
 
