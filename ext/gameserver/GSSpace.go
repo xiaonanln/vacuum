@@ -33,9 +33,9 @@ import (
 type GSSpace struct {
 	entity.Entity
 	sync.RWMutex
-	Kind int
+	Kind     int
 
-	entities map[*GSEntity]bool
+	entities GSEntitySet
 	timers   map[*timer.Timer]bool
 }
 
@@ -44,7 +44,7 @@ func (space *GSSpace) Init() {
 	spaceKind := typeconv.Int(args[0])
 
 	space.Kind = int(spaceKind)
-	space.entities = map[*GSEntity]bool{}
+	space.entities = GSEntitySet{}
 
 	spaceDelegate.OnReady(space)
 }
@@ -59,7 +59,7 @@ func (space *GSSpace) CreateEntity(kind int, pos Vec3) {
 }
 
 func (space *GSSpace) onEntityCreated(entity *GSEntity) {
-	space.entities[entity] = true
+	space.entities.Add(entity)
 	aoidist := entity.aoi.sightDistance
 	for other, _ := range space.entities {
 		if other != entity {
@@ -95,6 +95,6 @@ func (space *GSSpace) Destroy() {
 	space.Entity.Destroy() // super.Destroy
 }
 
-func (space *GSSpace) Entities() map[*GSEntity]bool {
+func (space *GSSpace) Entities() GSEntitySet {
 	return space.entities
 }
