@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-type Len_t int64
+type Len_t float32
 
 type Vec3 struct {
 	X Len_t

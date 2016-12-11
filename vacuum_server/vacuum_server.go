@@ -33,7 +33,7 @@ func init() {
 	// initializing the vacuum server
 	flag.IntVar(&serverID, "sid", 1, "server ID")
 	flag.StringVar(&logLevel, "log", DEFAULT_LOG_LEVEL, "log level")
-	flag.StringVar(&configFile, "c", config.CONFIG_FILENAME, "config file")
+	flag.StringVar(&configFile, "c", config.DEFAULT_CONFIG_FILENAME, "config file")
 	flag.Parse()
 
 	setupLog(logLevel)

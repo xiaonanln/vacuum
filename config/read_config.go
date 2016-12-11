@@ -8,7 +8,11 @@ import (
 )
 
 const (
-	CONFIG_FILENAME = "vacuum.conf"
+	DEFAULT_CONFIG_FILENAME = "vacuum.conf"
+)
+
+var (
+	usingConfigFilename string
 )
 
 type StorageConfig struct {
@@ -56,17 +60,18 @@ func checkError(err error) {
 }
 
 func LoadConfig(configFile string) {
-	if configFile == "" {
-		configFile = CONFIG_FILENAME
+	usingConfigFilename = configFile
+	if usingConfigFilename == "" {
+		usingConfigFilename = DEFAULT_CONFIG_FILENAME
 	}
 
-	data, err := ioutil.ReadFile(configFile)
+	data, err := ioutil.ReadFile(usingConfigFilename)
 	checkError(err)
 
 	err = json.Unmarshal(data, &config)
 	checkError(err)
 
-	vlog.Info("Load config: %s, config=%v", configFile, config)
+	vlog.Info("Load config: %s, config=%v", usingConfigFilename, config)
 }
 
 func GetConfig() *Config {
@@ -79,4 +84,20 @@ func FormatConfig(c interface{}) string {
 		panic(err)
 	}
 	return string(data)
+}
+
+func LoadExtraConfig(fieldName string) map[string]interface{} {
+	if usingConfigFilename == "" {
+		vlog.Panicf("config filename is unknown")
+	}
+
+	data, err := ioutil.ReadFile(usingConfigFilename)
+	checkError(err)
+
+	var totalConfig map[string]interface{}
+	err = json.Unmarshal(data, &totalConfig)
+	checkError(err)
+
+	config := totalConfig[fieldName]
+	return config.(map[string]interface{})
 }

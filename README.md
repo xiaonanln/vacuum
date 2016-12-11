@@ -18,7 +18,7 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
         * Compression
     * Entity Attributes
     * AOI
-    * Cell 
+    * Space
     
 * Reliable Messaging
 * Recovering from String Storage failure - infinite retry

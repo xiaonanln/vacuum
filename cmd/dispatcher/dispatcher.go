@@ -29,7 +29,7 @@ func debuglog(format string, a ...interface{}) {
 type DispatcherDelegate struct{}
 
 func main() {
-	flag.StringVar(&configFile, "c", config.CONFIG_FILENAME, "config file")
+	flag.StringVar(&configFile, "c", config.DEFAULT_CONFIG_FILENAME, "config file")
 	flag.Parse()
 
 	config.LoadConfig(configFile)
