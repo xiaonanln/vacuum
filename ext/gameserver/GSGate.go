@@ -9,7 +9,6 @@ type GSGate struct {
 }
 
 func init() {
-	entity.RegisterEntity("GSGate", &GSGate{})
 }
 
 func runGates(num int) {

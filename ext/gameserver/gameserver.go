@@ -20,14 +20,15 @@ func init() {
 	vlog.Debug("Register gameserver entities ...")
 	entity.RegisterEntity(SPACE_ENTITY_TYPE, &GSSpace{})
 	entity.RegisterEntity(ENTITY_TYPE, &GSEntity{})
-
-	gameserverConfig := config.LoadExtraConfig("gameserver")
-	vlog.Debug("Gameserver config: %v", gameserverConfig)
+	entity.RegisterEntity("GSGate", &GSGate{})
 
 }
 
 func RunServer() {
 	vacuum.RegisterMain(func() {
+		gameserverConfig := config.LoadExtraConfig("gameserver")
+		vlog.Debug("Gameserver config: %v", gameserverConfig)
+
 		spaceID := gameserver.CreateSpace(0)
 		vlog.Info("Create space: %s", spaceID)
 		time.Sleep(10 * time.Second)
