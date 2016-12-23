@@ -1,14 +1,18 @@
 package gameserver
 
-import "github.com/xiaonanln/vacuum/proto"
+import (
+	"github.com/xiaonanln/vacuum/ext/entity"
+	"github.com/xiaonanln/vacuum/proto"
+)
 
 const (
 	CLIENT_RPC = 1 + iota
 )
 
 type ClientRPCMessage struct {
-	Method    string        `json:"M"`
-	Arguments []interface{} `json:"A"`
+	EntityID  entity.EntityID `json:"E"`
+	Method    string          `json:"M"`
+	Arguments []interface{}   `json:"A"`
 }
 
 var (

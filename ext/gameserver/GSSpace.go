@@ -33,6 +33,7 @@ import (
 type GSSpace struct {
 	entity.Entity
 	sync.RWMutex
+	ID   SpaceID
 	Kind int
 
 	entities GSEntitySet
@@ -40,6 +41,7 @@ type GSSpace struct {
 }
 
 func (space *GSSpace) Init() {
+	space.ID = SpaceID(space.Entity.ID)
 	args := space.Args()
 	spaceKind := typeconv.Int(args[0])
 
@@ -55,7 +57,7 @@ func (space *GSSpace) String() string {
 
 // Create entity in space
 func (space *GSSpace) CreateEntity(kind int, pos Vec3) {
-	entity.CreateEntityLocally("GSEntity", kind, space.ID, pos.X, pos.Y, pos.Z)
+	CreateGSEntityLocally(kind, space.ID, pos)
 }
 
 func (space *GSSpace) onEntityCreated(entity *GSEntity) {

@@ -18,7 +18,6 @@ func init() {
 	entity.RegisterEntity("GSSpace", &GSSpace{})
 	entity.RegisterEntity("GSEntity", &GSEntity{})
 	entity.RegisterEntity("GSGate", &GSGate{})
-
 }
 
 func gameserverMain() {

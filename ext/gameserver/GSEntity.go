@@ -128,3 +128,11 @@ func (entity *GSEntity) SetPos(pos Vec3) {
 func (entity *GSEntity) AOIEntities() GSEntitySet {
 	return entity.aoi.entities
 }
+
+func CreateGSEntity(kind int, spaceID SpaceID, pos Vec3) {
+	entity.CreateEntity("GSEntity", kind, spaceID, pos.X, pos.Y, pos.Z)
+}
+
+func CreateGSEntityLocally(kind int, spaceID SpaceID, pos Vec3) {
+	entity.CreateEntityLocally("GSEntity", kind, spaceID, pos.X, pos.Y, pos.Z)
+}

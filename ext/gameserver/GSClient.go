@@ -3,11 +3,13 @@ package gameserver
 import (
 	"net"
 
+	"github.com/xiaonanln/vacuum/ext/entity"
 	"github.com/xiaonanln/vacuum/proto"
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
 type GSClient struct {
+	entity.Entity
 	proto.MessageConnection
 }
 
@@ -49,6 +51,7 @@ func (client *GSClient) HandleRelayMsg(msg *proto.Message, pktSize uint32, targe
 	return nil
 }
 
+// RPC call from client
 func (client *GSClient) handleClientRPC(payload []byte) error {
 	var msg ClientRPCMessage
 	if err := CLIENT_MSG_PACKER.UnpackMsg(payload, &msg); err != nil {
@@ -56,5 +59,6 @@ func (client *GSClient) handleClientRPC(payload []byte) error {
 	}
 
 	vlog.Debug("RPC CALL: %v", msg)
+	msg.EntityID.Call(msg.Method, msg.Arguments...)
 	return nil
 }
