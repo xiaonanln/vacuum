@@ -10,13 +10,16 @@ import (
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
+type GSEntityID entity.EntityID
+
 type GSEntity struct {
 	entity.Entity
-	aoi AOI
-
-	space *GSSpace
-	Kind  int
-	Pos   Vec3
+	aoi      AOI
+	ID       GSEntityID
+	space    *GSSpace
+	Kind     int
+	Pos      Vec3
+	ClientID string
 }
 
 func (entity *GSEntity) String() string {
@@ -24,6 +27,8 @@ func (entity *GSEntity) String() string {
 }
 
 func (entity *GSEntity) Init() {
+	entity.ID = GSEntityID(entity.Entity.ID)
+
 	args := entity.Args()
 
 	entityKind := typeconv.Int(args[0])
@@ -135,4 +140,8 @@ func CreateGSEntity(kind int, spaceID SpaceID, pos Vec3) {
 
 func CreateGSEntityLocally(kind int, spaceID SpaceID, pos Vec3) {
 	entity.CreateEntityLocally("GSEntity", kind, spaceID, pos.X, pos.Y, pos.Z)
+}
+
+func (entity *GSEntity) RPC_SetClientID(clientID string) {
+
 }

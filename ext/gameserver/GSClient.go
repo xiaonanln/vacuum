@@ -3,19 +3,20 @@ package gameserver
 import (
 	"net"
 
-	"github.com/xiaonanln/vacuum/ext/entity"
 	"github.com/xiaonanln/vacuum/proto"
+	"github.com/xiaonanln/vacuum/uuid"
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
 type GSClient struct {
-	entity.Entity
 	proto.MessageConnection
+	ClientID string
 }
 
 func newGSClient(conn net.Conn) *GSClient {
 	return &GSClient{
 		MessageConnection: proto.NewMessageConnection(conn),
+		ClientID:          uuid.GenUUID(),
 	}
 }
 
