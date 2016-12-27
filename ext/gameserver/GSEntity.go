@@ -12,6 +12,10 @@ import (
 
 type GSEntityID entity.EntityID
 
+func (eid GSEntityID) callGSRPC(method string, args []interface{}) {
+
+}
+
 type GSEntity struct {
 	entity.Entity
 	aoi      AOI
@@ -134,12 +138,14 @@ func (entity *GSEntity) AOIEntities() GSEntitySet {
 	return entity.aoi.entities
 }
 
-func CreateGSEntity(kind int, spaceID SpaceID, pos Vec3) {
-	entity.CreateEntity("GSEntity", kind, spaceID, pos.X, pos.Y, pos.Z)
+func CreateGSEntity(kind int, spaceID SpaceID, pos Vec3) GSEntityID {
+	eid := entity.CreateEntity("GSEntity", kind, spaceID, pos.X, pos.Y, pos.Z)
+	return GSEntityID(eid)
 }
 
-func CreateGSEntityLocally(kind int, spaceID SpaceID, pos Vec3) {
-	entity.CreateEntityLocally("GSEntity", kind, spaceID, pos.X, pos.Y, pos.Z)
+func CreateGSEntityLocally(kind int, spaceID SpaceID, pos Vec3) GSEntityID {
+	eid := entity.CreateEntityLocally("GSEntity", kind, spaceID, pos.X, pos.Y, pos.Z)
+	return GSEntityID(eid)
 }
 
 func (entity *GSEntity) RPC_SetClientID(clientID string) {

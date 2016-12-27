@@ -60,6 +60,14 @@ func (client *GSClient) handleClientRPC(payload []byte) error {
 	}
 
 	vlog.Debug("RPC CALL: %v", msg)
-	msg.EntityID.Call(msg.Method, msg.Arguments...)
+	msg.EntityID.callGSRPC(msg.Method, msg.Arguments)
 	return nil
+}
+
+func (client *GSClient) clientCreateEntity(entityKind int, entityID GSEntityID) error {
+	msg := ClientCreateEntityMessage{
+		EntityID:   entityID,
+		EntityKind: entityKind,
+	}
+	return client.SendMsg(CLIENT_CREATE_ENTITY_MESSAGE, &msg)
 }
