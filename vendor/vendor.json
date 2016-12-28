@@ -3,6 +3,18 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "2avCvSn0XonfApKKuTMyiQmk7s0=",
+			"path": "github.com/Sirupsen/logrus",
+			"revision": "3ec0642a7fb6488f65b06f9040adc67e3990296a",
+			"revisionTime": "2016-08-29T20:23:21Z"
+		},
+		{
+			"checksumSHA1": "npj6/f1Y5zH0MlUC/9T4ttVpB3s=",
+			"path": "github.com/xiaonanln/goSyncQueue",
+			"revision": "a31f9b6ee0a77ca6dc0851c9d9513565ca3f29c3",
+			"revisionTime": "2016-11-23T14:27:37Z"
+		},
+		{
 			"checksumSHA1": "wULBh0k1bj14gVrqsjBhOcqCGos=",
 			"path": "github.com/xiaonanln/goTimer",
 			"revision": "a9ef5bdd0e1d540946e5f7d4ff3f6acae13e1822",
@@ -15,10 +27,47 @@
 			"revisionTime": "2016-12-09T16:07:07Z"
 		},
 		{
+			"checksumSHA1": "8q7QoczBgqS265i+vg4oKfs7RiE=",
+			"origin": "github.com/xiaonanln/goSyncQueue/vendor/gopkg.in/eapache/queue.v1",
+			"path": "gopkg.in/eapache/queue.v1",
+			"revision": "a31f9b6ee0a77ca6dc0851c9d9513565ca3f29c3",
+			"revisionTime": "2016-11-23T14:27:37Z"
+		},
+		{
 			"checksumSHA1": "qUjZHcoophrdExVVHkLUkK+AzPw=",
 			"path": "gopkg.in/mgo.v2",
 			"revision": "b6e2fa371e64216a45e61072a96d4e3859f169da",
 			"revisionTime": "2016-02-23T13:38:14Z"
+		},
+		{
+			"checksumSHA1": "s+ioP4eSLXVHss2LfxzgkKK1mdA=",
+			"path": "gopkg.in/mgo.v2/bson",
+			"revision": "b6e2fa371e64216a45e61072a96d4e3859f169da",
+			"revisionTime": "2016-02-23T13:38:14Z"
+		},
+		{
+			"checksumSHA1": "lflrleHLqpORhnoOjHVHokpeq54=",
+			"path": "gopkg.in/mgo.v2/internal/sasl",
+			"revision": "b6e2fa371e64216a45e61072a96d4e3859f169da",
+			"revisionTime": "2016-02-23T13:38:14Z"
+		},
+		{
+			"checksumSHA1": "CrciG7woshiINwZxPsxisgDGL3Y=",
+			"path": "gopkg.in/mgo.v2/internal/scram",
+			"revision": "b6e2fa371e64216a45e61072a96d4e3859f169da",
+			"revisionTime": "2016-02-23T13:38:14Z"
+		},
+		{
+			"checksumSHA1": "yA1Ja5VOCv5aiLkq9ThgBkEwEUg=",
+			"path": "gopkg.in/vmihailenco/msgpack.v2",
+			"revision": "38f3708c44f1402aeb2f137dd9a9dfb12bae2204",
+			"revisionTime": "2016-08-19T09:55:48Z"
+		},
+		{
+			"checksumSHA1": "NRVVzl0LAklfAN4NyH8g2dhqoSc=",
+			"path": "gopkg.in/vmihailenco/msgpack.v2/codes",
+			"revision": "38f3708c44f1402aeb2f137dd9a9dfb12bae2204",
+			"revisionTime": "2016-08-19T09:55:48Z"
 		}
 	],
 	"rootPath": "github.com/xiaonanln/vacuum"
