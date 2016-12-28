@@ -68,13 +68,17 @@ func toJsonString(msg interface{}) string {
 // Send msg to/from dispatcher
 // Message format: [size*4B][type*2B][payload*NB]
 func (mc *MessageConnection) SendMsg(mt MsgType_t, msg interface{}) error {
+	return mc.SendMsgEx(mt, msg, MSG_PACKER)
+}
+
+func (mc *MessageConnection) SendMsgEx(mt MsgType_t, msg interface{}, msgPacker MsgPacker) error {
 	msgbuf := allocMessage()
 	defer msgbuf.Release()
 
 	NETWORK_ENDIAN.PutUint16((msgbuf)[SIZE_FIELD_SIZE:SIZE_FIELD_SIZE+TYPE_FIELD_SIZE], uint16(mt))
 	payloadBuf := (msgbuf)[PREPAYLOAD_SIZE:PREPAYLOAD_SIZE]
 	payloadCap := cap(payloadBuf)
-	payloadBuf, err := MSG_PACKER.PackMsg(msg, payloadBuf)
+	payloadBuf, err := msgPacker.PackMsg(msg, payloadBuf)
 	if err != nil {
 		return err
 	}

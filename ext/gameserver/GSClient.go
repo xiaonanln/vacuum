@@ -69,5 +69,5 @@ func (client *GSClient) clientCreateEntity(entityKind int, entityID GSEntityID) 
 		EntityID:   entityID,
 		EntityKind: entityKind,
 	}
-	return client.SendMsg(CLIENT_CREATE_ENTITY_MESSAGE, &msg)
+	return client.SendMsgEx(CLIENT_CREATE_ENTITY_MESSAGE, &msg, CLIENT_MSG_PACKER)
 }
