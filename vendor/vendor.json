@@ -3,12 +3,6 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "h8fSBZq+hbxHZuHNVqxhd4b/LPA=",
-			"path": "github.com/go-mgo/mgo",
-			"revision": "9a2573d4ae52a2bf9f5b7900a50e2f8bcceeb774",
-			"revisionTime": "2016-08-01T18:59:37Z"
-		},
-		{
 			"checksumSHA1": "wULBh0k1bj14gVrqsjBhOcqCGos=",
 			"path": "github.com/xiaonanln/goTimer",
 			"revision": "a9ef5bdd0e1d540946e5f7d4ff3f6acae13e1822",
@@ -19,6 +13,12 @@
 			"path": "github.com/xiaonanln/typeconv",
 			"revision": "c216b67fa0f92bef5bdb9c0f119a75c5152cd36a",
 			"revisionTime": "2016-12-09T16:07:07Z"
+		},
+		{
+			"checksumSHA1": "qUjZHcoophrdExVVHkLUkK+AzPw=",
+			"path": "gopkg.in/mgo.v2",
+			"revision": "b6e2fa371e64216a45e61072a96d4e3859f169da",
+			"revisionTime": "2016-02-23T13:38:14Z"
 		}
 	],
 	"rootPath": "github.com/xiaonanln/vacuum"
