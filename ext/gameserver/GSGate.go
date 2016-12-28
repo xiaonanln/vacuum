@@ -32,7 +32,7 @@ func (gate *GSGate) Init() {
 	port := typeconv.Int(gate.Args()[1])
 	vlog.Debug("Initializing gate %v port %v: %s ...", gateIndex, port, gate)
 	serveAddr := fmt.Sprintf(":%d", port)
-	netutil.ServeTCPForever(serveAddr, &gateServerDelegate{gate: gate})
+	go netutil.ServeTCPForever(serveAddr, &gateServerDelegate{gate: gate})
 }
 
 type gateServerDelegate struct {

@@ -12,6 +12,7 @@ import (
 
 type GSEntityID entity.EntityID
 
+// RPC call from client
 func (eid GSEntityID) callGSRPC(method string, args []interface{}) {
 
 }
