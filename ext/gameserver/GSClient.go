@@ -3,6 +3,8 @@ package gameserver
 import (
 	"net"
 
+	"fmt"
+
 	"github.com/xiaonanln/vacuum/proto"
 	"github.com/xiaonanln/vacuum/uuid"
 	"github.com/xiaonanln/vacuum/vlog"
@@ -27,7 +29,7 @@ func (client *GSClient) serve() {
 	for {
 		err = client.RecvMsg(client)
 		if err != nil {
-			break
+			panic(err)
 		}
 	}
 }
@@ -38,11 +40,14 @@ func (client *GSClient) onServeRoutineExit() {
 }
 
 func (client *GSClient) HandleMsg(msg *proto.Message, pktSize uint32, msgType proto.MsgType_t) error {
-	vlog.Debug("HandleMsg: pitSize=%v, msgType=%v", pktSize, msgType)
+	vlog.Debug("HandleMsg: pktSize=%v, msgType=%v", pktSize, msgType)
 	payload := msg[proto.PREPAYLOAD_SIZE:pktSize]
 
-	if msgType == CLIENT_RPC { // CLIENT_RPC
-		client.handleClientRPC(payload)
+	switch msgType {
+	case CLIENT_TO_SERVER_RPC:
+		return client.handleClientRPC(payload)
+	default:
+		return fmt.Errorf("%s: invalid message type %v", client, msgType)
 	}
 	return nil
 }

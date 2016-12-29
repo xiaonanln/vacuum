@@ -3,8 +3,9 @@ package gameserver
 import "github.com/xiaonanln/vacuum/proto"
 
 const (
-	CLIENT_RPC                   = 1 + iota
+	CLIENT_TO_SERVER_RPC         = 1 + iota
 	CLIENT_CREATE_ENTITY_MESSAGE = 1 + iota
+	SERVER_TO_CLIENT_RPC         = 1 + iota
 )
 
 type ClientRPCMessage struct {

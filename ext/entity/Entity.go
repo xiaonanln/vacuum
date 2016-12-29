@@ -65,6 +65,7 @@ func (e *Entity) Init() {
 
 // Destroy entity
 func (e *Entity) Destroy() {
+	vlog.Debug("%s.Destroy ...", e)
 	delEntity(e.ID)
 	e.S.Send(e.S.ID, nil) // send nil to self to terminate the string
 }
