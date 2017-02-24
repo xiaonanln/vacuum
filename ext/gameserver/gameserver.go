@@ -24,6 +24,8 @@ func gameserverMain() {
 	gameserverConfig := loadGameserverConfig()
 	vlog.Debug("Gameserver config: %v", gameserverConfig)
 
+	createGlobals()
+
 	runGates(gameserverConfig)
 
 	time.Sleep(10 * time.Second)

@@ -10,6 +10,7 @@ import (
 	"github.com/xiaonanln/goTimer"
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum/ext/entity"
+	"github.com/xiaonanln/vacuum/vlog"
 )
 
 //var (
@@ -48,6 +49,11 @@ func (space *GSSpace) Init() {
 	space.Kind = int(spaceKind)
 	space.entities = GSEntitySet{}
 
+	if space.Kind == 0 { // nil space Init
+		nilSpace = space
+		vlog.Info("Nil space is set to: %s", nilSpace)
+	}
+
 	spaceDelegate.OnReady(space)
 }
 
@@ -56,8 +62,9 @@ func (space *GSSpace) String() string {
 }
 
 // Create entity in space
-func (space *GSSpace) CreateEntity(kind int, pos Vec3) {
-	CreateGSEntityLocally(kind, space.ID, pos)
+func (space *GSSpace) CreateEntity(kind int, pos Vec3) GSEntityID {
+	entityID := entity.CreateEntityLocally("GSEntity", kind, space.ID, pos.X, pos.Y, pos.Z)
+	return GSEntityID(entityID)
 }
 
 func (space *GSSpace) onEntityCreated(entity *GSEntity) {
@@ -99,4 +106,8 @@ func (space *GSSpace) Destroy() {
 
 func (space *GSSpace) Entities() GSEntitySet {
 	return space.entities
+}
+
+func (space *GSSpace) IsNil() bool {
+	return space.Kind == 0
 }

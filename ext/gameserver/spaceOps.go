@@ -23,6 +23,14 @@ func (spaceID SpaceID) getLocalSpace() *GSSpace {
 // Create a space
 func CreateSpace(kind int) SpaceID {
 	eid := entity.CreateEntity("GSSpace", kind)
-	spaceID := SpaceID(eid)
-	return spaceID
+	return SpaceID(eid)
+}
+
+func CreateSpaceLocally(kind int) SpaceID {
+	eid := entity.CreateEntityLocally("GSSpace", kind)
+	return SpaceID(eid)
+}
+
+func GetNilSpace() *GSSpace {
+	return nilSpace
 }

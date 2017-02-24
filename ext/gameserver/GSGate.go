@@ -44,7 +44,7 @@ func (delegate *gateServerDelegate) ServeTCPConnection(conn net.Conn) {
 	vlog.Debug("%s: new connection %s ...", delegate.gate, conn.RemoteAddr())
 	client := newGSClient(conn)
 	entityKind := 0
-	entityID := CreateGSEntityLocally(entityKind, "", Vec3{})
+	entityID := nilSpace.CreateEntity(entityKind, Vec3{})
 	// set entity client
 	go client.serve()
 
