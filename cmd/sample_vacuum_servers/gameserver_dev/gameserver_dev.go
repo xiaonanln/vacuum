@@ -27,10 +27,10 @@ func (delegate *MySpaceDelegate) OnReady(space *GSSpace) {
 		return
 	}
 
-	// normal space
-	for i := 0; i < NMONSTERS; i++ {
-		space.CreateEntity(MONSTER, Vec3{100, 100, 100})
-	}
+	//// normal space
+	//for i := 0; i < NMONSTERS; i++ {
+	//	space.CreateEntity(MONSTER, Vec3{100, 100, 100})
+	//}
 }
 
 func (delegate *MySpaceDelegate) onNullSpaceReady(space *GSSpace) {
@@ -62,9 +62,19 @@ func (delegate *MyEntityDelegate) onAllMonstersCreated(space *GSSpace) {
 	})
 }
 
+type Account struct {
+	GSEntityKind
+}
+
+type Monster struct {
+	GSEntityKind
+}
+
 func main() {
 	vlog.Info("gameserver_dev starting ...")
 	//GSEntity{}
+	RegisterGSEntityKind("Account", &Account{})
+	RegisterGSEntityKind("Monster", &Monster{})
 	SetSpaceDelegate(&MySpaceDelegate{})
 	SetEntityDelegate(&MyEntityDelegate{})
 	RunServer()

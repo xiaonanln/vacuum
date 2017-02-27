@@ -1,10 +1,11 @@
 package gameserver
 
 var (
-	nilSpace *GSSpace
+	nilSpace         *GSSpace
+	gameserverConfig *GameserverConfig
 )
 
-func createGlobals() {
+func createGlobalEntities() {
 
 	// create global stuffs
 	CreateSpaceLocally(0)

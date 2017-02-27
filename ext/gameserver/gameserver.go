@@ -21,10 +21,10 @@ func init() {
 }
 
 func gameserverMain() {
-	gameserverConfig := loadGameserverConfig()
+	gameserverConfig = loadGameserverConfig()
 	vlog.Debug("Gameserver config: %v", gameserverConfig)
 
-	createGlobals()
+	createGlobalEntities()
 
 	runGates(gameserverConfig)
 

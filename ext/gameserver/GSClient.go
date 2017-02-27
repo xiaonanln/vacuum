@@ -44,8 +44,8 @@ func (client *GSClient) HandleMsg(msg *proto.Message, pktSize uint32, msgType pr
 	payload := msg[proto.PREPAYLOAD_SIZE:pktSize]
 
 	switch msgType {
-	case CLIENT_TO_SERVER_RPC:
-		return client.handleClientRPC(payload)
+	case CLIENT_TO_SERVER_OWN_CLIENT_RPC:
+		return client.handleClientOwnClientRPC(payload)
 	default:
 		return fmt.Errorf("%s: invalid message type %v", client, msgType)
 	}
@@ -58,21 +58,21 @@ func (client *GSClient) HandleRelayMsg(msg *proto.Message, pktSize uint32, targe
 }
 
 // RPC call from client
-func (client *GSClient) handleClientRPC(payload []byte) error {
+func (client *GSClient) handleClientOwnClientRPC(payload []byte) error {
 	var msg ClientRPCMessage
 	if err := CLIENT_MSG_PACKER.UnpackMsg(payload, &msg); err != nil {
 		return err
 	}
 
-	vlog.Debug("RPC CALL: %v", msg)
-	msg.EntityID.callGSRPC(msg.Method, msg.Arguments)
+	vlog.Debug("RPC CALL: %v, OWN CLIENT", msg)
+	msg.EntityID.callGSRPC_OwnClient(msg.Method, msg.Arguments)
 	return nil
 }
 
-func (client *GSClient) clientCreateEntity(entityKind int, entityID GSEntityID) error {
+func (client *GSClient) clientCreateEntity(kindName string, entityID GSEntityID) error {
 	msg := ClientCreateEntityMessage{
 		EntityID:   entityID,
-		EntityKind: entityKind,
+		EntityKind: kindName,
 	}
 	return client.SendMsgEx(CLIENT_CREATE_ENTITY_MESSAGE, &msg, CLIENT_MSG_PACKER)
 }

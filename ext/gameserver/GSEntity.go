@@ -13,8 +13,10 @@ import (
 type GSEntityID entity.EntityID
 
 // RPC call from client
-func (eid GSEntityID) callGSRPC(method string, args []interface{}) {
-	entity.EntityID(eid).Call("CallGSRPC", method, args)
+
+func (eid GSEntityID) callGSRPC_OwnClient(method string, args []interface{}) {
+	rpcMethodName := method + "_OwnClient"
+	entity.EntityID(eid).Call(rpcMethodName, args)
 }
 
 type GSEntity struct {
@@ -22,13 +24,14 @@ type GSEntity struct {
 	aoi      AOI
 	ID       GSEntityID
 	space    *GSSpace
-	Kind     int
+	KindName string
+	Kind     IGSEntityKind
 	Pos      Vec3
 	ClientID string
 }
 
 func (entity *GSEntity) String() string {
-	return fmt.Sprintf("GSEntity|%d|%s", entity.Kind, entity.ID)
+	return fmt.Sprintf("%s<%s>", entity.KindName, entity.ID)
 }
 
 func (entity *GSEntity) Init() {
@@ -36,7 +39,7 @@ func (entity *GSEntity) Init() {
 
 	args := entity.Args()
 
-	entityKind := typeconv.Int(args[0])
+	entityKind := typeconv.String(args[0])
 	spaceID := SpaceID(typeconv.String(args[1]))
 
 	var x, y, z Len_t
@@ -44,7 +47,10 @@ func (entity *GSEntity) Init() {
 	y = typeconv.Convert(args[3], reflect.TypeOf(y)).Interface().(Len_t)
 	z = typeconv.Convert(args[4], reflect.TypeOf(z)).Interface().(Len_t)
 
-	entity.Kind = int(entityKind)
+	entity.KindName = entityKind
+	entityKindVal := createGSEntityKind(entityKind)
+	entity.Kind = entityKindVal.Interface().(IGSEntityKind)
+
 	entity.aoi.init()
 	entity.Pos.Assign(x, y, z)
 
@@ -110,9 +116,11 @@ func (entity *GSEntity) SetAOIDistance(dist Len_t) {
 	}
 
 	entity.aoi.sightDistance = dist
-	for otherEntity, _ := range entity.space.entities { // check all entities in space for AOI
-		if otherEntity != entity {
-			entity.checkAOI(otherEntity)
+	if entity.space.Kind > 0 {
+		for otherEntity, _ := range entity.space.entities { // check all entities in space for AOI
+			if otherEntity != entity {
+				entity.checkAOI(otherEntity)
+			}
 		}
 	}
 }
@@ -120,16 +128,17 @@ func (entity *GSEntity) SetAOIDistance(dist Len_t) {
 func (entity *GSEntity) SetPos(pos Vec3) {
 	vlog.Debug("%s.SetPos %s", entity, pos)
 	entity.Pos = pos
-	// position changed, recheck AOI!
-
-	aoidist := entity.aoi.sightDistance
 	space := entity.space
 
-	for other, _ := range space.entities {
-		if other != entity {
-			other.checkAOI(entity)
-			if aoidist > 0 {
-				entity.checkAOI(other)
+	if space.Kind > 0 {
+		// position changed, recheck AOI!
+		aoidist := entity.aoi.sightDistance
+		for other, _ := range space.entities {
+			if other != entity {
+				other.checkAOI(entity)
+				if aoidist > 0 {
+					entity.checkAOI(other)
+				}
 			}
 		}
 	}

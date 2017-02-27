@@ -20,7 +20,7 @@ type GSGate struct {
 func init() {
 }
 
-func runGates(config *gameserverConfig) {
+func runGates(config *GameserverConfig) {
 	for i := 0; i < config.GatesNum; i++ {
 		port := config.GatesStartPort + i*config.GatesPortStep
 		entity.CreateEntity("GSGate", i, port)
@@ -43,11 +43,11 @@ type gateServerDelegate struct {
 func (delegate *gateServerDelegate) ServeTCPConnection(conn net.Conn) {
 	vlog.Debug("%s: new connection %s ...", delegate.gate, conn.RemoteAddr())
 	client := newGSClient(conn)
-	entityKind := 0
-	entityID := nilSpace.CreateEntity(entityKind, Vec3{})
+	bootEntityKindName := gameserverConfig.BootEntityKind
+	entityID := nilSpace.CreateEntity(bootEntityKindName, Vec3{})
 	// set entity client
 	go client.serve()
 
 	//client.createEntity() // create entity on client side
-	client.clientCreateEntity(entityKind, entityID)
+	client.clientCreateEntity(bootEntityKindName, entityID)
 }

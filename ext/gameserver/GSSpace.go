@@ -62,19 +62,20 @@ func (space *GSSpace) String() string {
 }
 
 // Create entity in space
-func (space *GSSpace) CreateEntity(kind int, pos Vec3) GSEntityID {
-	entityID := entity.CreateEntityLocally("GSEntity", kind, space.ID, pos.X, pos.Y, pos.Z)
-	return GSEntityID(entityID)
+func (space *GSSpace) CreateEntity(kindName string, pos Vec3) GSEntityID {
+	return createGSEntity(kindName, space.ID, pos.X, pos.Y, pos.Z)
 }
 
 func (space *GSSpace) onEntityCreated(entity *GSEntity) {
 	space.entities.Add(entity)
 	aoidist := entity.aoi.sightDistance
-	for other, _ := range space.entities {
-		if other != entity {
-			other.checkAOI(entity)
-			if aoidist > 0 {
-				entity.checkAOI(other)
+	if space.Kind > 0 {
+		for other, _ := range space.entities {
+			if other != entity {
+				other.checkAOI(entity)
+				if aoidist > 0 {
+					entity.checkAOI(other)
+				}
 			}
 		}
 	}
