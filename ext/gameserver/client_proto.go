@@ -19,6 +19,12 @@ type ClientCreateEntityMessage struct {
 	EntityID   GSEntityID `json:"E"`
 }
 
+type ServerToClientRPCMessage struct {
+	EntityID  GSEntityID    `json:"E"`
+	Method    string        `json:"M"`
+	Arguments []interface{} `json:"A"`
+}
+
 var (
 	CLIENT_MSG_PACKER = proto.JSONMsgPacker{}
 )

@@ -25,7 +25,7 @@ type GSEntityKind struct {
 }
 
 func (kind *GSEntityKind) String() string {
-	return fmt.Sprintf("%s<%s>", kind.KindName, kind.EntityID)
+	return fmt.Sprintf("GSEntityKind<%s><%s>", kind.KindName, kind.EntityID)
 }
 
 func (kind *GSEntityKind) Init() {
@@ -71,7 +71,7 @@ func createGSEntityKind(entity *GSEntity, kindName string) reflect.Value {
 	return entityKindPtrVal
 }
 
-func createGSEntity(kindName string, spaceID SpaceID, x, y, z Len_t) GSEntityID {
+func createGSEntity(kindName string, spaceID GSSpaceID, x, y, z Len_t) GSEntityID {
 	entityID := entity.CreateEntityLocally("GSEntity", kindName, spaceID, x, y, z)
 	return GSEntityID(entityID)
 }

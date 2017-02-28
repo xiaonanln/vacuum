@@ -6,13 +6,13 @@ import (
 	"github.com/xiaonanln/vacuum/ext/entity"
 )
 
-type SpaceID entity.EntityID
+type GSSpaceID entity.EntityID
 
-func (sid SpaceID) String() string {
+func (sid GSSpaceID) String() string {
 	return fmt.Sprintf("SpaceID#%s", string(sid))
 }
 
-func (spaceID SpaceID) getLocalSpace() *GSSpace {
+func (spaceID GSSpaceID) getLocalSpace() *GSSpace {
 	localEntity := entity.EntityID(spaceID).GetLocalEntity()
 	if localEntity == nil {
 		return nil
@@ -21,14 +21,14 @@ func (spaceID SpaceID) getLocalSpace() *GSSpace {
 }
 
 // Create a space
-func CreateSpace(kind int) SpaceID {
+func CreateSpace(kind int) GSSpaceID {
 	eid := entity.CreateEntity("GSSpace", kind)
-	return SpaceID(eid)
+	return GSSpaceID(eid)
 }
 
-func CreateSpaceLocally(kind int) SpaceID {
+func CreateSpaceLocally(kind int) GSSpaceID {
 	eid := entity.CreateEntityLocally("GSSpace", kind)
-	return SpaceID(eid)
+	return GSSpaceID(eid)
 }
 
 func GetNilSpace() *GSSpace {

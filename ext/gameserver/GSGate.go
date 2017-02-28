@@ -5,16 +5,20 @@ import (
 
 	"net"
 
+	"log"
+
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum/ext/entity"
 	"github.com/xiaonanln/vacuum/netutil"
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
-const ()
+type GSGateID entity.EntityID
 
 type GSGate struct {
 	entity.Entity
+	ID      GSGateID
+	clients map[GSClientID]*GSClient
 }
 
 func init() {
@@ -27,27 +31,48 @@ func runGates(config *GameserverConfig) {
 	}
 }
 
+func (gate *GSGate) String() string {
+	return fmt.Sprintf("GSGate<%s>", gate.ID)
+}
+
 func (gate *GSGate) Init() {
+	gate.ID = GSGateID(gate.Entity.ID)
+
+	// initialize clients
+	gate.clients = map[GSClientID]*GSClient{}
+
 	gateIndex := typeconv.Int(gate.Args()[0])
 	port := typeconv.Int(gate.Args()[1])
 	vlog.Debug("Initializing gate %v port %v: %s ...", gateIndex, port, gate)
-	serveAddr := fmt.Sprintf(":%d", port)
-	go netutil.ServeTCPForever(serveAddr, &gateServerDelegate{gate: gate})
-}
 
-type gateServerDelegate struct {
-	gate *GSGate
+	// start goroutine to serve clients
+	serveAddr := fmt.Sprintf(":%d", port)
+	go netutil.ServeTCPForever(serveAddr, gate)
 }
 
 // handle client connection to gate
-func (delegate *gateServerDelegate) ServeTCPConnection(conn net.Conn) {
-	vlog.Debug("%s: new connection %s ...", delegate.gate, conn.RemoteAddr())
-	client := newGSClient(conn)
+func (gate *GSGate) ServeTCPConnection(conn net.Conn) {
+	vlog.Debug("%s: new connection %s ...", gate, conn.RemoteAddr())
+	client := newGSClient(gate.ID, conn)
+	gate.clients[client.ClientID] = client // add client to gate clients-map
+
 	bootEntityKindName := gameserverConfig.BootEntityKind
 	entityID := nilSpace.CreateEntity(bootEntityKindName, Vec3{})
 	// set entity client
-	go client.serve()
 
-	//client.createEntity() // create entity on client side
-	client.clientCreateEntity(bootEntityKindName, entityID)
+	client.setOwner(entityID)
+	client.clientCreateEntity(bootEntityKindName, entityID) // create entity on client side
+	entityID.notifyGetClient(gate.ID, client.ClientID)
+
+	go client.serve()
+}
+
+func (gate *GSGate) CallClient(clientID GSClientID, entityID GSEntityID, methodName string, args []interface{}) {
+	// Send RPC call to the client
+	client, ok := gate.clients[clientID]
+	if !ok {
+		log.Panicf("%s.CallClient: %s: Client %s not found", gate, methodName, clientID)
+	}
+
+	client.clientCallEntityMethod(entityID, methodName, args)
 }

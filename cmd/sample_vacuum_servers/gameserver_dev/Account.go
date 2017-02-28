@@ -11,8 +11,11 @@ type Account struct {
 
 func (a *Account) Login_OwnClient(username string, password string) {
 	vlog.Info("%s.Login %s %s", a, username, password)
-	if password == "123456" {
-
-	} else {
-	}
+	a.Entity.CallClient("OnLogin", true)
+	//a.Entity.CallClient("OnLogin", false)
+	//if password == "123456" {
+	//
+	//} else {
+	//
+	//}
 }

@@ -10,16 +10,25 @@ import (
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
+type GSClientID string
+
 type GSClient struct {
 	proto.MessageConnection
-	ClientID string
+	gateID   GSGateID
+	ClientID GSClientID
+	ownerID  GSEntityID
 }
 
-func newGSClient(conn net.Conn) *GSClient {
+func newGSClient(gateID GSGateID, conn net.Conn) *GSClient {
 	return &GSClient{
+		gateID:            gateID,
 		MessageConnection: proto.NewMessageConnection(conn),
-		ClientID:          uuid.GenUUID(),
+		ClientID:          GSClientID(uuid.GenUUID()),
 	}
+}
+
+func (client *GSClient) setOwner(entityID GSEntityID) {
+	client.ownerID = entityID
 }
 
 func (client *GSClient) serve() {
@@ -37,6 +46,12 @@ func (client *GSClient) serve() {
 func (client *GSClient) onServeRoutineExit() {
 	err := recover()
 	vlog.Info("Gate client quit: %s, error=%v", client, err)
+	// notify the owner entity
+	if client.ownerID != "" {
+		ownerID := client.ownerID
+		client.ownerID = ""
+		ownerID.notifyLoseClient(client.gateID, client.ClientID)
+	}
 }
 
 func (client *GSClient) HandleMsg(msg *proto.Message, pktSize uint32, msgType proto.MsgType_t) error {
@@ -75,4 +90,13 @@ func (client *GSClient) clientCreateEntity(kindName string, entityID GSEntityID)
 		EntityKind: kindName,
 	}
 	return client.SendMsgEx(CLIENT_CREATE_ENTITY_MESSAGE, &msg, CLIENT_MSG_PACKER)
+}
+
+func (client *GSClient) clientCallEntityMethod(entityID GSEntityID, methodName string, args []interface{}) error {
+	msg := ServerToClientRPCMessage{
+		EntityID:  entityID,
+		Method:    methodName,
+		Arguments: args,
+	}
+	return client.SendMsgEx(SERVER_TO_CLIENT_RPC, &msg, CLIENT_MSG_PACKER)
 }

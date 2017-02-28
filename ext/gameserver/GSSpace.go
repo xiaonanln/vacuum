@@ -34,15 +34,15 @@ import (
 type GSSpace struct {
 	entity.Entity
 	sync.RWMutex
-	ID   SpaceID
-	Kind int
+	ID       GSSpaceID
+	Kind     int
 
 	entities GSEntitySet
 	timers   map[*timer.Timer]bool
 }
 
 func (space *GSSpace) Init() {
-	space.ID = SpaceID(space.Entity.ID)
+	space.ID = GSSpaceID(space.Entity.ID)
 	args := space.Args()
 	spaceKind := typeconv.Int(args[0])
 

@@ -13,9 +13,17 @@ import (
 type GSEntityID entity.EntityID
 
 // RPC call from client
-
 func (eid GSEntityID) callGSRPC_OwnClient(method string, args []interface{}) {
 	entity.EntityID(eid).Call("CallGSRPC_OwnClient", method, args)
+}
+
+// Notify the GSEntity for its own client
+func (eid GSEntityID) notifyGetClient(gateID GSGateID, clientID GSClientID) {
+	entity.EntityID(eid).Call("NotifyGetClient", gateID, clientID)
+}
+
+func (eid GSEntityID) notifyLoseClient(gateID GSGateID, clientID GSClientID) {
+	entity.EntityID(eid).Call("NotifyLoseClient", gateID, clientID)
 }
 
 type GSEntity struct {
@@ -27,7 +35,7 @@ type GSEntity struct {
 	kindVal  reflect.Value
 	Kind     IGSEntityKind
 	Pos      Vec3
-	ClientID string
+	client   *GSClientProxy
 }
 
 func (entity *GSEntity) String() string {
@@ -40,7 +48,7 @@ func (entity *GSEntity) Init() {
 	args := entity.Args()
 
 	entityKind := typeconv.String(args[0])
-	spaceID := SpaceID(typeconv.String(args[1]))
+	spaceID := GSSpaceID(typeconv.String(args[1]))
 
 	var x, y, z Len_t
 	x = typeconv.Convert(args[2], reflect.TypeOf(x)).Interface().(Len_t)
@@ -159,13 +167,18 @@ func (entity *GSEntity) AOIEntities() GSEntitySet {
 //	return GSEntityID(eid)
 //}
 
-func (entity *GSEntity) RPC_SetClientID(clientID string) {
-
-}
-
 func (entity *GSEntity) Destroy() {
 	entity.Kind.Destroy() // destroy kind before destroy entity
 	entity.Entity.Destroy()
+}
+
+func (entity *GSEntity) CallClient(methodName string, args ...interface{}) {
+	if entity.client == nil {
+		vlog.Debug("%s.CallClient: %s: client is nil", entity, methodName)
+		return
+	}
+
+	entity.client.callClient(entity.ID, methodName, args)
 }
 
 func (entity *GSEntity) CallGSRPC_OwnClient(methodName string, args []interface{}) {
@@ -181,4 +194,26 @@ func (entity *GSEntity) CallGSRPC_OwnClient(methodName string, args []interface{
 		in[i] = typeconv.Convert(arg, argType)
 	}
 	method.Call(in)
+}
+
+func (entity *GSEntity) NotifyGetClient(gateID GSGateID, clientID GSClientID) {
+	client := newGSClientProxy(gateID, clientID)
+	vlog.Debug("%s.NotifyGetClient: %s", entity, client)
+
+	if entity.client != nil {
+		// entity already has client, fail
+		vlog.Panicf("%s.NotifyGetClient: new client %s, already has client %s", entity, client, entity.client)
+	}
+
+	entity.client = client
+}
+
+func (entity *GSEntity) NotifyLoseClient(gateID GSGateID, clientID GSClientID) {
+	vlog.Debug("%s.NotifyLoseClient: lose client %s@%s", entity, clientID, gateID)
+
+	if entity.client == nil || entity.client.ClientID != clientID {
+		vlog.Panicf("%s.NotifyLoseClient: has client %s, but lose client %s", entity, entity.client, clientID)
+	}
+
+	entity.client = nil
 }
