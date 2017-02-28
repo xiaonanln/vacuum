@@ -5,7 +5,6 @@ import (
 
 	"fmt"
 
-	"github.com/xiaonanln/vacuum/ext/entity"
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
@@ -69,9 +68,4 @@ func createGSEntityKind(entity *GSEntity, kindName string) reflect.Value {
 	gsEntityKind.EntityID = entity.ID
 
 	return entityKindPtrVal
-}
-
-func createGSEntity(kindName string, spaceID GSSpaceID, x, y, z Len_t) GSEntityID {
-	entityID := entity.CreateEntityLocally("GSEntity", kindName, spaceID, x, y, z)
-	return GSEntityID(entityID)
 }

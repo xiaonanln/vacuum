@@ -63,7 +63,13 @@ func (entity *GSEntity) Init() {
 	entity.aoi.init()
 	entity.Pos.Assign(x, y, z)
 
-	space := spaceID.getLocalSpace()
+	var space *GSSpace
+	if spaceID != "" {
+		space = spaceID.getLocalSpace()
+	} else {
+		space = GetNilSpace()
+	}
+
 	vlog.Debug("%s.Init: space=%s, pos=%s", entity, space, entity.Pos)
 	if space == nil {
 		// how can space be destroy
@@ -216,4 +222,14 @@ func (entity *GSEntity) NotifyLoseClient(gateID GSGateID, clientID GSClientID) {
 	}
 
 	entity.client = nil
+}
+
+func CreateGSEntityAnywhere(kindName string) GSEntityID {
+	entityID := entity.CreateEntityLocally("GSEntity", kindName, "", 0, 0, 0)
+	return GSEntityID(entityID)
+}
+
+func createGSEntity(kindName string, spaceID GSSpaceID, pos Vec3) GSEntityID {
+	entityID := entity.CreateEntityLocally("GSEntity", kindName, spaceID, pos.X, pos.Y, pos.Z)
+	return GSEntityID(entityID)
 }

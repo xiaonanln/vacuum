@@ -11,11 +11,14 @@ type Account struct {
 
 func (a *Account) Login_OwnClient(username string, password string) {
 	vlog.Info("%s.Login %s %s", a, username, password)
-	a.Entity.CallClient("OnLogin", true)
-	//a.Entity.CallClient("OnLogin", false)
-	//if password == "123456" {
-	//
-	//} else {
-	//
-	//}
+	if password != "123456" {
+		a.Entity.CallClient("OnLogin", false)
+		return
+	}
+
+	a.Entity.CallClient("OnLogin", true) // tell client that login ok
+	// create the new Avatar entity
+
+	CreateGSEntityAnywhere("Avatar")
+
 }

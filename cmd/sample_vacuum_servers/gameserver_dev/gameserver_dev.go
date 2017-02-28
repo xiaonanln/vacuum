@@ -70,6 +70,7 @@ func main() {
 	vlog.Info("gameserver_dev starting ...")
 	//GSEntity{}
 	RegisterGSEntityKind("Account", &Account{})
+	RegisterGSEntityKind("Avatar", &Avatar{})
 	RegisterGSEntityKind("Monster", &Monster{})
 	SetSpaceDelegate(&MySpaceDelegate{})
 	SetEntityDelegate(&MyEntityDelegate{})

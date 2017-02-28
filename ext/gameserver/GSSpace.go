@@ -34,8 +34,8 @@ import (
 type GSSpace struct {
 	entity.Entity
 	sync.RWMutex
-	ID       GSSpaceID
-	Kind     int
+	ID   GSSpaceID
+	Kind int
 
 	entities GSEntitySet
 	timers   map[*timer.Timer]bool
@@ -63,7 +63,7 @@ func (space *GSSpace) String() string {
 
 // Create entity in space
 func (space *GSSpace) CreateEntity(kindName string, pos Vec3) GSEntityID {
-	return createGSEntity(kindName, space.ID, pos.X, pos.Y, pos.Z)
+	return createGSEntity(kindName, space.ID, pos)
 }
 
 func (space *GSSpace) onEntityCreated(entity *GSEntity) {
