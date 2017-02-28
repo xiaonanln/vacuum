@@ -36,6 +36,7 @@ func (gate *GSGate) String() string {
 }
 
 func (gate *GSGate) Init() {
+	// called from GSGate.Entity routine
 	gate.ID = GSGateID(gate.Entity.ID)
 
 	// initialize clients
@@ -52,8 +53,9 @@ func (gate *GSGate) Init() {
 
 // handle client connection to gate
 func (gate *GSGate) ServeTCPConnection(conn net.Conn) {
+	// called from TCP Service
 	vlog.Debug("%s: new connection %s ...", gate, conn.RemoteAddr())
-	client := newGSClient(gate.ID, conn)
+	client := newGSClient(gate, conn)
 	gate.clients[client.ClientID] = client // add client to gate clients-map
 
 	bootEntityKindName := gameserverConfig.BootEntityKind
@@ -68,11 +70,16 @@ func (gate *GSGate) ServeTCPConnection(conn net.Conn) {
 }
 
 func (gate *GSGate) CallClient(clientID GSClientID, entityID GSEntityID, methodName string, args []interface{}) {
-	// Send RPC call to the client
+	// Send RPC call to the client, called from GSGate.Entity routine
 	client, ok := gate.clients[clientID]
 	if !ok {
 		log.Panicf("%s.CallClient: %s: Client %s not found", gate, methodName, clientID)
 	}
 
 	client.clientCallEntityMethod(entityID, methodName, args)
+}
+
+func (gate *GSGate) onClientDisconnect(client *GSClient) {
+	// called from GSClient serve routine
+	delete(gate.clients, client.ClientID)
 }

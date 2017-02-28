@@ -14,14 +14,14 @@ type GSClientID string
 
 type GSClient struct {
 	proto.MessageConnection
-	gateID   GSGateID
+	gate     *GSGate
 	ClientID GSClientID
 	ownerID  GSEntityID
 }
 
-func newGSClient(gateID GSGateID, conn net.Conn) *GSClient {
+func newGSClient(gate *GSGate, conn net.Conn) *GSClient {
 	return &GSClient{
-		gateID:            gateID,
+		gate:              gate,
 		MessageConnection: proto.NewMessageConnection(conn),
 		ClientID:          GSClientID(uuid.GenUUID()),
 	}
@@ -46,11 +46,14 @@ func (client *GSClient) serve() {
 func (client *GSClient) onServeRoutineExit() {
 	err := recover()
 	vlog.Info("Gate client quit: %s, error=%v", client, err)
+	// remove self from GSGate
+	client.gate.onClientDisconnect(client)
+
 	// notify the owner entity
 	if client.ownerID != "" {
 		ownerID := client.ownerID
 		client.ownerID = ""
-		ownerID.notifyLoseClient(client.gateID, client.ClientID)
+		ownerID.notifyLoseClient(client.gate.ID, client.ClientID)
 	}
 }
 

@@ -151,7 +151,7 @@ func (s *String) Yield() {
 
 func Send(stringID string, msg interface{}) {
 	if stringID == "" {
-		vlog.Panicf("Send: stringID is empty")
+		vlog.TraceError("Send: stringID is empty")
 	}
 
 	vlog.Debug(">>> SEND %s: %v", stringID, msg)
