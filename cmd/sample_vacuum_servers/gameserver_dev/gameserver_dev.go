@@ -62,10 +62,6 @@ func (delegate *MyEntityDelegate) onAllMonstersCreated(space *GSSpace) {
 	})
 }
 
-type Account struct {
-	GSEntityKind
-}
-
 type Monster struct {
 	GSEntityKind
 }

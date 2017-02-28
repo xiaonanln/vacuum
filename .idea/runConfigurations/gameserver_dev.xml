@@ -5,7 +5,8 @@
     <go_parameters value="-race" />
     <parameters value="-log debug -sid 1" />
     <filePath value="C:\gopath\src\github.com\xiaonanln\vacuum\cmd\sample_vacuum_servers\gameserver_dev\gameserver_dev.go" />
-    <kind value="FILE" />
+    <kind value="PACKAGE" />
+    <package value="github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/gameserver_dev" />
     <method />
   </configuration>
 </component>

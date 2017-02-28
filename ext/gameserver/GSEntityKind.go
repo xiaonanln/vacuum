@@ -3,6 +3,8 @@ package gameserver
 import (
 	"reflect"
 
+	"fmt"
+
 	"github.com/xiaonanln/vacuum/ext/entity"
 	"github.com/xiaonanln/vacuum/vlog"
 )
@@ -17,6 +19,13 @@ type IGSEntityKind interface {
 }
 
 type GSEntityKind struct {
+	Entity   *GSEntity
+	KindName string
+	EntityID GSEntityID
+}
+
+func (kind *GSEntityKind) String() string {
+	return fmt.Sprintf("%s<%s>", kind.KindName, kind.EntityID)
 }
 
 func (kind *GSEntityKind) Init() {
@@ -46,13 +55,19 @@ func RegisterGSEntityKind(kindName string, entityKindPtr interface{}) {
 	vlog.Debug(">>> RegisterGSEntityKind %s => %s <<<", kindName, entityKindType.Name())
 }
 
-func createGSEntityKind(kindName string) reflect.Value {
+func createGSEntityKind(entity *GSEntity, kindName string) reflect.Value {
 	kindType, ok := registeredEntityKinds[kindName]
 	if !ok {
 		vlog.Panicf("Entity Kind %s is not registered", kindName)
 	}
 
 	entityKindPtrVal := reflect.New(kindType) // create entity and get its pointer
+
+	gsEntityKind := reflect.Indirect(entityKindPtrVal).FieldByName("GSEntityKind").Addr().Interface().(*GSEntityKind)
+	gsEntityKind.Entity = entity
+	gsEntityKind.KindName = kindName
+	gsEntityKind.EntityID = entity.ID
+
 	return entityKindPtrVal
 }
 

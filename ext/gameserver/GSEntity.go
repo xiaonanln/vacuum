@@ -15,8 +15,7 @@ type GSEntityID entity.EntityID
 // RPC call from client
 
 func (eid GSEntityID) callGSRPC_OwnClient(method string, args []interface{}) {
-	rpcMethodName := method + "_OwnClient"
-	entity.EntityID(eid).Call(rpcMethodName, args)
+	entity.EntityID(eid).Call("CallGSRPC_OwnClient", method, args)
 }
 
 type GSEntity struct {
@@ -25,6 +24,7 @@ type GSEntity struct {
 	ID       GSEntityID
 	space    *GSSpace
 	KindName string
+	kindVal  reflect.Value
 	Kind     IGSEntityKind
 	Pos      Vec3
 	ClientID string
@@ -48,8 +48,9 @@ func (entity *GSEntity) Init() {
 	z = typeconv.Convert(args[4], reflect.TypeOf(z)).Interface().(Len_t)
 
 	entity.KindName = entityKind
-	entityKindVal := createGSEntityKind(entityKind)
-	entity.Kind = entityKindVal.Interface().(IGSEntityKind)
+	entity.kindVal = createGSEntityKind(entity, entityKind)
+	entity.Kind = entity.kindVal.Interface().(IGSEntityKind)
+	entity.Kind.Init()
 
 	entity.aoi.init()
 	entity.Pos.Assign(x, y, z)
@@ -160,4 +161,24 @@ func (entity *GSEntity) AOIEntities() GSEntitySet {
 
 func (entity *GSEntity) RPC_SetClientID(clientID string) {
 
+}
+
+func (entity *GSEntity) Destroy() {
+	entity.Kind.Destroy() // destroy kind before destroy entity
+	entity.Entity.Destroy()
+}
+
+func (entity *GSEntity) CallGSRPC_OwnClient(methodName string, args []interface{}) {
+	methodName = methodName + "_OwnClient"
+	method := entity.kindVal.MethodByName(methodName)
+	vlog.Debug("CallGSRPC_OwnClient: method=%s(%v), args=%v", methodName, method, args)
+	methodType := method.Type()
+
+	in := make([]reflect.Value, len(args))
+
+	for i, arg := range args {
+		argType := methodType.In(i)
+		in[i] = typeconv.Convert(arg, argType)
+	}
+	method.Call(in)
 }
