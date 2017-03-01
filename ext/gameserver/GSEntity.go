@@ -88,6 +88,10 @@ func (entity *GSEntity) Init() {
 	space.Unlock()
 }
 
+func (entity *GSEntity) EnterSpace(spaceID GSSpaceID) {
+
+}
+
 func (entity *GSEntity) checkAOI(other *GSEntity) {
 	if entity.aoi.sightDistance <= 0 { // AOI disabled, sees nothing
 		if entity.aoi.InRange(other) {
@@ -189,6 +193,8 @@ func (entity *GSEntity) GiveClientTo(otherID GSEntityID) {
 	entity.client = nil
 	// Tell the client to change owner
 	client.notifyChangeOwner(entity.ID, otherID)
+
+	entity.Kind.OnLoseClient()
 }
 
 func (entity *GSEntity) CallClient(methodName string, args ...interface{}) {
@@ -225,6 +231,7 @@ func (entity *GSEntity) NotifyGetClient(gateID GSGateID, clientID GSClientID) {
 	}
 
 	entity.client = client
+	entity.Kind.OnGetClient()
 }
 
 func (entity *GSEntity) NotifyLoseClient(gateID GSGateID, clientID GSClientID) {
@@ -236,6 +243,7 @@ func (entity *GSEntity) NotifyLoseClient(gateID GSGateID, clientID GSClientID) {
 	}
 
 	entity.client = nil
+	entity.Kind.OnLoseClient()
 }
 
 func CreateGSEntityAnywhere(kindName string) GSEntityID {

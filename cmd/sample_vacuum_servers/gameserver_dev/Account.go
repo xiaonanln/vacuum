@@ -19,7 +19,9 @@ func (a *Account) Login_OwnClient(username string, password string) {
 	a.Entity.CallClient("OnLogin", true) // tell client that login ok
 	// create the new Avatar entity
 
-	avatarID := CreateGSEntityAnywhere("Avatar")
+	avatarID := GetNilSpace().CreateEntity("Avatar", Vec3{})
+
 	vlog.Debug("%s.Login: create Avatar %s", a, avatarID)
 	a.Entity.GiveClientTo(avatarID)
+
 }

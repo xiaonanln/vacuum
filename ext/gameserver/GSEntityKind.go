@@ -15,6 +15,9 @@ var (
 type IGSEntityKind interface {
 	Init()
 	Destroy()
+	// Client notifications
+	OnGetClient()
+	OnLoseClient()
 }
 
 type GSEntityKind struct {
@@ -35,7 +38,15 @@ func (kind *GSEntityKind) Destroy() {
 	vlog.Debug("%s.Destroy() ...", kind)
 }
 
-func RegisterGSEntityKind(kindName string, entityKindPtr interface{}) {
+func (kind *GSEntityKind) OnGetClient() {
+	vlog.Debug("%s.OnGetClient: %s", kind, kind.Entity.client)
+}
+
+func (kind *GSEntityKind) OnLoseClient() {
+	vlog.Debug("%s.OnLoseClient ...", kind)
+}
+
+func RegisterGSEntityKind(kindName string, entityKindPtr IGSEntityKind) {
 	if _, ok := registeredEntityKinds[kindName]; ok {
 		vlog.Panicf("RegisterEntity: Entity type %s already registered", kindName)
 	}
