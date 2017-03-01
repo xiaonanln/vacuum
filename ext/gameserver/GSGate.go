@@ -107,7 +107,3 @@ func (gate *GSGate) onClientDisconnect(client *GSClient) {
 	delete(gate.clients, client.ClientID)
 	gate.clientsLock.Unlock()
 }
-
-//func (gate *GSGate) getClient(id GSClientID) *GSClient {
-//	return gate.clients[id]
-//}
