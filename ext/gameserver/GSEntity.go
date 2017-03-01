@@ -178,6 +178,19 @@ func (entity *GSEntity) Destroy() {
 	entity.Entity.Destroy()
 }
 
+// Give client to another entity
+func (entity *GSEntity) GiveClientTo(otherID GSEntityID) {
+	client := entity.client
+	if client == nil {
+		vlog.Warn("%s.GiveClientTo %s: has no client", entity, otherID)
+		return
+	}
+
+	entity.client = nil
+	// Tell the client to change owner
+	client.notifyChangeOwner(entity.ID, otherID)
+}
+
 func (entity *GSEntity) CallClient(methodName string, args ...interface{}) {
 	if entity.client == nil {
 		vlog.Debug("%s.CallClient: %s: client is nil", entity, methodName)
@@ -218,7 +231,8 @@ func (entity *GSEntity) NotifyLoseClient(gateID GSGateID, clientID GSClientID) {
 	vlog.Debug("%s.NotifyLoseClient: lose client %s@%s", entity, clientID, gateID)
 
 	if entity.client == nil || entity.client.ClientID != clientID {
-		vlog.Panicf("%s.NotifyLoseClient: has client %s, but lose client %s", entity, entity.client, clientID)
+		vlog.Warn("%s.NotifyLoseClient: has client %s, but lose client %s", entity, entity.client, clientID)
+		return
 	}
 
 	entity.client = nil

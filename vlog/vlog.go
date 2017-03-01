@@ -16,6 +16,7 @@ var (
 
 	Debug  = sublog.Debugf
 	Info   = sublog.Infof
+	Warn   = sublog.Warnf
 	Error  = sublog.Errorf
 	Panic  = sublog.Panic
 	Panicf = sublog.Panicf

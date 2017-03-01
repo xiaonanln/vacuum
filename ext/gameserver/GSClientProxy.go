@@ -26,3 +26,8 @@ func (cp *GSClientProxy) callClient(entityID GSEntityID, methodName string, args
 	// call the gate
 	entity.EntityID(cp.GateID).Call("CallClient", cp.ClientID, entityID, methodName, args)
 }
+
+// notify the client to change owner
+func (cp *GSClientProxy) notifyChangeOwner(ownerID GSEntityID, otherID GSEntityID) {
+	entity.EntityID(cp.GateID).Call("NotifyClientChangeOwner", cp.ClientID, ownerID, otherID)
+}

@@ -5,6 +5,8 @@ import (
 
 	"fmt"
 
+	"sync"
+
 	"github.com/xiaonanln/vacuum/proto"
 	"github.com/xiaonanln/vacuum/uuid"
 	"github.com/xiaonanln/vacuum/vlog"
@@ -16,7 +18,9 @@ type GSClient struct {
 	proto.MessageConnection
 	gate     *GSGate
 	ClientID GSClientID
-	ownerID  GSEntityID
+
+	sync.RWMutex
+	ownerID GSEntityID
 }
 
 func newGSClient(gate *GSGate, conn net.Conn) *GSClient {
@@ -28,7 +32,9 @@ func newGSClient(gate *GSGate, conn net.Conn) *GSClient {
 }
 
 func (client *GSClient) setOwner(entityID GSEntityID) {
+	client.Lock()
 	client.ownerID = entityID
+	client.Unlock()
 }
 
 func (client *GSClient) serve() {
@@ -50,10 +56,14 @@ func (client *GSClient) onServeRoutineExit() {
 	client.gate.onClientDisconnect(client)
 
 	// notify the owner entity
+	client.Lock()
 	if client.ownerID != "" {
 		ownerID := client.ownerID
 		client.ownerID = ""
+		client.Unlock()
 		ownerID.notifyLoseClient(client.gate.ID, client.ClientID)
+	} else {
+		client.Unlock()
 	}
 }
 
@@ -102,4 +112,18 @@ func (client *GSClient) clientCallEntityMethod(entityID GSEntityID, methodName s
 		Arguments: args,
 	}
 	return client.SendMsgEx(SERVER_TO_CLIENT_RPC, &msg, CLIENT_MSG_PACKER)
+}
+
+func (client *GSClient) notifyChangeOwner(ownerID GSEntityID, otherID GSEntityID) {
+	client.Lock()
+	if client.ownerID != ownerID {
+		client.Unlock()
+		vlog.Warn("%s.notifyChangeOwner: ownerID is %s, but notified by %s", client, client.ownerID, ownerID)
+		return
+	}
+
+	client.ownerID = otherID
+	client.Unlock()
+
+	// tell the owner
 }

@@ -7,6 +7,8 @@ import (
 
 	"log"
 
+	"sync"
+
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum/ext/entity"
 	"github.com/xiaonanln/vacuum/netutil"
@@ -17,8 +19,9 @@ type GSGateID entity.EntityID
 
 type GSGate struct {
 	entity.Entity
-	ID      GSGateID
-	clients map[GSClientID]*GSClient
+	ID          GSGateID
+	clientsLock sync.RWMutex
+	clients     map[GSClientID]*GSClient
 }
 
 func init() {
@@ -56,7 +59,9 @@ func (gate *GSGate) ServeTCPConnection(conn net.Conn) {
 	// called from TCP Service
 	vlog.Debug("%s: new connection %s ...", gate, conn.RemoteAddr())
 	client := newGSClient(gate, conn)
+	gate.clientsLock.Lock()
 	gate.clients[client.ClientID] = client // add client to gate clients-map
+	gate.clientsLock.Unlock()
 
 	bootEntityKindName := gameserverConfig.BootEntityKind
 	entityID := nilSpace.CreateEntity(bootEntityKindName, Vec3{})
@@ -71,7 +76,9 @@ func (gate *GSGate) ServeTCPConnection(conn net.Conn) {
 
 func (gate *GSGate) CallClient(clientID GSClientID, entityID GSEntityID, methodName string, args []interface{}) {
 	// Send RPC call to the client, called from GSGate.Entity routine
+	gate.clientsLock.RLock()
 	client, ok := gate.clients[clientID]
+	gate.clientsLock.RUnlock()
 	if !ok {
 		log.Panicf("%s.CallClient: %s: Client %s not found", gate, methodName, clientID)
 	}
@@ -79,7 +86,28 @@ func (gate *GSGate) CallClient(clientID GSClientID, entityID GSEntityID, methodN
 	client.clientCallEntityMethod(entityID, methodName, args)
 }
 
+// notify the client to change owner
+func (gate *GSGate) NotifyClientChangeOwner(clientID GSClientID, ownerID GSEntityID, otherID GSEntityID) {
+	gate.clientsLock.RLock()
+	client, ok := gate.clients[clientID]
+	gate.clientsLock.RUnlock()
+	if !ok {
+		log.Panicf("%s.NotifyClientChangeOwner: client %s not found", gate, clientID)
+		return
+	}
+
+	client.notifyChangeOwner(ownerID, otherID)
+	// tell other entity to get the client
+	otherID.notifyGetClient(gate.ID, client.ClientID)
+}
+
 func (gate *GSGate) onClientDisconnect(client *GSClient) {
 	// called from GSClient serve routine
+	gate.clientsLock.Lock()
 	delete(gate.clients, client.ClientID)
+	gate.clientsLock.Unlock()
 }
+
+//func (gate *GSGate) getClient(id GSClientID) *GSClient {
+//	return gate.clients[id]
+//}

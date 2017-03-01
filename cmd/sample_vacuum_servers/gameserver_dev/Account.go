@@ -21,4 +21,5 @@ func (a *Account) Login_OwnClient(username string, password string) {
 
 	avatarID := CreateGSEntityAnywhere("Avatar")
 	vlog.Debug("%s.Login: create Avatar %s", a, avatarID)
+	a.Entity.GiveClientTo(avatarID)
 }
