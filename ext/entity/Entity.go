@@ -63,6 +63,10 @@ func (e *Entity) Init() {
 	vlog.Debug("%s.Init: Args=%v", e, e.Args())
 }
 
+func (e *Entity) Migrate(serverID int) {
+	e.S.Migrate(serverID)
+}
+
 // Destroy entity
 func (e *Entity) Destroy() {
 	vlog.Debug("%s.Destroy ...", e)

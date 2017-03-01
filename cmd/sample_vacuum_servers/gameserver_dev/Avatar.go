@@ -2,6 +2,7 @@ package main
 
 import (
 	. "github.com/xiaonanln/vacuum/ext/gameserver"
+	"github.com/xiaonanln/vacuum/vacuum_server"
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
@@ -15,4 +16,6 @@ func (a *Avatar) OnGetClient() {
 
 	space := spaceManager.GetSpace(1)
 	a.Entity.EnterSpace(space)
+
+	a.Entity.Migrate(vacuum_server.ServerID())
 }
