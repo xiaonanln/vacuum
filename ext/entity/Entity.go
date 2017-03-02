@@ -50,6 +50,9 @@ type IEntity interface {
 	//ID() EntityID
 	Init()
 	Destroy() // destroy the entity
+
+	OnMigrateIn(extra map[string]interface{})
+	OnMigrateOut(extra map[string]interface{})
 }
 
 type Entity struct {
@@ -65,6 +68,14 @@ func (e *Entity) Init() {
 
 func (e *Entity) Migrate(serverID int) {
 	e.S.Migrate(serverID)
+}
+
+func (e *Entity) OnMigrateOut(extra map[string]interface{}) {
+	vlog.Debug("%s.OnMigrateOut: %s", e, extra)
+}
+
+func (e *Entity) OnMigrateIn(extra map[string]interface{}) {
+	vlog.Debug("%s.OnMigrateIn: %s", e, extra)
 }
 
 // Destroy entity
@@ -165,7 +176,15 @@ func (es *entityString) Init() {
 	baseEntity.I.Init()
 }
 
-func (es *entityString) OnMigrated() {
+func (es *entityString) OnMigrateIn(extra map[string]interface{}) {
+	es.entity.OnMigrateIn(extra)
+}
+
+func (es *entityString) OnMigrateOut(extra map[string]interface{}) {
+	es.entity.OnMigrateOut(extra)
+}
+
+func (es *entityString) OnMigratedAway() {
 	delEntity(es.entityID)
 }
 

@@ -16,7 +16,7 @@ type DispatcherRespHandler interface {
 	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
 	HandleDispatcherResp_CloseString(stringID string)
 	HandleDispatcherResp_DelString(stringID string)
-	HandleDispatcherResp_OnMigrateString(name string, stringID string, initArgs []interface{}, data map[string]interface{})
+	HandleDispatcherResp_OnMigrateString(name string, stringID string, initArgs []interface{}, data map[string]interface{}, extraMigrateInfo map[string]interface{})
 	HandleDispatcherResp_MigrateString(stringID string)
 }
 
@@ -95,13 +95,14 @@ func (dc *DispatcherClient) SendStartMigrateStringReq(stringID string) error {
 	return dc.SendMsg(START_MIGRATE_STRING_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendMigrateStringReq(name string, stringID string, serverID int, initArgs []interface{}, data map[string]interface{}) error {
+func (dc *DispatcherClient) SendMigrateStringReq(name string, stringID string, serverID int, initArgs []interface{}, data map[string]interface{}, extraMigrateInfo map[string]interface{}) error {
 	req := MigrateStringReq{
-		Name:     name,
-		StringID: stringID,
-		ServerID: serverID,
-		Args:     initArgs,
-		Data:     data,
+		Name:             name,
+		StringID:         stringID,
+		ServerID:         serverID,
+		Args:             initArgs,
+		Data:             data,
+		ExtraMigrateInfo: extraMigrateInfo,
 	}
 
 	return dc.SendMsg(MIGRATE_STRING_REQ, &req)
@@ -127,15 +128,15 @@ func (dc *DispatcherClient) HandleMsg(msg *Message, pktSize uint32, msgtype MsgT
 		err = dc.handleStartMigrateStringReq(payload)
 	} else if msgtype == MIGRATE_STRING_REQ {
 		// migrate string to this server
-		err = dc.handleMigrateStringResp(payload)
+		err = dc.handleMigrateStringReq(payload)
 	} else if msgtype == CREATE_STRING_REQ {
 		// create real string instance
 		err = dc.handleCreateStringReq(payload)
 	} else if msgtype == DECLARE_SERVICE_REQ {
 		// declare service
-		err = dc.handleDeclareServiceResp(payload)
+		err = dc.handleDeclareServiceReq(payload)
 	} else if msgtype == STRING_DEL_REQ {
-		err = dc.handleStringDelResp(payload)
+		err = dc.handleStringDelReq(payload)
 	} else if msgtype == LOAD_STRING_REQ {
 		err = dc.handleLoadStringReq(payload)
 	} else if msgtype == REGISTER_VACUUM_SERVER_RESP {
@@ -201,7 +202,7 @@ func (dc *DispatcherClient) handleCreateStringReq(payload []byte) error {
 	return nil
 }
 
-func (dc *DispatcherClient) handleDeclareServiceResp(payload []byte) error {
+func (dc *DispatcherClient) handleDeclareServiceReq(payload []byte) error {
 	var req DeclareServiceReq
 	err := MSG_PACKER.UnpackMsg(payload, &req)
 	if err != nil {
@@ -212,7 +213,7 @@ func (dc *DispatcherClient) handleDeclareServiceResp(payload []byte) error {
 	return nil
 }
 
-func (dc *DispatcherClient) handleStringDelResp(payload []byte) error {
+func (dc *DispatcherClient) handleStringDelReq(payload []byte) error {
 	var req StringDelReq
 	if err := MSG_PACKER.UnpackMsg(payload, &req); err != nil {
 		return err
@@ -243,12 +244,12 @@ func (dc *DispatcherClient) handleStartMigrateStringReq(payload []byte) error {
 	return nil
 }
 
-func (dc *DispatcherClient) handleMigrateStringResp(payload []byte) error {
+func (dc *DispatcherClient) handleMigrateStringReq(payload []byte) error {
 	var req MigrateStringReq
 	if err := MSG_PACKER.UnpackMsg(payload, &req); err != nil {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_OnMigrateString(req.Name, req.StringID, req.Args, req.Data)
+	dispatcherRespHandler.HandleDispatcherResp_OnMigrateString(req.Name, req.StringID, req.Args, req.Data, req.ExtraMigrateInfo)
 	return nil
 }

@@ -39,15 +39,21 @@ func LoadString(name string, stringID string) {
 
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string, args []interface{}) {
-	createString(name, stringID, args, false, nil)
+	createString(name, stringID, args, CREATE_NEW, nil, nil)
 }
 
 func OnLoadString(name string, stringID string) {
 	vlog.Debug("OnLoadString: name=%s, stringID=%s", name, stringID)
-	createString(name, stringID, []interface{}{}, true, nil)
+	createString(name, stringID, []interface{}{}, CREATE_LOAD, nil, nil)
 }
 
-func createString(name string, stringID string, args []interface{}, loadFromStorage bool, migrateData map[string]interface{}) {
+const ( // different ways of create string
+	CREATE_NEW     = iota + 1
+	CREATE_LOAD    = iota + 1
+	CREATE_MIGRATE = iota + 1
+)
+
+func createString(name string, stringID string, args []interface{}, createWay int, migrateData map[string]interface{}, extraMigrateInfo map[string]interface{}) {
 	stringType := getRegisteredStringType(name)
 	//if stringType {
 	//	vlog.Panicf("OnCreateString: String type %s is unknown", name)
@@ -60,16 +66,17 @@ func createString(name string, stringID string, args []interface{}, loadFromStor
 	putString(s)
 	vlog.Debug("OnCreateString %s: %s, args=%v", name, s, args)
 
-	go stringRoutine(s, loadFromStorage, migrateData)
+	go stringRoutine(s, createWay, migrateData, extraMigrateInfo)
 }
-func stringRoutine(s *String, loadFromStorage bool, migrateData map[string]interface{}) {
+func stringRoutine(s *String, createWay int, migrateData map[string]interface{}, extraMigrateInfo map[string]interface{}) {
+	vlog.Debug("stringRoutine %v %v %v %v", migrateData, extraMigrateInfo, migrateData == nil, extraMigrateInfo == nil)
 	var is IString = s.I
 
 	defer recoverFromStringRoutineError(s)
 
 	is.Init()
 
-	if loadFromStorage { // loading string from storage ...
+	if createWay == CREATE_LOAD { // loading string from storage ...
 		data, err := stringStorage.Read(s.Name, s.ID)
 		if err != nil {
 			// load string failed..
@@ -78,8 +85,9 @@ func stringRoutine(s *String, loadFromStorage bool, migrateData map[string]inter
 		if data != nil {
 			is.LoadPersistentData(data.(map[string]interface{}))
 		}
-	} else if migrateData != nil { // migrated from from other server ...
+	} else if createWay == CREATE_MIGRATE { // migrated from from other server ...
 		is.LoadPersistentData(migrateData)
+		is.OnMigrateIn(extraMigrateInfo)
 	} else { // creating new string
 		if is.IsPersistent() { // save persistent string right after it's created && inited
 			is.Save()
@@ -147,10 +155,12 @@ migrating_read_loop:
 	s.inputQueue.Close()
 
 	// get migrate data from string
+	extraMigrateInfo = map[string]interface{}{}
+	is.OnMigrateOut(extraMigrateInfo)
 	data := is.GetPersistentData()
 
-	dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, s.initArgs, data)
-	s.I.OnMigrated()
+	dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, s.initArgs, data, extraMigrateInfo)
+	is.OnMigratedAway()
 	return
 }
 
