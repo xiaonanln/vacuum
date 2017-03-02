@@ -248,6 +248,9 @@ func (entity *GSEntity) NotifyLoseClient(gateID GSGateID, clientID GSClientID) {
 
 func (entity *GSEntity) OnMigrateOut(extra map[string]interface{}) {
 	extra["C"] = entity.client.getClientProxyData()
+	kindExtra := map[string]interface{}{}
+	entity.Kind.OnMigrateOut(kindExtra)
+	extra["K"] = kindExtra
 }
 
 func (entity *GSEntity) OnMigrateIn(extra map[string]interface{}) {
@@ -257,6 +260,9 @@ func (entity *GSEntity) OnMigrateIn(extra map[string]interface{}) {
 		client.setClientProxyData(clientProxyData)
 		entity.client = client // just store client, do not call OnGetClient
 	}
+
+	kindExtra := extra["K"]
+	entity.Kind.OnMigrateIn(kindExtra)
 }
 
 func CreateGSEntityAnywhere(kindName string) GSEntityID {
