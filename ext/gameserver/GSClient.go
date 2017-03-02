@@ -97,12 +97,19 @@ func (client *GSClient) handleClientOwnClientRPC(payload []byte) error {
 	return nil
 }
 
-func (client *GSClient) clientCreateEntity(kindName string, entityID GSEntityID) error {
+func (client *GSClient) letClientCreateEntity(kindName string, entityID GSEntityID) error {
 	msg := ClientCreateEntityMessage{
 		EntityID:   entityID,
 		EntityKind: kindName,
 	}
-	return client.SendMsgEx(CLIENT_CREATE_ENTITY_MESSAGE, &msg, CLIENT_MSG_PACKER)
+	return client.sendMsgToClient(CLIENT_CREATE_ENTITY_MESSAGE, &msg)
+}
+
+func (client *GSClient) letClientDestroyEntity(entityID GSEntityID) error {
+	msg := ClientDestroyEntityMessage{
+		EntityID: entityID,
+	}
+	return client.sendMsgToClient(CLIENT_DESTROY_ENTITY_MESSAGE, &msg)
 }
 
 func (client *GSClient) clientCallEntityMethod(entityID GSEntityID, methodName string, args []interface{}) error {
@@ -111,7 +118,11 @@ func (client *GSClient) clientCallEntityMethod(entityID GSEntityID, methodName s
 		Method:    methodName,
 		Arguments: args,
 	}
-	return client.SendMsgEx(SERVER_TO_CLIENT_RPC, &msg, CLIENT_MSG_PACKER)
+	return client.sendMsgToClient(SERVER_TO_CLIENT_RPC, &msg)
+}
+
+func (client *GSClient) sendMsgToClient(mt proto.MsgType_t, msg interface{}) error {
+	return client.SendMsgEx(mt, msg, CLIENT_MSG_PACKER)
 }
 
 func (client *GSClient) notifyChangeOwner(ownerID GSEntityID, otherID GSEntityID) {

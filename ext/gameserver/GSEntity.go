@@ -192,7 +192,7 @@ func (entity *GSEntity) GiveClientTo(otherID GSEntityID) {
 
 	entity.client = nil
 	// Tell the client to change owner
-	client.notifyChangeOwner(entity.ID, otherID)
+	client.notifyChangeOwner(entity.ID, otherID, "Avatar")
 
 	entity.Kind.OnLoseClient()
 }

@@ -68,7 +68,7 @@ func (gate *GSGate) ServeTCPConnection(conn net.Conn) {
 	// set entity client
 
 	client.setOwner(entityID)
-	client.clientCreateEntity(bootEntityKindName, entityID) // create entity on client side
+	client.letClientCreateEntity(bootEntityKindName, entityID) // create entity on client side
 	entityID.notifyGetClient(gate.ID, client.ClientID)
 
 	go client.serve()
@@ -87,7 +87,7 @@ func (gate *GSGate) CallClient(clientID GSClientID, entityID GSEntityID, methodN
 }
 
 // notify the client to change owner
-func (gate *GSGate) NotifyClientChangeOwner(clientID GSClientID, ownerID GSEntityID, otherID GSEntityID) {
+func (gate *GSGate) NotifyClientChangeOwner(clientID GSClientID, ownerID GSEntityID, otherID GSEntityID, otherKindName string) {
 	gate.clientsLock.RLock()
 	client, ok := gate.clients[clientID]
 	gate.clientsLock.RUnlock()
@@ -96,7 +96,10 @@ func (gate *GSGate) NotifyClientChangeOwner(clientID GSClientID, ownerID GSEntit
 		return
 	}
 
+	// todo: optimize client operations
 	client.notifyChangeOwner(ownerID, otherID)
+	client.letClientDestroyEntity(ownerID)
+	client.letClientCreateEntity(otherKindName, otherID)
 	// tell other entity to get the client
 	otherID.notifyGetClient(gate.ID, client.ClientID)
 }

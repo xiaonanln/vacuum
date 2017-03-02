@@ -14,8 +14,13 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
 * TODO:
 * Persistent Entity and Not-Persistent Entity, HOW TO?
 * MMORPG Game Server based on Entity
-    * Client Gate
-        * Compression
+    * The uniform login process
+        * Create Account for each client
+        * Create Avatar or Load Avatar if exists
+        * Transfer client from Account to Avatar
+        * Create Avatar on client-side
+
+    * Compression
     * Entity Attributes
     * AOI
     * Space
