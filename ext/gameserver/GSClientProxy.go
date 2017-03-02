@@ -3,6 +3,7 @@ package gameserver
 import (
 	"fmt"
 
+	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum/ext/entity"
 )
 
@@ -30,4 +31,18 @@ func (cp *GSClientProxy) callClient(entityID GSEntityID, methodName string, args
 // notify the client to change owner
 func (cp *GSClientProxy) notifyChangeOwner(ownerID GSEntityID, otherID GSEntityID) {
 	entity.EntityID(cp.GateID).Call("NotifyClientChangeOwner", cp.ClientID, ownerID, otherID)
+}
+
+func (cp *GSClientProxy) getClientProxyData() interface{} {
+	if cp != nil {
+		return []interface{}{cp.GateID, cp.ClientID}
+	} else {
+		return nil
+	}
+}
+
+func (cp *GSClientProxy) setClientProxyData(data interface{}) {
+	datalist := data.([]interface{})
+	cp.GateID = GSGateID(typeconv.String(datalist[0]))
+	cp.ClientID = GSClientID(typeconv.String(datalist[1]))
 }
