@@ -262,7 +262,7 @@ func (entity *GSEntity) OnMigrateIn(extra map[string]interface{}) {
 	}
 
 	kindExtra := extra["K"]
-	entity.Kind.OnMigrateIn(kindExtra)
+	entity.Kind.OnMigrateIn(typeconv.MapStringAnything(kindExtra))
 }
 
 func CreateGSEntityAnywhere(kindName string) GSEntityID {

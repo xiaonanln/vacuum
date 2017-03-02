@@ -18,6 +18,9 @@ type IGSEntityKind interface {
 	// Client notifications
 	OnGetClient()
 	OnLoseClient()
+
+	OnMigrateOut(extra map[string]interface{})
+	OnMigrateIn(extra map[string]interface{})
 }
 
 type GSEntityKind struct {
@@ -44,6 +47,14 @@ func (kind *GSEntityKind) OnGetClient() {
 
 func (kind *GSEntityKind) OnLoseClient() {
 	vlog.Debug("%s.OnLoseClient ...", kind)
+}
+
+func (kind *GSEntityKind) OnMigrateOut(extra map[string]interface{}) {
+
+}
+
+func (kind *GSEntityKind) OnMigrateIn(extra map[string]interface{}) {
+
 }
 
 func RegisterGSEntityKind(kindName string, entityKindPtr IGSEntityKind) {
