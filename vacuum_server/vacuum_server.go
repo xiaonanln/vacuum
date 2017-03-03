@@ -82,8 +82,8 @@ func (rh DispatcherRespHandler) HandleDispatcherResp_DelString(stringID string) 
 	vacuum.OnDelString(stringID)
 }
 
-func (rh DispatcherRespHandler) HandleDispatcherResp_LoadString(name string, stringID string) {
-	vacuum.OnLoadString(name, stringID)
+func (rh DispatcherRespHandler) HandleDispatcherResp_LoadString(name string, stringID string, args []interface{}) {
+	vacuum.OnLoadString(name, stringID, args)
 }
 
 func (rh DispatcherRespHandler) HandleDispatcherResp_MigrateString(stringID string) {

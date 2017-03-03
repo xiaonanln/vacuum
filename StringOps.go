@@ -27,14 +27,8 @@ func CreateStringLocally(name string, args ...interface{}) string {
 	return stringID
 }
 
-func LoadString(name string, stringID string) {
-	// load string from storage
-	dispatcher_client.SendLoadStringReq(name, stringID)
-	//data, err := stringStorage.Read(stringID)
-	//if err != nil {
-	//	// load failed
-	//	panic(err)
-	//}
+func LoadString(name string, stringID string, args ...interface{}) {
+	dispatcher_client.SendLoadStringReq(name, stringID, args)
 }
 
 // OnCreateString: called when dispatcher sends create string resp
@@ -42,9 +36,9 @@ func OnCreateString(name string, stringID string, args []interface{}) {
 	createString(name, stringID, args, CREATE_NEW, nil, nil)
 }
 
-func OnLoadString(name string, stringID string) {
-	vlog.Debug("OnLoadString: name=%s, stringID=%s", name, stringID)
-	createString(name, stringID, []interface{}{}, CREATE_LOAD, nil, nil)
+func OnLoadString(name string, stringID string, args []interface{}) {
+	vlog.Debug("OnLoadString: name=%s, stringID=%s, args=%v", name, stringID, args)
+	createString(name, stringID, args, CREATE_LOAD, nil, nil)
 }
 
 const ( // different ways of create string
@@ -176,6 +170,10 @@ func OnDeclareService(stringID string, serviceName string) {
 func OnSendStringMessage(stringID string, msg common.StringMessage) {
 	s := getString(stringID)
 	vlog.Debug("vacuum: OnSendStringMessage: %s: %s => %v", stringID, s, msg)
+	if s == nil {
+		vlog.TraceError("String %s not found while receiving message: %v", stringID, msg)
+		return
+	}
 	s.inputQueue.Push(msg)
 }
 

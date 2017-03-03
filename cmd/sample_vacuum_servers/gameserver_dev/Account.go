@@ -35,16 +35,15 @@ func (a *Account) Login_OwnClient(username string, password string) {
 	avatarID = GSEntityID(kvdb.Get("AvatarID-"+username, ""))
 	if avatarID == "" {
 		// new account
-		avatarID = GetNilSpace().CreateEntity("Avatar", Vec3{})
+		avatarID = CreateGSEntityLocally("Avatar")
 		vlog.Debug("%s.Login: create Avatar %s", a, avatarID)
 		kvdb.Set("AvatarID-"+username, string(avatarID))
 	} else {
 		vlog.Debug("%s.Login: loading avatar %s ...", a, avatarID)
-
+		LoadGSEntity("Avatar", avatarID)
 	}
 
 	// create the new Avatar entity
 
 	a.Entity.GiveClientTo(avatarID)
-
 }

@@ -124,24 +124,29 @@ func registerEntityString() {
 	vacuum.RegisterString(ENTITY_STRING_NAME, &entityString{})
 }
 
-func CreateEntity(typeName string, args ...interface{}) EntityID {
+func prependTypeNameToArgs(typeName string, args []interface{}) []interface{} {
 	argscount := len(args)
-	stringArgs := make([]interface{}, argscount+1, argscount+1)
-	stringArgs[0] = typeName
-	copy(stringArgs[1:], args)
+	newArgs := make([]interface{}, argscount+1, argscount+1)
+	newArgs[0] = typeName
+	copy(newArgs[1:], args)
+	return newArgs
+}
 
+func CreateEntity(typeName string, args ...interface{}) EntityID {
+	stringArgs := prependTypeNameToArgs(typeName, args)
 	stringID := vacuum.CreateString(ENTITY_STRING_NAME, stringArgs...)
 	return EntityID(stringID)
 }
 
 func CreateEntityLocally(typeName string, args ...interface{}) EntityID {
-	argscount := len(args)
-	stringArgs := make([]interface{}, argscount+1, argscount+1)
-	stringArgs[0] = typeName
-	copy(stringArgs[1:], args)
-
+	stringArgs := prependTypeNameToArgs(typeName, args)
 	stringID := vacuum.CreateStringLocally(ENTITY_STRING_NAME, stringArgs...)
 	return EntityID(stringID)
+}
+
+func LoadEntity(typeName string, entityID EntityID, args ...interface{}) {
+	stringArgs := prependTypeNameToArgs(typeName, args)
+	vacuum.LoadString(ENTITY_STRING_NAME, string(entityID), stringArgs...)
 }
 
 type entityString struct {

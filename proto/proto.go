@@ -58,8 +58,9 @@ type CreateStringReq struct {
 }
 
 type LoadStringReq struct {
-	Name     string `msgpack:"N"`
-	StringID string `msgpack:"ID"`
+	Name     string        `msgpack:"N"`
+	StringID string        `msgpack:"ID"`
+	Args     []interface{} `msgpack:"A"`
 }
 
 type CreateStringLocallyReq struct {

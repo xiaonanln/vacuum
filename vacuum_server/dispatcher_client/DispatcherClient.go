@@ -11,7 +11,7 @@ import (
 type DispatcherRespHandler interface {
 	HandleDispatcherResp_RegisterVacuumServer(serverIDs []int)
 	HandleDispatcherResp_CreateString(name string, stringID string, args []interface{})
-	HandleDispatcherResp_LoadString(name string, stringID string)
+	HandleDispatcherResp_LoadString(name string, stringID string, args []interface{})
 	HandleDispatcherResp_DeclareService(stringID string, serviceName string)
 	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
 	HandleDispatcherResp_CloseString(stringID string)
@@ -57,10 +57,11 @@ func (dc *DispatcherClient) SendCreateStringReq(name string, stringID string, ar
 	return dc.SendMsg(CREATE_STRING_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendLoadStringReq(name string, stringID string) error {
+func (dc *DispatcherClient) SendLoadStringReq(name string, stringID string, args []interface{}) error {
 	req := LoadStringReq{
 		Name:     name,
 		StringID: stringID,
+		Args:     args,
 	}
 	return dc.SendMsg(LOAD_STRING_REQ, &req)
 }
@@ -229,7 +230,7 @@ func (dc *DispatcherClient) handleLoadStringReq(payload []byte) error {
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_LoadString(req.Name, req.StringID)
+	dispatcherRespHandler.HandleDispatcherResp_LoadString(req.Name, req.StringID, req.Args)
 	return nil
 }
 

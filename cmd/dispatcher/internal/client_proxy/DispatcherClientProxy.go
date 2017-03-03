@@ -207,12 +207,18 @@ func (cp *ClientProxy) handleLoadStringReq(msg *Message, pktSize uint32, data []
 		return err
 	}
 
-	chooseServer := getRandomClientProxy()
-	stringID := req.StringID
-	setStringLocation(stringID, chooseServer.ServerID)
-
-	vlog.Debug("%s.handleLoadStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
-	return chooseServer.SendAll(msg[:pktSize])
+	ctrl := getStringCtrl(req.StringID)
+	if ctrl.ServerID == 0 {
+		// New string, create it
+		chooseServer := getRandomClientProxy()
+		stringID := req.StringID
+		setStringLocation(stringID, chooseServer.ServerID)
+		vlog.Debug("%s.handleLoadStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
+		return chooseServer.SendAll(msg[:pktSize])
+	} else {
+		// String already exists, ignore ...
+		return nil
+	}
 }
 
 func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) error {

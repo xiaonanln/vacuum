@@ -279,3 +279,7 @@ func createGSEntity(kindName string, spaceID GSSpaceID, pos Vec3) GSEntityID {
 	entityID := entity.CreateEntityLocally("GSEntity", kindName, spaceID, pos.X, pos.Y, pos.Z)
 	return GSEntityID(entityID)
 }
+
+func LoadGSEntity(kindName string, entityID GSEntityID) {
+	entity.LoadEntity("GSEntity", entity.EntityID(entityID), kindName, "", 0, 0, 0)
+}
