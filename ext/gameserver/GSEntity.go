@@ -265,7 +265,12 @@ func (entity *GSEntity) OnMigrateIn(extra map[string]interface{}) {
 	entity.Kind.OnMigrateIn(typeconv.MapStringAnything(kindExtra))
 }
 
-func CreateGSEntityAnywhere(kindName string) GSEntityID {
+func CreateGSEntity(kindName string) GSEntityID {
+	entityID := entity.CreateEntity("GSEntity", kindName, "", 0, 0, 0)
+	return GSEntityID(entityID)
+}
+
+func CreateGSEntityLocally(kindName string) GSEntityID {
 	entityID := entity.CreateEntityLocally("GSEntity", kindName, "", 0, 0, 0)
 	return GSEntityID(entityID)
 }

@@ -187,20 +187,6 @@ func (cp *ClientProxy) handleCreateStringReq(msg *Message, pktSize uint32, data 
 	return chooseServer.SendAll(msg[:pktSize])
 }
 
-func (cp *ClientProxy) handleLoadStringReq(msg *Message, pktSize uint32, data []byte) error {
-	var req LoadStringReq
-	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
-		return err
-	}
-
-	chooseServer := getRandomClientProxy()
-	stringID := req.StringID
-	setStringLocation(stringID, chooseServer.ServerID)
-
-	vlog.Debug("%s.handleLoadStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
-	return chooseServer.SendAll(msg[:pktSize])
-}
-
 func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) error {
 	var req CreateStringLocallyReq
 	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
@@ -213,6 +199,20 @@ func (cp *ClientProxy) handleCreateStringLocallyReq(data []byte) error {
 	setStringLocation(stringID, cp.ServerID)
 	vlog.Debug("%s.handleCreateStringLocallyReq %T %v", cp, req, req)
 	return nil
+}
+
+func (cp *ClientProxy) handleLoadStringReq(msg *Message, pktSize uint32, data []byte) error {
+	var req LoadStringReq
+	if err := MSG_PACKER.UnpackMsg(data, &req); err != nil {
+		return err
+	}
+
+	chooseServer := getRandomClientProxy()
+	stringID := req.StringID
+	setStringLocation(stringID, chooseServer.ServerID)
+
+	vlog.Debug("%s.handleLoadStringReq %T %v, choose random server: %s", cp, req, req, chooseServer)
+	return chooseServer.SendAll(msg[:pktSize])
 }
 
 func (cp *ClientProxy) handleRegisterVacuumServerReq(data []byte) error {

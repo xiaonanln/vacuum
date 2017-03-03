@@ -29,11 +29,22 @@ func (a *Account) Login_OwnClient(username string, password string) {
 	}
 
 	a.Entity.CallClient("OnLogin", true) // tell client that login ok
+
+	// get avatar id from kvdb
+	var avatarID GSEntityID
+	avatarID = GSEntityID(kvdb.Get("AvatarID-"+username, ""))
+	if avatarID == "" {
+		// new account
+		avatarID = GetNilSpace().CreateEntity("Avatar", Vec3{})
+		vlog.Debug("%s.Login: create Avatar %s", a, avatarID)
+		kvdb.Set("AvatarID-"+username, string(avatarID))
+	} else {
+		vlog.Debug("%s.Login: loading avatar %s ...", a, avatarID)
+
+	}
+
 	// create the new Avatar entity
 
-	avatarID := GetNilSpace().CreateEntity("Avatar", Vec3{})
-
-	vlog.Debug("%s.Login: create Avatar %s", a, avatarID)
 	a.Entity.GiveClientTo(avatarID)
 
 }
