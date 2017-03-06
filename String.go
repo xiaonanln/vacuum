@@ -46,8 +46,9 @@ type String struct {
 
 	_flags uint64
 
-	migratingToServerID int
-	migrateNotify       chan int
+	migratingToServerID      int
+	migratingTowardsStringID string
+	migrateNotify            chan int
 }
 
 func setupString(s *String, stringID string, name string, initArgs []interface{}) {

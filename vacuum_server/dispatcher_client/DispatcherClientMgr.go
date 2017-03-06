@@ -116,8 +116,8 @@ func SendStartMigrateStringReq(stringID string) error {
 	return getDispatcherClientForSend().SendStartMigrateStringReq(stringID)
 }
 
-func SendMigrateStringReq(name string, stringID string, serverID int, initArgs []interface{}, data map[string]interface{}, extraMigrateInfo map[string]interface{}) error {
-	return getDispatcherClientForSend().SendMigrateStringReq(name, stringID, serverID, initArgs, data, extraMigrateInfo)
+func SendMigrateStringReq(name string, stringID string, serverID int, towardsID string, initArgs []interface{}, data map[string]interface{}, extraMigrateInfo map[string]interface{}) error {
+	return getDispatcherClientForSend().SendMigrateStringReq(name, stringID, serverID, towardsID, initArgs, data, extraMigrateInfo)
 }
 
 func getDispatcherClientForSend() *DispatcherClient {

@@ -96,11 +96,12 @@ func (dc *DispatcherClient) SendStartMigrateStringReq(stringID string) error {
 	return dc.SendMsg(START_MIGRATE_STRING_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendMigrateStringReq(name string, stringID string, serverID int, initArgs []interface{}, data map[string]interface{}, extraMigrateInfo map[string]interface{}) error {
+func (dc *DispatcherClient) SendMigrateStringReq(name string, stringID string, serverID int, towardsID string, initArgs []interface{}, data map[string]interface{}, extraMigrateInfo map[string]interface{}) error {
 	req := MigrateStringReq{
 		Name:             name,
 		StringID:         stringID,
 		ServerID:         serverID,
+		TowardsID:        towardsID,
 		Args:             initArgs,
 		Data:             data,
 		ExtraMigrateInfo: extraMigrateInfo,

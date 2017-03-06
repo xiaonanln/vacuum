@@ -143,13 +143,23 @@ func (cp *ClientProxy) handleMigrateStringReq(msg *Message, pktSize uint32, data
 	vlog.Debug("%s.handleMigrateStringReq %T %v", cp, req, req)
 
 	// the string is migrating to specified server
-	chooseServer := getClientProxy(req.ServerID)
+	var chooseServer *ClientProxy
+	if req.TowardsID != "" {
+		towardsCtrl := getStringCtrl(req.TowardsID)
+		chooseServer = getClientProxy(towardsCtrl.ServerID)
+	} else {
+		chooseServer = getClientProxy(req.ServerID)
+	}
+
+	if chooseServer == nil {
+		return fmt.Errorf("target server not found")
+	}
 
 	ctrl := getStringCtrl(req.StringID)
 	ctrl.Lock()
 	defer ctrl.Unlock()
 
-	ctrl.ServerID = req.ServerID
+	ctrl.ServerID = chooseServer.ServerID
 	ctrl.Migrating = false
 
 	var cacheMessages []_CachedMessage

@@ -38,12 +38,16 @@ func (a *Account) Login_OwnClient(username string, password string) {
 		avatarID = CreateGSEntityLocally("Avatar")
 		vlog.Debug("%s.Login: create Avatar %s", a, avatarID)
 		kvdb.Set("AvatarID-"+username, string(avatarID))
-	} else {
-		vlog.Debug("%s.Login: loading avatar %s ...", a, avatarID)
-		LoadGSEntity("Avatar", avatarID)
+		a.onAvatarReadyLocally(avatarID)
+		return
 	}
 
-	// create the new Avatar entity
+	vlog.Debug("%s.Login: loading avatar %s ...", a, avatarID)
+	LoadGSEntity("Avatar", avatarID)
+	a.Entity.MigrateTowards(avatarID)
 
+}
+func (a *Account) onAvatarReadyLocally(avatarID GSEntityID) {
 	a.Entity.GiveClientTo(avatarID)
+	a.Entity.Destroy()
 }

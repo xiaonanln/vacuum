@@ -12,6 +12,15 @@ type Migratable interface {
 
 // Migrate to other server
 func (s *String) Migrate(serverID int) {
+	s.startMigrate(serverID, "")
+}
+
+func (s *String) MigrateTowards(otherID string) {
+	vlog.Debug("MigrateTowards %s", otherID)
+	s.startMigrate(0, otherID)
+}
+
+func (s *String) startMigrate(serverID int, otherID string) {
 	// remove string from this vacuum server
 	// send the start-migration notification to dispatcher
 	// migrate the data of string to vacuum server
@@ -26,11 +35,14 @@ func (s *String) Migrate(serverID int) {
 	}
 
 	// wait the target server ready before migrating ...
-	WaitServerReady(serverID)
+	if serverID > 0 {
+		WaitServerReady(serverID)
+	}
 
 	vlog.Debug("%s.Migrate: start migrating ...", s)
 	// mark as migrating
 	s.migratingToServerID = serverID
+	s.migratingTowardsStringID = otherID
 	s.migrateNotify = make(chan int, 1)
 	s.SetFlag(SS_MIGRATING)
 	// send the start-migrate req

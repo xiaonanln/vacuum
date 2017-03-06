@@ -85,6 +85,7 @@ type MigrateStringReq struct {
 	Name             string                 `msgpack:"N"`
 	StringID         string                 `msgpack:"ID"`
 	ServerID         int                    `msgpack:"SID"`
+	TowardsID        string                 `msgpack:"TID"`
 	Args             []interface{}          `msgpack:"A"`
 	Data             map[string]interface{} `msgpack:"D"`
 	ExtraMigrateInfo map[string]interface{} `msgpack:"EMI"`

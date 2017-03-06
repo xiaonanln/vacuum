@@ -26,6 +26,15 @@ func (eid GSEntityID) notifyLoseClient(gateID GSGateID, clientID GSClientID) {
 	entity.EntityID(eid).Call("NotifyLoseClient", gateID, clientID)
 }
 
+func (eid GSEntityID) GetLocalGSEntity() *GSEntity {
+	entity := entity.EntityID(eid).GetLocalEntity()
+	if entity != nil {
+		return entity.(*GSEntity)
+	} else {
+		return nil
+	}
+}
+
 type GSEntity struct {
 	entity.Entity
 	aoi      AOI
@@ -263,6 +272,11 @@ func (entity *GSEntity) OnMigrateIn(extra map[string]interface{}) {
 
 	kindExtra := extra["K"]
 	entity.Kind.OnMigrateIn(typeconv.MapStringAnything(kindExtra))
+}
+
+func (e *GSEntity) MigrateTowards(otherID GSEntityID) {
+	vlog.Debug("MigrateTowards %s", otherID)
+	e.Entity.MigrateTowards(entity.EntityID(otherID))
 }
 
 func CreateGSEntity(kindName string) GSEntityID {

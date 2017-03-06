@@ -121,7 +121,7 @@ finialize_string:
 migrating_wait_notify:
 	vlog.Debug("%s: Waiting for StartMigrateStringResp from dispatcher ...", s)
 	<-s.migrateNotify
-	vlog.Debug("%s: StartMigrateStringResp OK")
+	vlog.Debug("%s: StartMigrateStringResp OK", s)
 	// process all pending messages
 migrating_read_loop:
 	for {
@@ -153,7 +153,7 @@ migrating_read_loop:
 	is.OnMigrateOut(extraMigrateInfo)
 	data := is.GetPersistentData()
 
-	dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, s.initArgs, data, extraMigrateInfo)
+	dispatcher_client.SendMigrateStringReq(s.Name, s.ID, s.migratingToServerID, s.migratingTowardsStringID, s.initArgs, data, extraMigrateInfo)
 	is.OnMigratedAway()
 	return
 }

@@ -70,6 +70,11 @@ func (e *Entity) Migrate(serverID int) {
 	e.S.Migrate(serverID)
 }
 
+func (e *Entity) MigrateTowards(otherID EntityID) {
+	vlog.Debug("MigrateTowards %s", otherID)
+	e.S.MigrateTowards(string(otherID))
+}
+
 func (e *Entity) OnMigrateOut(extra map[string]interface{}) {
 	vlog.Debug("%s.OnMigrateOut: %s", e, extra)
 }
