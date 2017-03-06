@@ -14,12 +14,12 @@ type Avatar struct {
 
 // called when client logined
 func (a *Avatar) OnGetClient() {
-	vlog.Debug("%s GOT CLIENT !!!!!!!!!!!!!!!!", a)
+	vlog.Debug("%s GOT CLIENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", a)
 
 	space := spaceManager.GetSpace(1)
 	a.Entity.EnterSpace(space)
 	timer.AddCallback(time.Second*5, func() {
-		a.Destroy()
+		a.Entity.Destroy()
 	})
 	//a.Entity.Migrate(vacuum_server.ServerID())
 }

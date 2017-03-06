@@ -183,7 +183,7 @@ func (entity *GSEntity) AOIEntities() GSEntitySet {
 //}
 
 func (entity *GSEntity) Destroy() {
-	entity.Kind.Destroy() // destroy kind before destroy entity
+	entity.Kind.OnDestroy() // destroy kind before destroy entity
 	entity.Entity.Destroy()
 }
 

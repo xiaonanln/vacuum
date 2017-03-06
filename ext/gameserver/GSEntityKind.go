@@ -14,12 +14,13 @@ var (
 
 type IGSEntityKind interface {
 	Init()
-	Destroy()
+	OnDestroy()
 	// Client notifications
 	OnGetClient()
 	OnLoseClient()
 
 	OnEnterSpace()
+	OnLeaveSpace()
 
 	OnMigrateOut(extra map[string]interface{})
 	OnMigrateIn(extra map[string]interface{})
@@ -39,7 +40,7 @@ func (kind *GSEntityKind) Init() {
 	vlog.Debug("%s.Init() ...", kind)
 }
 
-func (kind *GSEntityKind) Destroy() {
+func (kind *GSEntityKind) OnDestroy() {
 	vlog.Debug("%s.Destroy() ...", kind)
 }
 
@@ -53,6 +54,10 @@ func (kind *GSEntityKind) OnLoseClient() {
 
 func (kind *GSEntityKind) OnEnterSpace() {
 	vlog.Debug("%s.OnEnterSpace: %s", kind, kind.Entity.space)
+}
+
+func (kind *GSEntityKind) OnLeaveSpace() {
+	vlog.Debug("%s.OnLeaveSpace: %s", kind)
 }
 
 func (kind *GSEntityKind) OnMigrateOut(extra map[string]interface{}) {

@@ -3,6 +3,9 @@ package main
 import (
 	"strconv"
 
+	"time"
+
+	"github.com/xiaonanln/goTimer"
 	"github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/gameserver_dev/kvdb"
 	. "github.com/xiaonanln/vacuum/ext/gameserver"
 	"github.com/xiaonanln/vacuum/vlog"
@@ -18,6 +21,8 @@ func init() {
 
 type Account struct {
 	GSEntityKind
+
+	loginingAvatarID GSEntityID
 }
 
 func (a *Account) Login_OwnClient(username string, password string) {
@@ -38,16 +43,46 @@ func (a *Account) Login_OwnClient(username string, password string) {
 		avatarID = CreateGSEntityLocally("Avatar")
 		vlog.Debug("%s.Login: create Avatar %s", a, avatarID)
 		kvdb.Set("AvatarID-"+username, string(avatarID))
+		a.loginingAvatarID = avatarID
+
 		a.onAvatarReadyLocally(avatarID)
 		return
 	}
 
 	vlog.Debug("%s.Login: loading avatar %s ...", a, avatarID)
 	LoadGSEntity("Avatar", avatarID)
-	a.Entity.MigrateTowards(avatarID)
+	a.loginingAvatarID = avatarID
+
+	timer.AddCallback(time.Second, func() {
+		a.onLoadAvatarComplete()
+	})
 
 }
+
+func (a *Account) onLoadAvatarComplete() {
+	vlog.Debug("%s.onLoadAvatarComplete ..,", a)
+
+	a.Entity.MigrateTowards(a.loginingAvatarID)
+}
+
 func (a *Account) onAvatarReadyLocally(avatarID GSEntityID) {
 	a.Entity.GiveClientTo(avatarID)
 	a.Entity.Destroy()
+}
+
+func (a *Account) OnEnterSpace() {
+	avatarID := a.loginingAvatarID
+	vlog.Debug("%s.OnEnterSpace: login avatar = %s", a, avatarID)
+	if avatarID == "" {
+		return
+	}
+
+	if avatarID.GetLocalGSEntity() == nil {
+		// avatar not found, ...
+		vlog.Warn("%s.OnEnterSpace: avatar %s not found on local server, login failed", a, avatarID)
+		a.Entity.Destroy()
+		return
+	}
+
+	a.onAvatarReadyLocally(avatarID)
 }
