@@ -19,6 +19,8 @@ type IGSEntityKind interface {
 	OnGetClient()
 	OnLoseClient()
 
+	OnEnterSpace()
+
 	OnMigrateOut(extra map[string]interface{})
 	OnMigrateIn(extra map[string]interface{})
 }
@@ -47,6 +49,10 @@ func (kind *GSEntityKind) OnGetClient() {
 
 func (kind *GSEntityKind) OnLoseClient() {
 	vlog.Debug("%s.OnLoseClient ...", kind)
+}
+
+func (kind *GSEntityKind) OnEnterSpace() {
+	vlog.Debug("%s.OnEnterSpace: %s", kind, kind.Entity.space)
 }
 
 func (kind *GSEntityKind) OnMigrateOut(extra map[string]interface{}) {

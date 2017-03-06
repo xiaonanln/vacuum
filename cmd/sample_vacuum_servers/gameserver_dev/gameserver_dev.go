@@ -38,7 +38,6 @@ func (delegate *MySpaceDelegate) onNullSpaceReady(space *GSSpace) {
 }
 
 type MyEntityDelegate struct {
-	EntityDelegate
 }
 
 func (delegate *MyEntityDelegate) OnEnterSpace(entity *GSEntity, space *GSSpace) {
@@ -73,6 +72,5 @@ func main() {
 	RegisterGSEntityKind("Avatar", &Avatar{})
 	RegisterGSEntityKind("Monster", &Monster{})
 	SetSpaceDelegate(&MySpaceDelegate{})
-	SetEntityDelegate(&MyEntityDelegate{})
 	RunServer()
 }

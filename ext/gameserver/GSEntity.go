@@ -89,12 +89,10 @@ func (entity *GSEntity) Init() {
 	entity.space = space
 
 	space.Lock()
-
 	space.onEntityCreated(entity)
-	entityDelegate.OnReady(entity)
-	entityDelegate.OnEnterSpace(entity, space)
-
 	space.Unlock()
+
+	entity.Kind.OnEnterSpace()
 }
 
 func (entity *GSEntity) EnterSpace(spaceID GSSpaceID) {
@@ -126,12 +124,10 @@ func (entity *GSEntity) checkAOI(other *GSEntity) {
 
 func (entity *GSEntity) onEnterAOI(other *GSEntity) {
 	entity.aoi.Add(other)
-	entityDelegate.OnEnterAOI(entity, other)
 }
 
 func (entity *GSEntity) onLeaveAOI(other *GSEntity) {
 	entity.aoi.Remove(other)
-	entityDelegate.OnLeaveAOI(entity, other)
 }
 
 func (entity *GSEntity) DistanceTo(other *GSEntity) Len_t {
