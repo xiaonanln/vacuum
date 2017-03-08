@@ -27,7 +27,7 @@ type IGSEntityKind interface {
 }
 
 type GSEntityKind struct {
-	Entity   *GSEntity
+	*GSEntity
 	KindName string
 	EntityID GSEntityID
 }
@@ -45,7 +45,7 @@ func (kind *GSEntityKind) OnDestroy() {
 }
 
 func (kind *GSEntityKind) OnGetClient() {
-	vlog.Debug("%s.OnGetClient: %s", kind, kind.Entity.client)
+	vlog.Debug("%s.OnGetClient: %s", kind, kind.GSEntity.client)
 }
 
 func (kind *GSEntityKind) OnLoseClient() {
@@ -53,7 +53,7 @@ func (kind *GSEntityKind) OnLoseClient() {
 }
 
 func (kind *GSEntityKind) OnEnterSpace() {
-	vlog.Debug("%s.OnEnterSpace: %s", kind, kind.Entity.space)
+	vlog.Debug("%s.OnEnterSpace: %s", kind, kind.GSEntity.space)
 }
 
 func (kind *GSEntityKind) OnLeaveSpace() {
@@ -66,6 +66,11 @@ func (kind *GSEntityKind) OnMigrateOut(extra map[string]interface{}) {
 
 func (kind *GSEntityKind) OnMigrateIn(extra map[string]interface{}) {
 
+}
+
+// SHORTCUTS TO ENTITY FUNCTIONALITIES
+func (kind *GSEntityKind) Space() *GSSpace {
+	return kind.GSEntity.space
 }
 
 func RegisterGSEntityKind(kindName string, entityKindPtr IGSEntityKind) {
@@ -96,7 +101,7 @@ func createGSEntityKind(entity *GSEntity, kindName string) reflect.Value {
 	entityKindPtrVal := reflect.New(kindType) // create entity and get its pointer
 
 	gsEntityKind := reflect.Indirect(entityKindPtrVal).FieldByName("GSEntityKind").Addr().Interface().(*GSEntityKind)
-	gsEntityKind.Entity = entity
+	gsEntityKind.GSEntity = entity
 	gsEntityKind.KindName = kindName
 	gsEntityKind.EntityID = entity.ID
 

@@ -29,11 +29,11 @@ func (a *Account) Login_OwnClient(username string, password string) {
 
 	vlog.Info("%s.Login %s %s", a, username, password)
 	if password != "123456" {
-		a.Entity.CallClient("OnLogin", false)
+		a.GSEntity.CallClient("OnLogin", false)
 		return
 	}
 
-	a.Entity.CallClient("OnLogin", true) // tell client that login ok
+	a.GSEntity.CallClient("OnLogin", true) // tell client that login ok
 
 	// get avatar id from kvdb
 	var avatarID GSEntityID
@@ -53,7 +53,7 @@ func (a *Account) Login_OwnClient(username string, password string) {
 	LoadGSEntity("Avatar", avatarID)
 	a.loginingAvatarID = avatarID
 
-	a.Entity.AddCallback(time.Second, func() {
+	a.GSEntity.AddCallback(time.Second, func() {
 		a.onLoadAvatarComplete()
 	})
 
@@ -72,13 +72,13 @@ func (a *Account) onLoadAvatarComplete() {
 	// called from some callback
 	vlog.Info("%s.onLoadAvatarComplete ..,", a)
 
-	a.Entity.MigrateTowards(a.loginingAvatarID)
+	a.GSEntity.MigrateTowards(a.loginingAvatarID)
 
 }
 
 func (a *Account) onAvatarReadyLocally(avatarID GSEntityID) {
-	a.Entity.GiveClientTo(avatarID)
-	a.Entity.Destroy()
+	a.GSEntity.GiveClientTo(avatarID)
+	a.GSEntity.Destroy()
 }
 
 func (a *Account) OnEnterSpace() {
@@ -91,7 +91,7 @@ func (a *Account) OnEnterSpace() {
 	if avatarID.GetLocalGSEntity() == nil {
 		// avatar not found, ...
 		vlog.Warn("%s.OnEnterSpace: avatar %s not found on local server, login failed", a, avatarID)
-		a.Entity.Destroy()
+		a.GSEntity.Destroy()
 		return
 	}
 

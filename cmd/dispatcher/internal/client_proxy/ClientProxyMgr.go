@@ -113,6 +113,12 @@ func getStringCtrl(stringID string) (ret *StringCtrl) {
 	return
 }
 
+func deleteStringCtrl(stringID string) {
+	stringCtrlsLock.Lock()
+	delete(stringCtrls, stringID)
+	stringCtrlsLock.Unlock()
+}
+
 func setStringLocationMigrating(stringID string, serverID int, migrating bool) {
 	ctrl := getStringCtrl(stringID)
 	ctrl.Lock()

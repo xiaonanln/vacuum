@@ -258,6 +258,7 @@ func (cp *ClientProxy) handleStringDelReq(msg *Message, pktSize uint32, data []b
 		return err
 	}
 	vlog.Debug("%s.handleStringDelReq %T %v", cp, req, req)
+	deleteStringCtrl(req.StringID)
 
 	return sendRawPacketToAllClientProxies(msg[:pktSize])
 }

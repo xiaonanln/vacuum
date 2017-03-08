@@ -181,6 +181,7 @@ migrating_wait_notify:
 	return
 }
 
+// TODO: consider using dispatcher for service maintaince
 // DeclareService: declare that the specified String provides specified service
 func DeclareService(sid string, serviceName string) {
 	dispatcher_client.SendDeclareServiceReq(sid, serviceName)

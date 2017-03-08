@@ -156,6 +156,7 @@ func CreateEntityLocally(typeName string, args ...interface{}) EntityID {
 	return EntityID(stringID)
 }
 
+// TODO: load entity fail if entity was loaded and destroyed
 func LoadEntity(typeName string, entityID EntityID, args ...interface{}) {
 	stringArgs := prependTypeNameToArgs(typeName, args)
 	vacuum.LoadString(ENTITY_STRING_NAME, string(entityID), stringArgs...)
