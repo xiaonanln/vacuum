@@ -75,18 +75,17 @@ func (entity *GSEntity) Init() {
 	var space *GSSpace
 	if spaceID != "" {
 		space = spaceID.getLocalSpace()
-	} else {
+	}
+	if space == nil {
 		space = GetNilSpace()
 	}
 
-	vlog.Debug("%s.Init: space=%s, pos=%s", entity, space, entity.Pos)
-	if space == nil {
-		// how can space be destroy
-		entity.I.Destroy()
-		return
-	}
-
+	vlog.Debug("%s.Init: spaceID=%s, space=%s, pos=%s", entity, spaceID, space, entity.Pos)
 	entity.space = space
+}
+
+func (entity *GSEntity) OnReady() {
+	space := entity.space
 
 	space.Lock()
 	space.onEntityCreated(entity)
@@ -187,6 +186,7 @@ func (entity *GSEntity) Destroy() {
 	entity.Entity.Destroy()
 }
 
+// TODO: think how should GiveClientTo works, should it only support local entity ?
 // Give client to another entity
 func (entity *GSEntity) GiveClientTo(otherID GSEntityID) {
 	client := entity.client

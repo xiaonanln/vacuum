@@ -24,7 +24,8 @@ Vacuum - Distributed computing using Strings - written in Go Programming Languag
     * Entity Attributes
     * AOI
     * Space
-    
+
+* Make Vacuum Server Fail-Safe
 * Reliable Messaging
 * Recovering from String Storage failure - infinite retry
 * Support multi-dispatchers

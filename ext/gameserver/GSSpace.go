@@ -53,7 +53,9 @@ func (space *GSSpace) Init() {
 		nilSpace = space
 		vlog.Info("Nil space is set to: %s", nilSpace)
 	}
+}
 
+func (space *GSSpace) OnReady() {
 	spaceDelegate.OnReady(space)
 }
 

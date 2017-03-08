@@ -48,6 +48,7 @@ type RegisterVacuumServerResp struct {
 
 type StringMessageRelay struct {
 	//StringID string      `msgpack:"ID"`
+	Tag uint        `msgpack:"T"`
 	Msg interface{} `msgpack:"M"`
 }
 

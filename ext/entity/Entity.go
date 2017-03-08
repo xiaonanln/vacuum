@@ -7,6 +7,8 @@ import (
 
 	"sync"
 
+	"time"
+
 	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum"
 	"github.com/xiaonanln/vacuum/common"
@@ -49,6 +51,7 @@ func getEntity(id EntityID) (ret IEntity) {
 type IEntity interface {
 	//ID() EntityID
 	Init()
+	OnReady() // called when ready
 	Destroy() // destroy the entity
 
 	OnMigrateIn(extra map[string]interface{})
@@ -100,6 +103,10 @@ func (e *Entity) Save() {
 
 func (e *Entity) Args() []interface{} {
 	return e.S.Args()[1:]
+}
+
+func (e *Entity) AddCallback(d time.Duration, callback func()) {
+	e.S.AddCallback(d, callback)
 }
 
 //
@@ -184,6 +191,10 @@ func (es *entityString) Init() {
 	vlog.Debug("Creating entity %s: %v %v", typeName, entityTyp, es.entityPtrVal)
 
 	baseEntity.I.Init()
+}
+
+func (es *entityString) OnReady() {
+	es.entity.OnReady()
 }
 
 func (es *entityString) OnMigrateIn(extra map[string]interface{}) {

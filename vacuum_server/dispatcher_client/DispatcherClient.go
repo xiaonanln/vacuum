@@ -13,7 +13,7 @@ type DispatcherRespHandler interface {
 	HandleDispatcherResp_CreateString(name string, stringID string, args []interface{})
 	HandleDispatcherResp_LoadString(name string, stringID string, args []interface{})
 	HandleDispatcherResp_DeclareService(stringID string, serviceName string)
-	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage)
+	HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage, tag uint)
 	HandleDispatcherResp_CloseString(stringID string)
 	HandleDispatcherResp_DelString(stringID string)
 	HandleDispatcherResp_OnMigrateString(name string, stringID string, initArgs []interface{}, data map[string]interface{}, extraMigrateInfo map[string]interface{})
@@ -41,8 +41,9 @@ func (dc *DispatcherClient) RegisterVacuumServer(serverID int) error {
 	return dc.SendMsg(REGISTER_VACUUM_SERVER_REQ, &req)
 }
 
-func (dc *DispatcherClient) SendStringMessage(stringID string, msg interface{}) error {
+func (dc *DispatcherClient) SendStringMessage(stringID string, msg interface{}, tag uint) error {
 	req := StringMessageRelay{
+		Tag: tag,
 		Msg: msg,
 	}
 	return dc.SendRelayMsg(stringID, STRING_MESSAGE_RELAY, &req)
@@ -175,7 +176,7 @@ func (dc *DispatcherClient) handleSendStringRelay(targetID string, payload []byt
 		return err
 	}
 
-	dispatcherRespHandler.HandleDispatcherResp_SendStringMessage(targetID, pkt.Msg)
+	dispatcherRespHandler.HandleDispatcherResp_SendStringMessage(targetID, pkt.Msg, pkt.Tag)
 	return nil
 }
 

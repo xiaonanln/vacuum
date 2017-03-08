@@ -9,6 +9,16 @@ import (
 	"github.com/xiaonanln/vacuum/vlog"
 )
 
+const (
+	_MSG_TAG_NORMAL   = 0
+	_MSG_TAG_CALLFUNC = 1
+)
+
+type _TaggedMsg struct {
+	msg common.StringMessage
+	tag uint
+}
+
 // OnXxxXxxx functions are called from dispatcher client and there is only
 // one dispatcher client, so there is no concurrency problem in these functions
 
@@ -33,18 +43,18 @@ func LoadString(name string, stringID string, args ...interface{}) {
 
 // OnCreateString: called when dispatcher sends create string resp
 func OnCreateString(name string, stringID string, args []interface{}) {
-	createString(name, stringID, args, CREATE_NEW, nil, nil)
+	createString(name, stringID, args, _CREATE_NEW, nil, nil)
 }
 
 func OnLoadString(name string, stringID string, args []interface{}) {
 	vlog.Debug("OnLoadString: name=%s, stringID=%s, args=%v", name, stringID, args)
-	createString(name, stringID, args, CREATE_LOAD, nil, nil)
+	createString(name, stringID, args, _CREATE_LOAD, nil, nil)
 }
 
 const ( // different ways of create string
-	CREATE_NEW     = iota + 1
-	CREATE_LOAD    = iota + 1
-	CREATE_MIGRATE = iota + 1
+	_CREATE_NEW     = iota + 1
+	_CREATE_LOAD    = iota + 1
+	_CREATE_MIGRATE = iota + 1
 )
 
 func createString(name string, stringID string, args []interface{}, createWay int, migrateData map[string]interface{}, extraMigrateInfo map[string]interface{}) {
@@ -70,7 +80,7 @@ func stringRoutine(s *String, createWay int, migrateData map[string]interface{},
 
 	is.Init()
 
-	if createWay == CREATE_LOAD { // loading string from storage ...
+	if createWay == _CREATE_LOAD { // loading string from storage ...
 		data, err := stringStorage.Read(s.Name, s.ID)
 		if err != nil {
 			// load string failed..
@@ -79,7 +89,7 @@ func stringRoutine(s *String, createWay int, migrateData map[string]interface{},
 		if data != nil {
 			is.LoadPersistentData(data.(map[string]interface{}))
 		}
-	} else if createWay == CREATE_MIGRATE { // migrated from from other server ...
+	} else if createWay == _CREATE_MIGRATE { // migrated from from other server ...
 		is.LoadPersistentData(migrateData)
 		is.OnMigrateIn(extraMigrateInfo)
 	} else { // creating new string
@@ -88,22 +98,28 @@ func stringRoutine(s *String, createWay int, migrateData map[string]interface{},
 		}
 	}
 
+	is.OnReady()
+
 	for {
 		if s.HasFlag(SS_MIGRATING) {
 			goto migrating_wait_notify
 		}
 
-		msg := s.inputQueue.Pop()
-		if msg != nil {
-			is.Loop(msg)
-		} else {
-			s.SetFlag(SS_FINIALIZING)
-			goto finialize_string
+		msg := s.inputQueue.Pop().(_TaggedMsg)
+		if msg.tag == _MSG_TAG_NORMAL {
+			if msg.msg != nil {
+				is.Loop(msg.msg)
+			} else {
+				s.SetFlag(SS_FINIALIZING)
+				break
+			}
+		} else if msg.tag == _MSG_TAG_CALLFUNC {
+			msg.msg.(func())()
 		}
-
 	}
 
 finialize_string:
+	vlog.Debug("%s#finialize_string ...", s)
 	if s.HasFlag(SS_MIGRATING) {
 		vlog.Debug("%s: string migrated ignored because it's finializing", s)
 	}
@@ -119,23 +135,30 @@ finialize_string:
 	return
 
 migrating_wait_notify:
-	vlog.Debug("%s: Waiting for StartMigrateStringResp from dispatcher ...", s)
+	vlog.Debug("%s#migrating_wait_notify: Waiting for StartMigrateStringResp from dispatcher ...", s)
 	<-s.migrateNotify
 	vlog.Debug("%s: StartMigrateStringResp OK", s)
 	// process all pending messages
-migrating_read_loop:
+
+	// TODO: make strings panic safe
 	for {
-		msg, ok := s.inputQueue.TryPop()
+		_msg, ok := s.inputQueue.TryPop()
 		if ok {
-			if msg != nil {
-				is.Loop(msg)
-			} else {
-				s.SetFlag(SS_FINIALIZING)
-				break migrating_read_loop
+			msg := _msg.(_TaggedMsg)
+			if msg.tag == _MSG_TAG_NORMAL {
+				if msg.msg != nil {
+					is.Loop(msg.msg)
+				} else {
+					s.SetFlag(SS_FINIALIZING)
+					break
+				}
+			} else if msg.tag == _MSG_TAG_CALLFUNC {
+				msg.msg.(func())()
 			}
+
 		} else {
 			// no more messages, now we can quit
-			break migrating_read_loop
+			break
 		}
 	}
 	// all messages are processed, now we can start migrate or quit
@@ -167,14 +190,15 @@ func OnDeclareService(stringID string, serviceName string) {
 	declareService(stringID, serviceName)
 }
 
-func OnSendStringMessage(stringID string, msg common.StringMessage) {
+func OnSendStringMessage(stringID string, msg common.StringMessage, tag uint) {
 	s := getString(stringID)
-	vlog.Debug("vacuum: OnSendStringMessage: %s: %s => %v", stringID, s, msg)
+	vlog.Debug("vacuum: OnSendStringMessage: %s: %s => %v, TAG %v", stringID, s, msg, tag)
 	if s == nil {
 		vlog.TraceError("String %s not found while receiving message: %v", stringID, msg)
 		return
 	}
-	s.inputQueue.Push(msg)
+
+	s.inputQueue.Push(_TaggedMsg{msg, tag})
 }
 
 //// Close specified string

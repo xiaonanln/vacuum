@@ -70,8 +70,8 @@ func (rh DispatcherRespHandler) HandleDispatcherResp_DeclareService(stringID str
 	vacuum.OnDeclareService(stringID, serviceName)
 }
 
-func (rh DispatcherRespHandler) HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage) {
-	vacuum.OnSendStringMessage(stringID, msg)
+func (rh DispatcherRespHandler) HandleDispatcherResp_SendStringMessage(stringID string, msg common.StringMessage, tag uint) {
+	vacuum.OnSendStringMessage(stringID, msg, tag)
 }
 
 func (rh DispatcherRespHandler) HandleDispatcherResp_CloseString(stringID string) {

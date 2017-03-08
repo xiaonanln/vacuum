@@ -84,8 +84,8 @@ func Initialize(_serverID int, h DispatcherRespHandler) {
 	go netutil.ServeForever(serveDispatcherClient)
 }
 
-func SendStringMessage(stringID string, msg common.StringMessage) error {
-	return getDispatcherClientForSend().SendStringMessage(stringID, msg)
+func SendStringMessage(stringID string, msg common.StringMessage, tag uint) error {
+	return getDispatcherClientForSend().SendStringMessage(stringID, msg, tag)
 }
 
 func SendCreateStringReq(name string, stringID string, args []interface{}) error {

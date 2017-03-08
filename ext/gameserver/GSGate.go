@@ -44,12 +44,14 @@ func (gate *GSGate) Init() {
 
 	// initialize clients
 	gate.clients = map[GSClientID]*GSClient{}
+}
 
+func (gate *GSGate) OnReady() {
+	// start goroutine to serve clients
 	gateIndex := typeconv.Int(gate.Args()[0])
 	port := typeconv.Int(gate.Args()[1])
 	vlog.Debug("Initializing gate %v port %v: %s ...", gateIndex, port, gate)
 
-	// start goroutine to serve clients
 	serveAddr := fmt.Sprintf(":%d", port)
 	go netutil.ServeTCPForever(serveAddr, gate)
 }

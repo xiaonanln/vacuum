@@ -7,7 +7,10 @@ import (
 
 	"sync/atomic"
 
+	"time"
+
 	"github.com/xiaonanln/goSyncQueue"
+	"github.com/xiaonanln/goTimer"
 	. "github.com/xiaonanln/vacuum/common"
 	"github.com/xiaonanln/vacuum/vacuum_server/dispatcher_client"
 	"github.com/xiaonanln/vacuum/vlog"
@@ -20,6 +23,7 @@ const (
 
 type IString interface {
 	Init()
+	OnReady()
 	Loop(msg StringMessage)
 	Fini()
 
@@ -64,6 +68,10 @@ func (s *String) Init() {
 
 func (s *String) Fini() {
 	vlog.Debug("%s.Fini ...", s)
+}
+
+func (s *String) OnReady() {
+	vlog.Debug("%s.OnReady ...", s)
 }
 
 func (s *String) OnMigrateIn(extraInfo map[string]interface{}) {
@@ -128,6 +136,12 @@ func (s *String) flags() uint64 {
 	return atomic.LoadUint64(&s._flags)
 }
 
+func (s *String) AddCallback(d time.Duration, callback func()) {
+	timer.AddCallback(d, func() {
+		s.inputQueue.Push(_TaggedMsg{callback, _MSG_TAG_CALLFUNC})
+	})
+}
+
 //func (s *String) Read() StringMessage {
 //	return <-s.inputChan
 //}
@@ -168,7 +182,7 @@ func Send(stringID string, msg interface{}) {
 	}
 
 	vlog.Debug(">>> SEND %s: %v", stringID, msg)
-	dispatcher_client.SendStringMessage(stringID, msg)
+	dispatcher_client.SendStringMessage(stringID, msg, 0)
 }
 
 func SendToService(serviceName string, msg StringMessage) {

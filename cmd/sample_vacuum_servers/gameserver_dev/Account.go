@@ -5,7 +5,7 @@ import (
 
 	"time"
 
-	"github.com/xiaonanln/goTimer"
+	"github.com/xiaonanln/typeconv"
 	"github.com/xiaonanln/vacuum/cmd/sample_vacuum_servers/gameserver_dev/kvdb"
 	. "github.com/xiaonanln/vacuum/ext/gameserver"
 	"github.com/xiaonanln/vacuum/vlog"
@@ -14,7 +14,7 @@ import (
 func init() {
 	bootCount, _ := strconv.Atoi(kvdb.Get("bootCount", "0"))
 	bootCount += 1
-	vlog.Debug("BOOT COUNT: %d", bootCount)
+	vlog.Info("BOOT COUNT: %d", bootCount)
 	kvdb.Set("bootCount", strconv.Itoa(bootCount))
 
 }
@@ -41,7 +41,7 @@ func (a *Account) Login_OwnClient(username string, password string) {
 	if avatarID == "" {
 		// new account
 		avatarID = CreateGSEntityLocally("Avatar")
-		vlog.Debug("%s.Login: create Avatar %s", a, avatarID)
+		vlog.Info("%s.Login: create Avatar %s", a, avatarID)
 		kvdb.Set("AvatarID-"+username, string(avatarID))
 		a.loginingAvatarID = avatarID
 
@@ -49,20 +49,31 @@ func (a *Account) Login_OwnClient(username string, password string) {
 		return
 	}
 
-	vlog.Debug("%s.Login: loading avatar %s ...", a, avatarID)
+	vlog.Info("%s.Login: loading avatar %s ...", a, avatarID)
 	LoadGSEntity("Avatar", avatarID)
 	a.loginingAvatarID = avatarID
 
-	timer.AddCallback(time.Second, func() {
+	a.Entity.AddCallback(time.Second, func() {
 		a.onLoadAvatarComplete()
 	})
 
 }
 
+func (a *Account) OnMigrateOut(extra map[string]interface{}) {
+	extra["loginingAvatarID"] = a.loginingAvatarID
+}
+
+func (a *Account) OnMigrateIn(extra map[string]interface{}) {
+	vlog.Info("Account.OnMigrateIn: %v", extra)
+	a.loginingAvatarID = GSEntityID(typeconv.String(extra["loginingAvatarID"]))
+}
+
 func (a *Account) onLoadAvatarComplete() {
-	vlog.Debug("%s.onLoadAvatarComplete ..,", a)
+	// called from some callback
+	vlog.Info("%s.onLoadAvatarComplete ..,", a)
 
 	a.Entity.MigrateTowards(a.loginingAvatarID)
+
 }
 
 func (a *Account) onAvatarReadyLocally(avatarID GSEntityID) {
@@ -72,7 +83,7 @@ func (a *Account) onAvatarReadyLocally(avatarID GSEntityID) {
 
 func (a *Account) OnEnterSpace() {
 	avatarID := a.loginingAvatarID
-	vlog.Debug("%s.OnEnterSpace: login avatar = %s", a, avatarID)
+	vlog.Info("%s.OnEnterSpace: login avatar = %s", a, avatarID)
 	if avatarID == "" {
 		return
 	}
