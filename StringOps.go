@@ -194,7 +194,7 @@ func OnSendStringMessage(stringID string, msg common.StringMessage, tag uint) {
 	s := getString(stringID)
 	vlog.Debug("vacuum: OnSendStringMessage: %s: %s => %v, TAG %v", stringID, s, msg, tag)
 	if s == nil {
-		vlog.TraceError("String %s not found while receiving message: %v", stringID, msg)
+		vlog.Warn("String %s not found while receiving message: %v", stringID, msg)
 		return
 	}
 

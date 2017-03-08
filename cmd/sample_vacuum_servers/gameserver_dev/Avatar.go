@@ -14,7 +14,7 @@ type Avatar struct {
 
 // called when client logined
 func (a *Avatar) OnGetClient() {
-	vlog.Debug("%s GOT CLIENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", a)
+	vlog.Info("%s GOT CLIENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", a)
 
 	space := spaceManager.GetSpace(1)
 	a.Entity.EnterSpace(space)
@@ -22,4 +22,8 @@ func (a *Avatar) OnGetClient() {
 		a.Entity.Destroy()
 	})
 	//a.Entity.Migrate(vacuum_server.ServerID())
+}
+
+func (a *Avatar) OnLoseClient() {
+	vlog.Info("%s LOSE CLIENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", a)
 }
