@@ -53,7 +53,7 @@ func (kind *GSEntityKind) OnLoseClient() {
 }
 
 func (kind *GSEntityKind) OnEnterSpace() {
-	vlog.Debug("%s.OnEnterSpace: %s", kind, kind.GSEntity.space)
+	vlog.Debug("%s.OnEnterSpace: %s", kind, kind.GSEntity.Space)
 }
 
 func (kind *GSEntityKind) OnLeaveSpace() {
@@ -69,9 +69,6 @@ func (kind *GSEntityKind) OnMigrateIn(extra map[string]interface{}) {
 }
 
 // SHORTCUTS TO ENTITY FUNCTIONALITIES
-func (kind *GSEntityKind) Space() *GSSpace {
-	return kind.GSEntity.space
-}
 
 func RegisterGSEntityKind(kindName string, entityKindPtr IGSEntityKind) {
 	if _, ok := registeredEntityKinds[kindName]; ok {

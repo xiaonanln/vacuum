@@ -39,22 +39,24 @@ type GSEntity struct {
 	entity.Entity
 	aoi      AOI
 	ID       GSEntityID
-	space    *GSSpace
+	Space    *GSSpace
 	KindName string
 	kindVal  reflect.Value
 	Kind     IGSEntityKind
 	Pos      Vec3
 	client   *GSClientProxy
+
+	enteringSpaceID GSSpaceID
 }
 
-func (entity *GSEntity) String() string {
-	return fmt.Sprintf("%s<%s>", entity.KindName, entity.ID)
+func (ge *GSEntity) String() string {
+	return fmt.Sprintf("%s<%s>", ge.KindName, ge.ID)
 }
 
-func (entity *GSEntity) Init() {
-	entity.ID = GSEntityID(entity.Entity.ID)
+func (ge *GSEntity) Init() {
+	ge.ID = GSEntityID(ge.Entity.ID)
 
-	args := entity.Args()
+	args := ge.Args()
 
 	entityKind := typeconv.String(args[0])
 	spaceID := GSSpaceID(typeconv.String(args[1]))
@@ -64,15 +66,15 @@ func (entity *GSEntity) Init() {
 	y = typeconv.Convert(args[3], reflect.TypeOf(y)).Interface().(Len_t)
 	z = typeconv.Convert(args[4], reflect.TypeOf(z)).Interface().(Len_t)
 
-	entity.KindName = entityKind
-	entity.kindVal = createGSEntityKind(entity, entityKind)
-	entity.Kind = entity.kindVal.Interface().(IGSEntityKind)
-	entity.Kind.Init()
+	ge.KindName = entityKind
+	ge.kindVal = createGSEntityKind(ge, entityKind)
+	ge.Kind = ge.kindVal.Interface().(IGSEntityKind)
+	ge.Kind.Init()
 
-	entity.aoi.init()
-	entity.Pos.Assign(x, y, z)
+	ge.aoi.init()
+	ge.Pos.Assign(x, y, z)
 
-	var space *GSSpace
+	var space *GSSpace // FIXME: should I always set space to nilSpace here ?
 	if spaceID != "" {
 		space = spaceID.getLocalSpace()
 	}
@@ -80,95 +82,97 @@ func (entity *GSEntity) Init() {
 		space = GetNilSpace()
 	}
 
-	vlog.Debug("%s.Init: spaceID=%s, space=%s, pos=%s", entity, spaceID, space, entity.Pos)
-	entity.space = space
+	vlog.Debug("%s.Init: spaceID=%s, space=%s, pos=%s", ge, spaceID, space, ge.Pos)
+	ge.Space = space
 }
 
-func (entity *GSEntity) OnReady() {
-	space := entity.space
+func (ge *GSEntity) OnReady() {
+	space := ge.Space
 
 	space.Lock()
-	space.onEntityCreated(entity)
+	space.onEntityCreated(ge)
 	space.Unlock()
 
-	entity.Kind.OnEnterSpace()
+	ge.Kind.OnEnterSpace()
 }
 
-func (entity *GSEntity) EnterSpace(spaceID GSSpaceID) {
-
+func (ge *GSEntity) EnterSpace(spaceID GSSpaceID) {
+	// FIXME: do not migrate if target entity is local
+	ge.enteringSpaceID = spaceID
+	ge.Entity.MigrateTowards(entity.EntityID(spaceID))
 }
 
-func (entity *GSEntity) checkAOI(other *GSEntity) {
-	if entity.aoi.sightDistance <= 0 { // AOI disabled, sees nothing
-		if entity.aoi.InRange(other) {
-			entity.onLeaveAOI(other)
-			vlog.Debug("%s MISS %s.", entity, other)
+func (ge *GSEntity) checkAOI(other *GSEntity) {
+	if ge.aoi.sightDistance <= 0 { // AOI disabled, sees nothing
+		if ge.aoi.InRange(other) {
+			ge.onLeaveAOI(other)
+			vlog.Debug("%s MISS %s.", ge, other)
 		}
 	}
 
-	dist := entity.DistanceTo(other)
-	if dist < entity.aoi.sightDistance { // use < so that if AOI sightDistance is 0, entity sees nobody
-		if !entity.aoi.InRange(other) {
-			entity.onEnterAOI(other)
-			vlog.Debug("%s SEES %s!", entity, other)
+	dist := ge.DistanceTo(other)
+	if dist < ge.aoi.sightDistance { // use < so that if AOI sightDistance is 0, entity sees nobody
+		if !ge.aoi.InRange(other) {
+			ge.onEnterAOI(other)
+			vlog.Debug("%s SEES %s!", ge, other)
 		}
 	} else {
-		if entity.aoi.InRange(other) {
-			entity.onLeaveAOI(other)
-			vlog.Debug("%s MISS %s.", entity, other)
+		if ge.aoi.InRange(other) {
+			ge.onLeaveAOI(other)
+			vlog.Debug("%s MISS %s.", ge, other)
 
 		}
 	}
 }
 
-func (entity *GSEntity) onEnterAOI(other *GSEntity) {
-	entity.aoi.Add(other)
+func (ge *GSEntity) onEnterAOI(other *GSEntity) {
+	ge.aoi.Add(other)
 }
 
-func (entity *GSEntity) onLeaveAOI(other *GSEntity) {
-	entity.aoi.Remove(other)
+func (ge *GSEntity) onLeaveAOI(other *GSEntity) {
+	ge.aoi.Remove(other)
 }
 
-func (entity *GSEntity) DistanceTo(other *GSEntity) Len_t {
-	return entity.Pos.DistanceTo(other.Pos)
+func (ge *GSEntity) DistanceTo(other *GSEntity) Len_t {
+	return ge.Pos.DistanceTo(other.Pos)
 }
 
-func (entity *GSEntity) SetAOIDistance(dist Len_t) {
+func (ge *GSEntity) SetAOIDistance(dist Len_t) {
 	if dist < 0 {
 		vlog.Panicf("SetAOIDistance: AOI distance should be positive, not %v", dist)
 	}
 
-	entity.aoi.sightDistance = dist
-	if entity.space.Kind > 0 {
-		for otherEntity, _ := range entity.space.entities { // check all entities in space for AOI
-			if otherEntity != entity {
-				entity.checkAOI(otherEntity)
+	ge.aoi.sightDistance = dist
+	if ge.Space.Kind > 0 {
+		for otherEntity, _ := range ge.Space.entities { // check all entities in space for AOI
+			if otherEntity != ge {
+				ge.checkAOI(otherEntity)
 			}
 		}
 	}
 }
 
-func (entity *GSEntity) SetPos(pos Vec3) {
-	vlog.Debug("%s.SetPos %s", entity, pos)
-	entity.Pos = pos
-	space := entity.space
+func (ge *GSEntity) SetPos(pos Vec3) {
+	vlog.Debug("%s.SetPos %s", ge, pos)
+	ge.Pos = pos
+	space := ge.Space
 
 	if space.Kind > 0 {
 		// position changed, recheck AOI!
-		aoidist := entity.aoi.sightDistance
+		aoidist := ge.aoi.sightDistance
 		for other, _ := range space.entities {
-			if other != entity {
-				other.checkAOI(entity)
+			if other != ge {
+				other.checkAOI(ge)
 				if aoidist > 0 {
-					entity.checkAOI(other)
+					ge.checkAOI(other)
 				}
 			}
 		}
 	}
 }
 
-func (entity *GSEntity) AOIEntities() GSEntitySet {
-	return entity.aoi.entities
+func (ge *GSEntity) AOIEntities() GSEntitySet {
+	return ge.aoi.entities
 }
 
 //func CreateGSEntity(kind int, spaceID SpaceID, pos Vec3) GSEntityID {
@@ -188,32 +192,32 @@ func (entity *GSEntity) Destroy() {
 
 // TODO: think how should GiveClientTo works, should it only support local entity ?
 // Give client to another entity
-func (entity *GSEntity) GiveClientTo(otherID GSEntityID) {
-	client := entity.client
+func (ge *GSEntity) GiveClientTo(otherID GSEntityID) {
+	client := ge.client
 	if client == nil {
-		vlog.Warn("%s.GiveClientTo %s: has no client", entity, otherID)
+		vlog.Warn("%s.GiveClientTo %s: has no client", ge, otherID)
 		return
 	}
 
-	entity.client = nil
+	ge.client = nil
 	// Tell the client to change owner
-	client.notifyChangeOwner(entity.ID, otherID, "Avatar")
+	client.notifyChangeOwner(ge.ID, otherID, "Avatar")
 
-	entity.Kind.OnLoseClient()
+	ge.Kind.OnLoseClient()
 }
 
-func (entity *GSEntity) CallClient(methodName string, args ...interface{}) {
-	if entity.client == nil {
-		vlog.Debug("%s.CallClient: %s: client is nil", entity, methodName)
+func (ge *GSEntity) CallClient(methodName string, args ...interface{}) {
+	if ge.client == nil {
+		vlog.Debug("%s.CallClient: %s: client is nil", ge, methodName)
 		return
 	}
 
-	entity.client.callClient(entity.ID, methodName, args)
+	ge.client.callClient(ge.ID, methodName, args)
 }
 
-func (entity *GSEntity) CallGSRPC_OwnClient(methodName string, args []interface{}) {
+func (ge *GSEntity) CallGSRPC_OwnClient(methodName string, args []interface{}) {
 	methodName = methodName + "_OwnClient"
-	method := entity.kindVal.MethodByName(methodName)
+	method := ge.kindVal.MethodByName(methodName)
 	vlog.Debug("CallGSRPC_OwnClient: method=%s(%v), args=%v", methodName, method, args)
 	methodType := method.Type()
 
@@ -226,53 +230,65 @@ func (entity *GSEntity) CallGSRPC_OwnClient(methodName string, args []interface{
 	method.Call(in)
 }
 
-func (entity *GSEntity) NotifyGetClient(gateID GSGateID, clientID GSClientID) {
+func (ge *GSEntity) NotifyGetClient(gateID GSGateID, clientID GSClientID) {
 	client := newGSClientProxy(gateID, clientID)
-	vlog.Debug("%s.NotifyGetClient: %s", entity, client)
+	vlog.Debug("%s.NotifyGetClient: %s", ge, client)
 
-	if entity.client != nil {
+	if ge.client != nil {
 		// entity already has client, fail
-		vlog.Panicf("%s.NotifyGetClient: new client %s, already has client %s", entity, client, entity.client)
+		vlog.Panicf("%s.NotifyGetClient: new client %s, already has client %s", ge, client, ge.client)
 	}
 
-	entity.client = client
-	entity.Kind.OnGetClient()
+	ge.client = client
+	ge.Kind.OnGetClient()
 }
 
-func (entity *GSEntity) NotifyLoseClient(gateID GSGateID, clientID GSClientID) {
-	vlog.Debug("%s.NotifyLoseClient: lose client %s@%s", entity, clientID, gateID)
+func (ge *GSEntity) NotifyLoseClient(gateID GSGateID, clientID GSClientID) {
+	vlog.Debug("%s.NotifyLoseClient: lose client %s@%s", ge, clientID, gateID)
 
-	if entity.client == nil || entity.client.ClientID != clientID {
-		vlog.Warn("%s.NotifyLoseClient: has client %s, but lose client %s", entity, entity.client, clientID)
+	if ge.client == nil || ge.client.ClientID != clientID {
+		vlog.Warn("%s.NotifyLoseClient: has client %s, but lose client %s", ge, ge.client, clientID)
 		return
 	}
 
-	entity.client = nil
-	entity.Kind.OnLoseClient()
+	ge.client = nil
+	ge.Kind.OnLoseClient()
 }
 
-func (entity *GSEntity) OnMigrateOut(extra map[string]interface{}) {
-	extra["C"] = entity.client.getClientProxyData()
+func (ge *GSEntity) OnMigrateOut(extra map[string]interface{}) {
+	extra["C"] = ge.client.getClientProxyData()
+	extra["ES"] = ge.enteringSpaceID
 	kindExtra := map[string]interface{}{}
-	entity.Kind.OnMigrateOut(kindExtra)
+	ge.Kind.OnMigrateOut(kindExtra)
 	extra["K"] = kindExtra
 }
 
-func (entity *GSEntity) OnMigrateIn(extra map[string]interface{}) {
+func (ge *GSEntity) OnMigrateIn(extra map[string]interface{}) {
 	clientProxyData := extra["C"]
 	if clientProxyData != nil {
 		client := &GSClientProxy{}
 		client.setClientProxyData(clientProxyData)
-		entity.client = client // just store client, do not call OnGetClient
+		ge.client = client // just store client, do not call OnGetClient
+	}
+	enteringSpaceID := GSSpaceID(extra["ES"].(string))
+	if enteringSpaceID != "" {
+		// entity entering space
+		space := enteringSpaceID.getLocalSpace()
+		if space != nil {
+			ge.Space = space
+		} else {
+			// space not found ?
+			vlog.Warn("%s.OnMigrateIn: entering space %s, but not found on local server", ge, enteringSpaceID)
+		}
 	}
 
 	kindExtra := extra["K"]
-	entity.Kind.OnMigrateIn(typeconv.MapStringAnything(kindExtra))
+	ge.Kind.OnMigrateIn(typeconv.MapStringAnything(kindExtra))
 }
 
-func (e *GSEntity) MigrateTowards(otherID GSEntityID) {
+func (ge *GSEntity) MigrateTowards(otherID GSEntityID) {
 	vlog.Debug("MigrateTowards %s", otherID)
-	e.Entity.MigrateTowards(entity.EntityID(otherID))
+	ge.Entity.MigrateTowards(entity.EntityID(otherID))
 }
 
 func CreateGSEntity(kindName string) GSEntityID {

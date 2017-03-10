@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	. "github.com/xiaonanln/vacuum/ext/gameserver"
 	"github.com/xiaonanln/vacuum/vlog"
 )
@@ -17,10 +15,6 @@ func (a *Avatar) OnGetClient() {
 
 	space := spaceManager.GetSpace(1)
 	a.EnterSpace(space)
-	a.AddCallback(time.Second*5, func() {
-		a.Destroy()
-	})
-	//a.Entity.Migrate(vacuum_server.ServerID())
 }
 
 func (a *Avatar) OnDestroy() {
@@ -32,5 +26,5 @@ func (a *Avatar) OnLoseClient() {
 }
 
 func (a *Avatar) OnEnterSpace() {
-	vlog.Info("%s ENTER SPACE %s", a, a.Entity)
+	vlog.Info("%s ENTER SPACE %s", a, a.Space)
 }
