@@ -77,8 +77,12 @@ func (a *Account) onLoadAvatarComplete() {
 }
 
 func (a *Account) onAvatarReadyLocally(avatarID GSEntityID) {
-	a.GSEntity.GiveClientTo(avatarID)
-	a.GSEntity.Destroy()
+	a.GiveClientTo(avatarID)
+}
+
+func (a *Account) OnLoseClient() {
+	vlog.Info("%s DESTROYING ...", a)
+	a.Destroy()
 }
 
 func (a *Account) OnEnterSpace() {
