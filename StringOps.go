@@ -168,8 +168,7 @@ migrating_wait_notify:
 		goto finialize_string
 	}
 	// real migrate now!
-	delString(s.ID) // delete the string on local server
-	s.inputQueue.Close()
+	s.destroyString() // delete the string on local server
 
 	// get migrate data from string
 	extraMigrateInfo = map[string]interface{}{}
@@ -219,9 +218,8 @@ func OnCloseString(stringID string) {
 
 // Called after string quit its routine
 func onStringRoutineQuit(s *String) {
-	s.inputQueue.Close()
 	stringID := s.ID
-	delString(stringID) // delete the string on local server
+	s.destroyString() // delete the string on local server
 	dispatcher_client.SendStringDelReq(stringID)
 }
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	. "github.com/xiaonanln/vacuum/ext/gameserver"
 	"github.com/xiaonanln/vacuum/vlog"
 )
@@ -12,9 +14,18 @@ type Avatar struct {
 // called when client logined
 func (a *Avatar) OnGetClient() {
 	vlog.Info("%s GOT CLIENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", a)
-
-	space := spaceManager.GetSpace(1)
-	a.EnterSpace(space)
+	a.tryEnterSpace(1)
+}
+func (a *Avatar) tryEnterSpace(kind int) {
+	spaceID := spaceManager.GetSpace(kind)
+	if spaceID != "" {
+		a.EnterSpace(spaceID)
+	} else {
+		vlog.Info("%s.tryEnterSpace: Space %d is not ready, waiting ...", a, kind)
+		a.AddCallback(time.Millisecond*100, func() {
+			a.tryEnterSpace(kind) // retry
+		})
+	}
 }
 
 func (a *Avatar) OnDestroy() {
@@ -23,6 +34,7 @@ func (a *Avatar) OnDestroy() {
 
 func (a *Avatar) OnLoseClient() {
 	vlog.Info("%s LOSE CLIENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", a)
+	a.Destroy()
 }
 
 func (a *Avatar) OnEnterSpace() {

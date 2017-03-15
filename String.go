@@ -9,6 +9,8 @@ import (
 
 	"time"
 
+	"sync"
+
 	"github.com/xiaonanln/goSyncQueue"
 	"github.com/xiaonanln/goTimer"
 	. "github.com/xiaonanln/vacuum/common"
@@ -53,6 +55,10 @@ type String struct {
 	migratingToServerID      int
 	migratingTowardsStringID string
 	migrateNotify            chan int
+
+	// timer management
+	timers     map[*timer.Timer]bool
+	timersLock sync.Mutex
 }
 
 func setupString(s *String, stringID string, name string, initArgs []interface{}) {
@@ -137,9 +143,12 @@ func (s *String) flags() uint64 {
 }
 
 func (s *String) AddCallback(d time.Duration, callback func()) {
-	timer.AddCallback(d, func() {
+	t := timer.AddCallback(d, func() {
+		vlog.Info("BEFORE INPUTQUEUE PUSH")
 		s.inputQueue.Push(_TaggedMsg{callback, _MSG_TAG_CALLFUNC})
+		vlog.Info("AFTER INPUTQUEUE PUSH")
 	})
+	s.timers[t] = true
 }
 
 //func (s *String) Read() StringMessage {
@@ -174,6 +183,17 @@ func (s *String) SendToService(serviceName string, msg StringMessage) {
 
 func (s *String) Yield() {
 	runtime.Gosched()
+}
+
+// Destroy string on local server
+func (s *String) destroyString() {
+	delString(s.ID) // delete the string on local server
+	s.inputQueue.Close()
+
+	// clear timers
+	for t, _ := range s.timers {
+
+	}
 }
 
 func Send(stringID string, msg interface{}) {
